@@ -1,0 +1,42 @@
+nav {
+    width: 120px;
+    height: 100%;
+    background-color: #0a2463;
+    position: fixed;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #ffffff;
+}
+
+nav h1 {
+    height: 20%;
+    min-height: 80px;
+    font-size: 20px;
+    text-align: center;
+}
+
+nav ul {
+    width: 100%;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav li {
+    margin: 0;
+    display: block;
+    font-size: 14px;
+    text-align: left;
+    padding: 5px 10px;
+    text-decoration: none;
+}
+
+nav .active {
+    background-color: #3e92cc;
+}
+
+nav li:hover:not(.active) {
+    background-color: #154ACC;
+}

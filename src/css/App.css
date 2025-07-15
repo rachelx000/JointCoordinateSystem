@@ -1,0 +1,23 @@
+html, body, #root {
+  background-color: #eaeaea;
+  color: #3c3744;
+  font-family: Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+main {
+  margin-left: 120px;
+  height: 99vh;      /* full viewport height */
+  display: flex;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+main div {
+  background-color: #ffffff;
+  border-radius: 5px;
+  margin: 5px;
+}

@@ -1,0 +1,455 @@
+import * as d3 from 'd3';
+
+// Global Data:
+const jcs_origin = [100, 70];
+let varnames;
+let coord_len, corner_len, axis_len;
+let coord_corner_data, axis_translation, axis_indicator_info;
+let left_scale, right_scale, top_scale, bottom_scale, color_scale;
+let polygons;
+let centroid_quadtree;
+
+// d3 Generators:
+let line_generator = d3.line().defined(function(d) {return d !== null; });
+
+function get_variable_names( data ){
+    varnames = [...new Set(data.flatMap(obj => Object.keys(obj)))];
+    // console.log("Variables of current data: ", varnames);
+}
+
+function get_min_and_max( data, varname ){
+    let min = Math.min(...data.map(data_entry => data_entry[varname]));
+    let max = Math.max(...data.map(data_entry => data_entry[varname]));
+    return [min, max];
+}
+
+function calculate_PCC( x_data, y_data ) {
+    let x_sum, y_sum, xy_sum, x2_sum, y2_sum, n, pearson_r;
+    x_data.length === y_data.length ? n = x_data.length : null;
+
+    if (n) {
+        y_sum = y_data.reduce((sum, val) => sum + val, 0);
+        y2_sum = y_data.reduce((sum, val) => sum + val * val, 0);
+        x_sum = x_data.reduce((sum, val) => sum + val, 0);
+        x2_sum = x_data.reduce((sum, val) => sum + val * val, 0);
+        xy_sum = x_data.reduce((sum, x_val, ind) => sum += (x_val * y_data[ind]), 0);
+        pearson_r = (n * xy_sum - x_sum * y_sum) / Math.sqrt((n * x2_sum - x_sum * x_sum) * (n * y2_sum - y_sum * y_sum));
+        return pearson_r;
+    }
+    else{
+        throw new Error("x_data and y_data have different lengths.")
+    }
+}
+
+function calculate_PCC_for_dataset( data ) {
+    let pcc_data = [];
+    let y_data = data.map(obj => parseFloat(obj[varnames[varnames.length-1]]));
+
+    for (let i = 0; i < varnames.length; i++ ) {
+        let x_data = data.map(obj => parseFloat(obj[varnames[i]]));
+        let curr_r = calculate_PCC( x_data, y_data );
+        pcc_data.push(curr_r);
+    }
+
+    console.log("Pearson correlation coefficients of current data:", pcc_data);
+    return pcc_data;
+}
+
+function logarithmic_growth_check( data, varname ) {
+    let pcc, log;
+
+    // filter and sort unique values from the input data array
+    let unique_data = [...new Set([...data.map(obj => obj[varname])])];
+    unique_data.sort((a, b)=> a - b);
+
+    let indices = [...Array(unique_data.length).keys()];
+
+    // check if it is base-10 logarithmic growth
+    let log10_data = unique_data.map((x) => Math.log10(x));
+
+    // replace infinite vals and sort it in ascending order
+    log10_data = log10_data.map((x) => (x === Infinity) || (x === -Infinity) ? 0 : x );
+    log10_data.sort((a, b) => a - b);
+    pcc = calculate_PCC(indices, log10_data);
+    if (pcc > 0.999) { log = "log10"; }
+    return [ log, unique_data ];
+}
+
+function generate_numerical_scale( data, varname, id, axis_generator, axis_range, if_origin_mode, if_vertical ) {
+    // Check if the logarithmic scale is needed and generate the corresponding scale
+    let [if_log, unique_data] = logarithmic_growth_check( data, varname );
+    let data_range = get_min_and_max(data, varname);
+    let scale;
+
+    // Convert to the scale where 0 is at the middle when origin mode is on
+    if ( if_origin_mode ) {
+        if ( Math.abs(data_range[0]) >= data_range[1] )
+            data_range = [data_range[0], Math.abs(data_range[0])];
+        else
+            data_range = [-data_range[1], data_range[1]];
+    }
+    data_range = if_vertical ? data_range.reverse() : data_range;
+
+    // Remove 0 to avoid conflicts with the d3 log-scale
+    if ( if_log === "log10" && if_origin_mode === false ) {
+        if (data_range[0] === 0) {
+            data_range[0] = unique_data[1] / 10;
+            unique_data.unshift(0);
+        } else if (data_range[1] === 0) {
+            data_range[1] = unique_data[0] / 10;
+            unique_data.push(0);
+        }
+        scale = d3.scaleLog().base(10).clamp(true).domain(data_range).range(axis_range).nice();
+    }
+    else {
+        scale = d3.scaleLinear().domain(data_range).range(axis_range).nice();
+    }
+
+    // Make an axis generator function
+    let axis = axis_generator(scale);
+
+    // Specify the ticks if the log scale is used
+    if ( if_log === "log10" && if_origin_mode === false ) {
+        axis.tickValues(unique_data).tickFormat(d3.format(".0e"));
+    }
+
+    // Plot the scale region of the axis while applying the translation:
+    d3.select(id).attr("transform", "translate("+axis_translation[id][0]+","+axis_translation[id][1]+")").call(axis);
+    return scale;
+}
+
+function generate_axis_title( axis_id, axis_title, if_vertical ) {
+    let axis_selector = d3.select(axis_id + "-title");
+    if (if_vertical) {
+        // Apply translation:
+        if ( axis_id === '#left-axis')
+            axis_selector.attr('transform', "translate("+"-40"+","+axis_len*0.5+")");
+        else
+            axis_selector.attr('transform', "translate("+"40"+","+axis_len*0.5+")");
+
+        axis_selector.selectAll("tspan").remove();                       // clear existing text
+
+        let words = axis_title.split(" ");
+        // Split the axis title into multiple lines if it contains multiple words
+        words.forEach((word, i) => {
+            axis_selector.append("tspan")
+                .text(word)
+                .attr('x', 0)
+                .attr('dy', i === 0 ? '0em' : '1.0em');
+        });
+    }
+    else {
+        if ( axis_id === '#top-axis')
+            axis_selector.attr('transform', "translate("+axis_len*0.5+","+"-35"+")");
+        else
+            axis_selector.attr('transform', "translate("+axis_len*0.5+","+"35"+")");
+        axis_selector.text(axis_title);
+    }
+}
+
+function generate_axis( data, if_origin_mode ) {
+    // Define the scaling of the axis
+    let axis_range = [axis_len, 0];
+    left_scale = generate_numerical_scale(data, varnames[0], '#left-axis', d3.axisLeft, axis_range, if_origin_mode, true );
+    top_scale = generate_numerical_scale(data, varnames[1], '#top-axis', d3.axisTop, axis_range, if_origin_mode, false );
+    axis_range = [0, axis_len];
+    right_scale = generate_numerical_scale(data, varnames[2], '#right-axis', d3.axisRight, axis_range, if_origin_mode, true );
+    bottom_scale = generate_numerical_scale(data, varnames[3], '#bottom-axis', d3.axisBottom, axis_range, if_origin_mode, false );
+
+    // Plot the four corners of the axis
+    d3.select('#axis-corner')
+        .attr('d', coord_corner_data)
+        .style('fill', 'none')
+        .style('stroke', 'black');
+
+    // Plot the axis titles
+    generate_axis_title("#left-axis", varnames[0], true);
+    generate_axis_title("#top-axis", varnames[1], false);
+    generate_axis_title("#right-axis", varnames[2], true);
+    generate_axis_title("#bottom-axis", varnames[3], false);
+}
+
+function calculate_centroid( point_list ) {
+    let xsum = point_list.reduce((sum, curr_point) => sum + curr_point[0], 0);
+    let ysum = point_list.reduce((sum, curr_point) => sum + curr_point[1], 0);
+
+    return [xsum/point_list.length, ysum/point_list.length];
+}
+
+function generate_polygons( data ) {
+    for (let i = 0; i < data.length; i++) {
+        let curr_data_entry = data[i];
+        let curr_point_list = data_entry_to_point_list(curr_data_entry);
+        polygons.push( { id: i,
+                         points: point_list_to_path_str(curr_point_list),
+                         color: color_scale(curr_data_entry[varnames[varnames.length-1]]),
+                         centroid: calculate_centroid(curr_point_list) } );
+    }
+}
+
+function data_entry_to_point_list( data_entry ) {
+    return [
+        [axis_translation["#left-axis"][0], axis_translation["#left-axis"][1] + left_scale(data_entry[varnames[0]])],
+        [axis_translation["#top-axis"][0] + top_scale(data_entry[varnames[1]]), axis_translation["#top-axis"][1]],
+        [axis_translation["#right-axis"][0], axis_translation["#right-axis"][1] + right_scale(data_entry[varnames[2]])],
+        [axis_translation["#bottom-axis"][0] + bottom_scale(data_entry[varnames[3]]), axis_translation["#bottom-axis"][1]]
+    ]
+}
+
+function point_list_to_path_str( point_list ){
+    return point_list.map(p => p.join(',')).join(' ');
+}
+
+function build_color_scale( data, depend_varname, color_scheme ) {
+    if ( color_scheme.length === 2 ) {
+        color_scale = d3.scaleLinear()
+            .domain(get_min_and_max(data, depend_varname))
+            .range(color_scheme);
+    }
+    else if ( color_scheme.length > 2 ) {
+        // calculate pivots for multicolor scale
+        let range_list = get_min_and_max(data, depend_varname);
+        let num_interval = (range_list[1]-range_list[0]) / (color_scheme.length-1);
+        let check_points = [];
+        for (let i = range_list[0]; i < range_list[1]+1; ) {
+            check_points.push(i)
+            i+=num_interval;
+        }
+        // console.log(check_points);
+        color_scale = d3.scaleLinear()
+            .domain(check_points)
+            .range(color_scheme);
+    }
+    else {
+        throw new Error("Invalid colorscale!");
+    }
+}
+
+function plot_colorscale( data, depend_varname ) {
+    let depend_var_range = get_min_and_max( data, depend_varname );
+    let colorscale_data = d3.range(depend_var_range[0], depend_var_range[1], (depend_var_range[1]-depend_var_range[0])/100);
+    let depend_var_scale = d3.scaleLinear()
+        .domain(depend_var_range)
+        .range([0, coord_len]);
+    let colorscale_axis = d3.axisTop(depend_var_scale);
+
+    // Plot the colorscale
+    d3.selectAll('.colorscale').attr('opacity', 1);
+
+    d3.select("#colorscale-content")
+        .selectAll('rect')
+        .data(colorscale_data)
+        .join('rect')
+        .attr('x', function(d) { return depend_var_scale(d); })
+        .attr('width', 5)
+        .attr('height', 15)
+        .style('fill', function(d) { return color_scale(d); });
+
+    // Plot the colorscale axis
+    d3.select("#colorscale-axis").call(colorscale_axis);
+    d3.select('#colorscale-axis>text').text(varnames[varnames.length-1]);
+}
+
+function plot_polygons( data, inspected_index, if_color_block_mode ) {
+    // Generate polygons from data
+    generate_polygons(data);
+
+    // Plot polygons to the canvas
+    d3.select('#polygon-data')
+        .selectAll('polygon')
+        .data(polygons)
+        .join('polygon')
+        .attr('points', function(d) { return d.points } )
+        .attr('fill', function(d) { return if_color_block_mode ? d.color : 'none' })
+        .attr('stroke', function(d) { return d.color })
+        .attr('stroke-width', if_color_block_mode ? 0.0 : 2.0)
+        .attr('stroke-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.3 ) : 1.0 ; })
+        .attr('fill-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 0.5 : 0.3 ) : 0.3 ; });
+}
+
+function plot_axis_indicator( pcc_data, if_PCC ) {
+    let axis_orients = ["left", "top", "right", "bottom"];
+
+    for (let i = 0; i < axis_orients.length; i++) {
+        let axis_orient = axis_orients[i];
+        if ( if_PCC ) {
+            let curr_indicator_info = axis_indicator_info[axis_orient];
+            let curr_pcc = pcc_data[i];
+            d3.select("#"+axis_orient+"-indicator")
+                .attr("x", curr_indicator_info["x"])
+                .attr("y", curr_indicator_info["y"])
+                .attr("width", curr_indicator_info["width"])
+                .attr("height", curr_indicator_info["height"])
+                .attr("fill", curr_pcc >= 0 ? "#FF4949" : "#0F4392")
+                .attr("opacity", Math.abs(curr_pcc));
+        } else {
+            d3.select("#"+axis_orient+"-indicator").attr("opacity",0);
+        }
+    }
+}
+
+function plot_centroids( if_centroids, inspected_index, if_color_block_mode ){
+    if ( if_centroids ) {
+        d3.select("#centroid-indicators")
+            .selectAll('circle')
+            .data(polygons)
+            .join('circle')
+            .attr('cx', function(d){ return d.centroid[0]; })
+            .attr('cy', function(d){ return d.centroid[1] })
+            .attr('r', function(d, i) { return (inspected_index !== null && if_color_block_mode) ? (i === inspected_index ? 4.0 : 3.5 ) : 3.5 ; })
+            .attr('stroke', '#FFF')
+            .attr('stroke-width', if_color_block_mode ? 1 : 0)
+            .attr('opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.5 ) : 1.0 ; })
+            .attr('fill', function(d){ return d.color; });
+    } else {
+        d3.select("#centroid-indicators")
+            .selectAll('circle')
+            .attr('opacity', 0);
+    }
+}
+
+function plot_origin( if_centroids, if_origin_mode, if_color_block_mode ) {
+    d3.selectAll(".origin").selectAll("*").remove();
+    if ( if_origin_mode ) {
+        let origin_point = Object.fromEntries( varnames.map(varname => [varname, 0]) );
+        let origin_point_list = data_entry_to_point_list(origin_point);
+        let [origin_centroid_x, origin_centroid_y] = calculate_centroid(origin_point_list);
+
+        d3.select('#origin-polygon')
+            .append('polygon')
+            .attr('points', point_list_to_path_str(origin_point_list))
+            .attr('fill', 'none')
+            .attr('opacity', 1.0)
+            .attr('stroke-dasharray', 4)
+            .style('stroke', 'black')
+            .style('stroke-width', 2);
+
+        d3.select('#origin-centroid')
+            .append('rect')
+            .attr('x', origin_centroid_x-4)
+            .attr('y', origin_centroid_y-4)
+            .attr('width', 8)
+            .attr('height', 8)
+            .attr('fill', 'black')
+            .attr('opacity', if_centroids ? 1.0 : 0.0)
+            .attr('stroke', '#FFF')
+            .attr('stroke-width', if_color_block_mode ? 1.0 : 0.0);
+    }
+}
+
+function cursor_track(e, centroid_quadtree, set_inspected_index, inspected_index) {
+    let cursor_pos = d3.pointer(e, this);
+    let centroid = centroid_quadtree.find(cursor_pos[0], cursor_pos[1], 5);
+    if (centroid !== inspected_index)
+        centroid ? set_inspected_index(centroid.id) : set_inspected_index(null);
+    // console.log("Now tracking...");
+}
+
+function get_datapoint_info( data, index ) {
+    let info = [];
+    for (let i = 0; i < varnames.length; i++) {
+        info.push(varnames[i]+": "+data[index][varnames[i]]);
+    }
+    return info;
+}
+
+// TODO: Add tooltip arrow (https://www.w3schools.com/css/css_tooltip.asp)
+function update_tooltip( data, inspected_index, if_color_block_mode ) {
+    d3.select('#data-tooltip-text').selectAll('tspan').remove();
+    if (inspected_index !== null) {
+        d3.select('#data-tooltip-text')
+            .attr("x", polygons[inspected_index].centroid[0]+20)
+            .attr("y", polygons[inspected_index].centroid[1])
+            .selectAll('tspan')
+            .data(get_datapoint_info( data, inspected_index ))
+            .enter()
+            .append('tspan')
+            .attr('x', polygons[inspected_index].centroid[0]+20)
+            .attr('dy', (d, i) => i === 0 ? '0em' : '1.2em')
+            .text(d => d);
+        let text_bbox = document.getElementById('data-tooltip-text').getBBox();
+        d3.select('#data-tooltip rect')
+            .attr('x', text_bbox.x - 5)
+            .attr('y', text_bbox.y - 5)
+            .attr('width', text_bbox.width + 10)
+            .attr('height', text_bbox.height + 10)
+            .attr('stroke', if_color_block_mode ? '#FFF' : polygons[inspected_index].color)
+            .attr('stroke-width', if_color_block_mode ? 0.0 : 1.5)
+            .attr('fill', '#FFF');
+        d3.select("#data-tooltip").attr('opacity', 1.0);
+    } else {
+        d3.select("#data-tooltip").attr('opacity', 0.0);
+    }
+}
+
+export default function drawJCS( data, size, color_scheme, if_PCC, if_centroids, if_origin_mode, if_color_block_mode, if_inspect_mode, set_inspected_index, inspected_index ) {
+    // Reset global variables and event listeners:
+    polygons = [];
+    centroid_quadtree = d3.quadtree();
+
+    coord_len = size;
+    corner_len = coord_len * 0.05;
+    axis_len = coord_len - 2 * corner_len;
+
+    coord_corner_data = line_generator([
+        [jcs_origin[0], jcs_origin[1]], [jcs_origin[0], jcs_origin[1]-corner_len], [jcs_origin[0]+corner_len, jcs_origin[1]-corner_len], null,
+        [jcs_origin[0]+coord_len-corner_len, jcs_origin[1]-corner_len], [jcs_origin[0]+coord_len, jcs_origin[1]-corner_len], [jcs_origin[0]+coord_len, jcs_origin[1]], null,
+        [jcs_origin[0]+coord_len, jcs_origin[1]+coord_len-corner_len*2], [jcs_origin[0]+coord_len, jcs_origin[1]+coord_len-corner_len], [jcs_origin[0]+coord_len-corner_len, jcs_origin[1]+coord_len-corner_len], null,
+        [jcs_origin[0]+corner_len, jcs_origin[1]+coord_len-corner_len], [jcs_origin[0], jcs_origin[1]+coord_len-corner_len], [jcs_origin[0], jcs_origin[1]+coord_len-corner_len*2], null
+    ]);
+
+    axis_translation = {
+        "#left-axis": [jcs_origin[0], jcs_origin[1]],
+        "#top-axis": [jcs_origin[0]+corner_len, jcs_origin[1]-corner_len],
+        "#right-axis": [jcs_origin[0]+coord_len, jcs_origin[1]],
+        "#bottom-axis": [jcs_origin[0]+corner_len, jcs_origin[1]+coord_len-corner_len]
+    }
+
+    axis_indicator_info = {
+        "left": {"x": jcs_origin[0]-10, "y": jcs_origin[1]-20, "width": 20, "height": coord_len},
+        "top": {"x": jcs_origin[0], "y": jcs_origin[1]-30, "width": coord_len, "height": 20},
+        "right": {"x": jcs_origin[0]+coord_len-10, "y": jcs_origin[1]-20, "width": 20, "height": coord_len},
+        "bottom": {"x": jcs_origin[0], "y": jcs_origin[1]+coord_len-30, "width": coord_len, "height": 20}
+    }
+
+    // Plot the background:
+    d3.select("#coord-background")
+        .attr("x", jcs_origin[0])
+        .attr("y", jcs_origin[1]-corner_len)
+        .attr("width", coord_len)
+        .attr("height", coord_len)
+        .style("fill", '#fff');
+
+    // Plot the axis:
+    get_variable_names( data );
+    generate_axis( data, if_origin_mode );
+
+    // Plot the colorscale:
+    build_color_scale(data, varnames[varnames.length-1], color_scheme );
+    plot_colorscale(data, varnames[varnames.length-1] );
+
+    // Plot the data as polygons:
+    plot_polygons( data, inspected_index, if_color_block_mode );
+
+    // Calculate and plot correlation indicators if needed:
+    let pcc_data = []
+    if ( if_PCC ) {
+        pcc_data = calculate_PCC_for_dataset( data );
+    }
+    plot_axis_indicator( pcc_data, if_PCC );
+
+    // Plot the centroids of polygons if needed:
+    plot_centroids( if_centroids, inspected_index, if_color_block_mode );
+
+    plot_origin( if_centroids, if_origin_mode, if_color_block_mode );
+
+    // For inspection mode:
+    d3.select('#joint-coordinate-canvas').on('mousemove', null);
+    if (if_inspect_mode) {
+        centroid_quadtree.x(d => d.x).y(d => d.y)
+            .addAll([...polygons.map(polygon => ( { x: polygon.centroid[0], y: polygon.centroid[1], id: polygon.id } ))]);
+        d3.select('#joint-coordinate-canvas').on('mousemove', (e) => cursor_track(e, centroid_quadtree, set_inspected_index, inspected_index));
+        update_tooltip( data, inspected_index, if_color_block_mode);
+    }
+
+}
