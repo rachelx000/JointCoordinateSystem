@@ -6,7 +6,7 @@ export default function JCSCanvas() {
                 <svg id="joint-coordinate-canvas" className="joint-coordinate">
                     {/* Correlation Indicator */}
                     <defs>
-                        <filter id="vertical_glowing" x="-100%" y="0%" width="300%" height="100%">
+                        <filter id="vertical-glowing" x="-100%" y="0%" width="300%" height="100%">
                             <feGaussianBlur stdDeviation={5} result="blur" />
                             <feComponentTransfer in="blur">
                                 <feFuncR type="linear" slope={1} />
@@ -14,7 +14,7 @@ export default function JCSCanvas() {
                                 <feFuncB type="linear" slope={1} />
                             </feComponentTransfer>
                         </filter>
-                        <filter id="horizontal_glowing" x={0} y="-100%" width="100%" height="300%">
+                        <filter id="horizontal-glowing" x={0} y="-100%" width="100%" height="300%">
                             <feGaussianBlur stdDeviation={5} result="blur" />
                             <feComponentTransfer in="blur">
                                 <feFuncR type="linear" slope={1} />
@@ -23,10 +23,14 @@ export default function JCSCanvas() {
                             </feComponentTransfer>
                         </filter>
                     </defs>
-                    <rect id="left-indicator" className="correlation-indicator" rx={100} filter="url(#vertical_glowing)" />
-                    <rect id="top-indicator" className="correlation-indicator" ry={100} filter="url(#horizontal_glowing)" />
-                    <rect id="right-indicator" className="correlation-indicator" rx={100} filter="url(#vertical_glowing)" />
-                    <rect id="bottom-indicator" className="correlation-indicator" ry={100} filter="url(#horizontal_glowing)" />
+                    <rect id="left-indicator" className="correlation-indicator" rx={100} filter="url(#vertical-glowing)">
+                        <title></title></rect>
+                    <rect id="top-indicator" className="correlation-indicator" ry={100} filter="url(#horizontal-glowing)">
+                        <title></title></rect>
+                    <rect id="right-indicator" className="correlation-indicator" rx={100} filter="url(#vertical-glowing)">
+                        <title></title></rect>
+                    <rect id="bottom-indicator" className="correlation-indicator" ry={100} filter="url(#horizontal-glowing)">
+                        <title></title></rect>
                     {/* Axis Components */}
                     <g id="joint-coordinate-axes">
                         <g id="left-axis">
@@ -54,6 +58,7 @@ export default function JCSCanvas() {
                     <circle id="inspected_centroid" />
                     <g id="data-tooltip">
                         <rect />
+                        <polygon />
                         <text id="data-tooltip-text" />
                     </g>
                 </svg>
@@ -66,5 +71,5 @@ export default function JCSCanvas() {
                 </svg>
             </div>
         </>
-    )
+    );
 }

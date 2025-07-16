@@ -489,6 +489,7 @@ function plotting_origin() {
             [600, 100 + right_scale(origin_point[2])],
             [150 + bottom_scale(origin_point[3]), 550]
         ]
+
         d3.select('#reference_polygon')
             .append('polygon')
             .attr('points', point_list_to_path_str(origin_point_list))

@@ -3,12 +3,9 @@ import JCSMenu from "./JCSMenu.jsx";
 import JCSCanvas from "./JCSCanvas.jsx";
 import '../css/JCS.css';
 import { csv } from "d3";
-import drawJCS from "./JCS.draw.js";
+import drawJCS from "./JCS.js";
 
-export default function JCS({ size = 400 }) {
-
-    const [selectedDataPath, setSelectedDataPath] = useState("/data/visualization_data/example/basic_elements.csv")
-    const [selectedData, setSelectedData] = useState(null);
+export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSelectData, setPolygonData }) {
     const [selectedColorScheme, setSelectedColorScheme] = useState(['Blue', 'Red']);
     const [selectedColorGradient, setSelectedColorGradient] = useState("AB");
     const [onShowPCC, setShowPCC] = useState(false);
@@ -17,11 +14,6 @@ export default function JCS({ size = 400 }) {
     const [onInspectMode, setInspectMode] = useState(false);
     const [onColorBlockMode, setColorBlockMode] = useState(false);
     const [inspectedIndex, setInspectedIndex] = useState(null);
-
-    function handleSelectData(e) {
-        setSelectedDataPath(e.target.value);
-        // console.log("Current selected data path: ", e.target.value);
-    }
 
     function handleSelectColorScheme(e) {
         let colorSchemeList = e.target.value.split(",");
@@ -42,6 +34,9 @@ export default function JCS({ size = 400 }) {
     }
 
     function handleShowCentroids() {
+        if (onShowCentroids && onInspectMode) {
+            setInspectMode(false);
+        }
         setShowCentroids(!onShowCentroids);
     }
 
@@ -62,15 +57,10 @@ export default function JCS({ size = 400 }) {
     }
 
     useEffect(() => {
-        csv(selectedDataPath).then(data => {
-            setSelectedData(data);
-            drawJCS( data, size, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode, setInspectedIndex, inspectedIndex );
+        csv(nowDataPath).then(data => {
+            drawJCS( data, nowPolygonData, setPolygonData, size, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode, setInspectedIndex, inspectedIndex );
         }).catch(error => console.error(error));
-    }, [selectedDataPath, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode, inspectedIndex]);
-
-    /* useEffect(() => {
-        console.log("Current Selected Data Index", inspectedIndex);
-    }, [inspectedIndex]); */
+    }, [nowDataPath, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode, inspectedIndex]);
 
     return (
         <>
@@ -84,6 +74,7 @@ export default function JCS({ size = 400 }) {
                          onShowCentroids={ onShowCentroids }
                          onClickOriginMode = { handleChangeOriginMode }
                          onClickInspectMode = { handleChangeInspectMode }
+                         onInspectMode={ onInspectMode }
                          onClickColorBlockMode = { handleChangeColorBlockMode } />
             </div>
         </>

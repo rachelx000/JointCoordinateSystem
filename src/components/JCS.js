@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
+import { isEqual } from "lodash";
 
-// Global Data:
+// Global data and generators:
 const jcs_origin = [100, 70];
 let varnames;
 let coord_len, corner_len, axis_len;
@@ -8,8 +9,6 @@ let coord_corner_data, axis_translation, axis_indicator_info;
 let left_scale, right_scale, top_scale, bottom_scale, color_scale;
 let polygons;
 let centroid_quadtree;
-
-// d3 Generators:
 let line_generator = d3.line().defined(function(d) {return d !== null; });
 
 function get_variable_names( data ){
@@ -50,8 +49,7 @@ function calculate_PCC_for_dataset( data ) {
         let curr_r = calculate_PCC( x_data, y_data );
         pcc_data.push(curr_r);
     }
-
-    console.log("Pearson correlation coefficients of current data:", pcc_data);
+    // console.log("Pearson correlation coefficients of current data:", pcc_data);
     return pcc_data;
 }
 
@@ -196,7 +194,7 @@ function data_entry_to_point_list( data_entry ) {
     ]
 }
 
-function point_list_to_path_str( point_list ){
+export function point_list_to_path_str( point_list ){
     return point_list.map(p => p.join(',')).join(' ');
 }
 
@@ -250,21 +248,18 @@ function plot_colorscale( data, depend_varname ) {
     d3.select('#colorscale-axis>text').text(varnames[varnames.length-1]);
 }
 
-function plot_polygons( data, inspected_index, if_color_block_mode ) {
-    // Generate polygons from data
-    generate_polygons(data);
-
+export function plot_polygons( canvas_id, polygon_data, inspected_index, if_color_block_mode ) {
     // Plot polygons to the canvas
-    d3.select('#polygon-data')
+    d3.select(canvas_id)
         .selectAll('polygon')
-        .data(polygons)
+        .data(polygon_data)
         .join('polygon')
         .attr('points', function(d) { return d.points } )
         .attr('fill', function(d) { return if_color_block_mode ? d.color : 'none' })
         .attr('stroke', function(d) { return d.color })
         .attr('stroke-width', if_color_block_mode ? 0.0 : 2.0)
         .attr('stroke-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.3 ) : 1.0 ; })
-        .attr('fill-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 0.5 : 0.3 ) : 0.3 ; });
+        .attr('fill-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 0.5 : 0.1 ) : 0.1 ; });
 }
 
 function plot_axis_indicator( pcc_data, if_PCC ) {
@@ -282,8 +277,12 @@ function plot_axis_indicator( pcc_data, if_PCC ) {
                 .attr("height", curr_indicator_info["height"])
                 .attr("fill", curr_pcc >= 0 ? "#FF4949" : "#0F4392")
                 .attr("opacity", Math.abs(curr_pcc));
+            d3.select("#"+axis_orient+"-indicator>title")
+                .text("PCC Value = "+curr_pcc.toFixed(5));
         } else {
             d3.select("#"+axis_orient+"-indicator").attr("opacity",0);
+            d3.select("#"+axis_orient+"-indicator>title")
+                .text("");
         }
     }
 }
@@ -296,10 +295,10 @@ function plot_centroids( if_centroids, inspected_index, if_color_block_mode ){
             .join('circle')
             .attr('cx', function(d){ return d.centroid[0]; })
             .attr('cy', function(d){ return d.centroid[1] })
-            .attr('r', function(d, i) { return (inspected_index !== null && if_color_block_mode) ? (i === inspected_index ? 4.0 : 3.5 ) : 3.5 ; })
+            .attr('r', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 4.5 : 3.5 ) : 3.5 ; })
             .attr('stroke', '#FFF')
-            .attr('stroke-width', if_color_block_mode ? 1 : 0)
-            .attr('opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.5 ) : 1.0 ; })
+            .attr('stroke-width', function(d, i) { return (if_color_block_mode) ? 1.0 : ( inspected_index !== null ? (i === inspected_index ? 1.0 : 0.0 ) : 0.0) ; })
+            .attr('opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.4 ) : 1.0 ; })
             .attr('fill', function(d){ return d.color; });
     } else {
         d3.select("#centroid-indicators")
@@ -328,10 +327,10 @@ function plot_origin( if_centroids, if_origin_mode, if_color_block_mode ) {
             .append('rect')
             .attr('x', origin_centroid_x-4)
             .attr('y', origin_centroid_y-4)
-            .attr('width', 8)
-            .attr('height', 8)
+            .attr('width', 6)
+            .attr('height', 6)
             .attr('fill', 'black')
-            .attr('opacity', if_centroids ? 1.0 : 0.0)
+            .attr('opacity', if_centroids ? 0.8 : 0.0)
             .attr('stroke', '#FFF')
             .attr('stroke-width', if_color_block_mode ? 1.0 : 0.0);
     }
@@ -353,36 +352,48 @@ function get_datapoint_info( data, index ) {
     return info;
 }
 
-// TODO: Add tooltip arrow (https://www.w3schools.com/css/css_tooltip.asp)
 function update_tooltip( data, inspected_index, if_color_block_mode ) {
     d3.select('#data-tooltip-text').selectAll('tspan').remove();
     if (inspected_index !== null) {
+        // Add info about the specific data entry into the tooltip
+        let pos = [polygons[inspected_index].centroid[0], polygons[inspected_index].centroid[1]];
         d3.select('#data-tooltip-text')
-            .attr("x", polygons[inspected_index].centroid[0]+20)
-            .attr("y", polygons[inspected_index].centroid[1])
+            .attr("x", pos[0]+16)
+            .attr("y", pos[1])
             .selectAll('tspan')
             .data(get_datapoint_info( data, inspected_index ))
             .enter()
             .append('tspan')
-            .attr('x', polygons[inspected_index].centroid[0]+20)
+            .attr('x', pos[0]+16)
             .attr('dy', (d, i) => i === 0 ? '0em' : '1.2em')
             .text(d => d);
+
+        // Reshape the tooltip box to adapt for the text bounding box
         let text_bbox = document.getElementById('data-tooltip-text').getBBox();
         d3.select('#data-tooltip rect')
-            .attr('x', text_bbox.x - 5)
-            .attr('y', text_bbox.y - 5)
+            .attr('rx', 5)
+            .attr('x', text_bbox.x-5)
+            .attr('y', text_bbox.y-5)
             .attr('width', text_bbox.width + 10)
             .attr('height', text_bbox.height + 10)
-            .attr('stroke', if_color_block_mode ? '#FFF' : polygons[inspected_index].color)
-            .attr('stroke-width', if_color_block_mode ? 0.0 : 1.5)
+            .attr('stroke', if_color_block_mode ? '#edf2f4' : polygons[inspected_index].color)
+            .attr('stroke-width', 2.0)
             .attr('fill', '#FFF');
+
+        // Add the triangle to create a speech bubble shape
+        let tri_point_list = [[pos[0]+12, pos[1]-5], [pos[0]+12, pos[1]+5], [pos[0]+6.5, pos[1]]];
+        d3.select('#data-tooltip polygon')
+            .attr('points', point_list_to_path_str(tri_point_list))
+            .attr('fill', if_color_block_mode ? '#FFF' : polygons[inspected_index].color)
+            .attr('stroke-width', 0.0);
         d3.select("#data-tooltip").attr('opacity', 1.0);
     } else {
         d3.select("#data-tooltip").attr('opacity', 0.0);
     }
 }
 
-export default function drawJCS( data, size, color_scheme, if_PCC, if_centroids, if_origin_mode, if_color_block_mode, if_inspect_mode, set_inspected_index, inspected_index ) {
+export default function drawJCS( data, now_polygon_data, set_polygon_data, size, color_scheme, if_PCC, if_centroids,
+                                 if_origin_mode, if_color_block_mode, if_inspect_mode, set_inspected_index, inspected_index ) {
     // Reset global variables and event listeners:
     polygons = [];
     centroid_quadtree = d3.quadtree();
@@ -429,7 +440,11 @@ export default function drawJCS( data, size, color_scheme, if_PCC, if_centroids,
     plot_colorscale(data, varnames[varnames.length-1] );
 
     // Plot the data as polygons:
-    plot_polygons( data, inspected_index, if_color_block_mode );
+    generate_polygons( data );
+    plot_polygons( '#polygon-data', polygons, inspected_index, if_color_block_mode );
+    if ( !isEqual(polygons, now_polygon_data) ) {
+        set_polygon_data( polygons );
+    }
 
     // Calculate and plot correlation indicators if needed:
     let pcc_data = []
@@ -451,5 +466,4 @@ export default function drawJCS( data, size, color_scheme, if_PCC, if_centroids,
         d3.select('#joint-coordinate-canvas').on('mousemove', (e) => cursor_track(e, centroid_quadtree, set_inspected_index, inspected_index));
         update_tooltip( data, inspected_index, if_color_block_mode);
     }
-
 }

@@ -29,7 +29,7 @@ const defaultColorSchemes = [
 
 export default function JCSMenu( { onChangeData, onChangeColorScheme, onChangeColorGradient, onClickShowPCC,
                                    onClickShowCentroids, onShowCentroids, onClickOriginMode, onClickInspectMode,
-                                   onClickColorBlockMode } ) {
+                                   onInspectMode, onClickColorBlockMode } ) {
     return (
         <div id="control-panel" className="joint-coordinate-system">
             {/* Drop-down list for selecting different example datasets */}
@@ -75,9 +75,9 @@ export default function JCSMenu( { onChangeData, onChangeColorScheme, onChangeCo
                 <input type="checkbox" id="color-block-mode" name="color-block-mode" onChange={ onClickColorBlockMode } />
                 <label htmlFor="color-block-mode">Color Block Mode</label>
                 {/* Checkbox for close inspection */}
-                <input type="checkbox" id="inspection-mode" name="inspection-mode" disabled={ !onShowCentroids } onChange={ onClickInspectMode }/>
+                <input type="checkbox" id="inspection-mode" name="inspection-mode" disabled={ !onShowCentroids } onChange={ onClickInspectMode } checked={ onInspectMode } />
                 <label htmlFor="inspection-mode">Inspection mode</label>
             </form>
         </div>
-    )
+    );
 }

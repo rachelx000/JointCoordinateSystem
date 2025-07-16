@@ -1,17 +1,19 @@
 #joint-coordinate-system {
-    height: 100%;
+    height: calc(100vh - 15px);
     width: 600px;
     background: #eaeaea;
+    box-sizing: border-box;
 }
 
 #joint-coordinate {
-    height: calc(80% - 10px);
+    height: 600px;
     margin: 0 0 10px 0;
     overflow: auto;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
+    box-sizing: border-box;
 }
 
 #joint-coordinate h3{
@@ -50,12 +52,12 @@
 #control-panel {
     padding: 15px;
     margin: 0;
-    height: 19.5%;
+    height: calc(100vh - 625px);
     font-size: 12px;
     box-sizing: border-box;
 }
 
-#data_tooltip_text {
+#data-tooltip-text {
     font-size: 10px;
     font-weight: normal;
 }

@@ -9,11 +9,13 @@ html, body, #root {
 
 main {
   margin-left: 120px;
-  height: 99vh;      /* full viewport height */
+  height: 100vh;
   display: flex;
   flex-wrap: wrap;
   box-sizing: border-box;
   overflow: auto;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 main div {
