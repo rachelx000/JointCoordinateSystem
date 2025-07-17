@@ -13,13 +13,9 @@ export default function PolygonAlignment() {
                         </g>
                     ))}
                     <g id="polygons-alignment" />
-                    <g id="reference-alignment" />
-                    <polygon id="inspected_aligned_polygon" />
-                    <g id="centroids-alignment">
-                        <g id="centroids_alignment" />
-                        <g id="reference_centroid_alignment" />
-                    </g>
-                    <circle id="inspected_aligned_centroid" />
+                    <g id="aligned-origin-polygon" className="aligned-origin"/>
+                    <g id="centroids-alignment" />
+                    <g id="aligned-origin-centroid" className="aligned-origin"/>
                 </g>
             </svg>
         </div>

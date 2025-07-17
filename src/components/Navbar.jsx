@@ -1,6 +1,6 @@
 import '../css/Navbar.css';
 
-const navItems = [
+const navItems = [  // Four rendering modes
     {
         text: 'Data Analysis',
         mode: 'data'
@@ -8,6 +8,10 @@ const navItems = [
     {
         text: 'Geometry Vis',
         mode: 'geom'
+    },
+    {
+        text: 'Comparison',
+        mode: 'compare'
     },
     {
         text: 'Instruction',

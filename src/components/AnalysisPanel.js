@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { point_list_to_path_str, plot_polygons } from "./JCS.js";
+import { point_list_to_path_str, plot_polygons, plot_centroids, plot_origin } from "./JCS.js";
 
 const size = 300;
 const scaling = 0.4;
@@ -14,40 +14,27 @@ function path_str_to_point_list( path_str ) {
 }
 
 function align_polygons_at_a_corner( polygon_data ) {
-    let translation, translated_polygon;
-    polygon_data.forEach((polygon, i) => {
-            [translation, translated_polygon] = align_a_polygon_at_a_corner( path_str_to_point_list(polygon.points), 0 );
-            aligned_polygons.push({ id: i,
-                                    points: point_list_to_path_str( translated_polygon ),
-                                    color: polygon.color,
-                                    centroid: [(polygon.centroid[0]-translation[0])*scaling, (polygon.centroid[1]-translation[1])*scaling]
-            });
-
-        });
+    polygon_data.forEach((polygon) => {
+            let aligned_polygon = align_a_polygon_at_a_corner( polygon, 0 );
+            aligned_polygons.push(aligned_polygon);
+    });
 }
 
-function align_a_polygon_at_a_corner( polygon, corner_id ) {
-    let ref_corner = polygon[corner_id];
-    let translate_x = ref_corner[0]*scaling - alignment_axes.x.p1[0];
-    let translate_y = ref_corner[1]*scaling - alignment_axes.x.p1[1];
+function align_a_polygon_at_a_corner( polygon_obj, corner_id ) {
+    let polygon_points = path_str_to_point_list(polygon_obj.points);
+    let ref_corner = polygon_points[corner_id];
+    let translation = [0, 1].map(i => ref_corner[i]*scaling - alignment_axes.x.p1[i]);
 
     // Apply the translation for all points of the polygon
-    let translation = [translate_x, translate_y];
-    let translated_polygon = polygon.map((p) => [p[0]*scaling-translate_x, p[1]*scaling-translate_y]);
+    let translated_polygon = polygon_points.map((p) => [p[0]*scaling-translation[0], p[1]*scaling-translation[1]]);
+    let translated_centroid = [0, 1].map((i) => [polygon_obj.centroid[i]*scaling-translation[i]]);
 
-    return [translation, translated_polygon];
-}
-
-function plot_alignment() {
-    d3.select('#polygons-alignment')
-        .selectAll('polygon')
-        .data(aligned_polygons)
-        .join('polygon')
-        .attr('points', function(d) { return point_list_to_path_str(d); })
-        .attr('stroke', function(d, i) { return polygon_color[i]; })
-        .attr('stroke-width', if_color_block_mode_on ? 0 : 2)
-        .attr('fill', function(d, i) { return polygon_color[i] })
-        .attr('fill-opacity', color_block_mode_on ? 0.3 : 0.0 );
+    return {
+        ...(polygon_obj.hasOwnProperty('id') && { id: polygon_obj.id }),
+        ...(polygon_obj.hasOwnProperty('color') && { color: polygon_obj.color }),
+        points: point_list_to_path_str( translated_polygon ),
+        centroid: translated_centroid
+    };
 }
 
 function plot_alignment_axis( axis_id, axis_obj ) {
@@ -70,17 +57,25 @@ function plot_alignment_axis( axis_id, axis_obj ) {
         .text(axis_obj.title);
 }
 
-export function polygonAlignment( polygon_data ) {
+export function polygonAlignment( polygon_data, origin_data, if_centroids, if_color_block_mode ) {
     aligned_polygons = [];
 
-    // Plot the axes for alignment
+    // Plot the axes for alignment:
     plot_alignment_axis( "#alignment-x-axis", alignment_axes.x );
     plot_alignment_axis( "#alignment-y-axis", alignment_axes.y );
 
-    // Align and plot polygons
+    // Align and plot polygons and centroids (if needed):
     align_polygons_at_a_corner( polygon_data );
-    plot_polygons("#polygons-alignment", aligned_polygons, null, false);
+    plot_polygons("#polygons-alignment", aligned_polygons, null, if_color_block_mode);
+    plot_centroids("#centroids-alignment", aligned_polygons, if_centroids, null, if_color_block_mode)
 
+    // Plot origin if origin mode is on:
+    if ( origin_data ) {
+        let aligned_origin = align_a_polygon_at_a_corner(origin_data, 0);
+        plot_origin( aligned_origin, "aligned-origin", if_centroids, if_color_block_mode);
+    } else {
+        d3.selectAll(".aligned-origin").selectAll("*").attr("opacity", 0);
+    }
 }
 
 export function shapeAnalysis( polygon_data ) {

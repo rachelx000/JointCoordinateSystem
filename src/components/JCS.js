@@ -255,11 +255,28 @@ export function plot_polygons( canvas_id, polygon_data, inspected_index, if_colo
         .data(polygon_data)
         .join('polygon')
         .attr('points', function(d) { return d.points } )
-        .attr('fill', function(d) { return if_color_block_mode ? d.color : 'none' })
-        .attr('stroke', function(d) { return d.color })
-        .attr('stroke-width', if_color_block_mode ? 0.0 : 2.0)
+        .attr('fill', function(d, i) { return if_color_block_mode ? d.color : (i === inspected_index ? '#FFF' : 'none') })
+        .attr('stroke', function(d) { return if_color_block_mode ? '#FFF' : d.color })
+        .attr('stroke-width', if_color_block_mode ? 0.0 : 1.5)
         .attr('stroke-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.3 ) : 1.0 ; })
-        .attr('fill-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 0.5 : 0.1 ) : 0.1 ; });
+        .attr('fill-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.1 ) : 0.1 ; })
+        .classed('highlight-stroke', false);
+
+    d3.select(canvas_id)
+        .selectAll('polygon')
+        .each(function(d, i) {
+            if (i === inspected_index) {
+                // Move the inspected polygon to front
+                this.parentNode.appendChild(this);
+
+                d3.select(this.parentNode)
+                    .insert('polygon', () => this)
+                    .attr('points', d.points)
+                    .attr('fill', 'none')
+                    .attr('stroke', 'white')
+                    .attr('stroke-width', if_color_block_mode ? 3 : 6)
+                    .attr('class', 'highlight-stroke')
+            }});
 }
 
 function plot_axis_indicator( pcc_data, if_PCC ) {
@@ -287,11 +304,16 @@ function plot_axis_indicator( pcc_data, if_PCC ) {
     }
 }
 
-function plot_centroids( if_centroids, inspected_index, if_color_block_mode ){
+export function plot_centroids( id, polygon_data, if_centroids, inspected_index, if_color_block_mode ){
     if ( if_centroids ) {
-        d3.select("#centroid-indicators")
+        d3.select(id)
             .selectAll('circle')
-            .data(polygons)
+            .each(function(d, i) {
+                if (i === inspected_index) {
+                    // Move the inspected centroid to front
+                    this.parentNode.appendChild(this);
+                }})
+            .data(polygon_data)
             .join('circle')
             .attr('cx', function(d){ return d.centroid[0]; })
             .attr('cy', function(d){ return d.centroid[1] })
@@ -300,40 +322,55 @@ function plot_centroids( if_centroids, inspected_index, if_color_block_mode ){
             .attr('stroke-width', function(d, i) { return (if_color_block_mode) ? 1.0 : ( inspected_index !== null ? (i === inspected_index ? 1.0 : 0.0 ) : 0.0) ; })
             .attr('opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.4 ) : 1.0 ; })
             .attr('fill', function(d){ return d.color; });
+
+        d3.select(id)
+            .selectAll('circle')
+            .each(function(d, i) {
+                if (i === inspected_index) {
+                    // Move the inspected centroid to front
+                    this.parentNode.appendChild(this);
+                }});
     } else {
-        d3.select("#centroid-indicators")
+        d3.select(id)
             .selectAll('circle')
             .attr('opacity', 0);
     }
 }
 
-function plot_origin( if_centroids, if_origin_mode, if_color_block_mode ) {
-    d3.selectAll(".origin").selectAll("*").remove();
-    if ( if_origin_mode ) {
-        let origin_point = Object.fromEntries( varnames.map(varname => [varname, 0]) );
-        let origin_point_list = data_entry_to_point_list(origin_point);
-        let [origin_centroid_x, origin_centroid_y] = calculate_centroid(origin_point_list);
-
-        d3.select('#origin-polygon')
-            .append('polygon')
-            .attr('points', point_list_to_path_str(origin_point_list))
-            .attr('fill', 'none')
-            .attr('opacity', 1.0)
-            .attr('stroke-dasharray', 4)
-            .style('stroke', 'black')
-            .style('stroke-width', 2);
-
-        d3.select('#origin-centroid')
-            .append('rect')
-            .attr('x', origin_centroid_x-4)
-            .attr('y', origin_centroid_y-4)
-            .attr('width', 6)
-            .attr('height', 6)
-            .attr('fill', 'black')
-            .attr('opacity', if_centroids ? 0.8 : 0.0)
-            .attr('stroke', '#FFF')
-            .attr('stroke-width', if_color_block_mode ? 1.0 : 0.0);
+function compute_origin( now_origin, set_origin ) {
+    let origin_data = Object.fromEntries( varnames.map(varname => [varname, 0]) );
+    let origin_point_list = data_entry_to_point_list(origin_data);
+    let origin_polygon = {
+        points: point_list_to_path_str(origin_point_list),
+        centroid: calculate_centroid(origin_point_list)
+    };
+    if ( !isEqual(now_origin, origin_polygon) ) {
+        set_origin(origin_polygon);
     }
+    return origin_polygon;
+}
+
+export function plot_origin( origin_data, class_name, if_centroids, if_color_block_mode ) {
+    d3.selectAll("."+class_name).selectAll("*").remove();
+    d3.select("#"+class_name+"-polygon")
+        .append('polygon')
+        .attr('points', origin_data.points)
+        .attr('fill', 'none')
+        .attr('opacity', 1.0)
+        .attr('stroke-dasharray', 4)
+        .style('stroke', 'black')
+        .style('stroke-width', 2);
+
+    d3.select("#"+class_name+"-centroid")
+        .append('rect')
+        .attr('x', origin_data.centroid[0]-3)
+        .attr('y', origin_data.centroid[1]-3)
+        .attr('width', 6)
+        .attr('height', 6)
+        .attr('fill', 'black')
+        .attr('opacity', if_centroids ? 0.8 : 0.0)
+        .attr('stroke', '#FFF')
+        .attr('stroke-width', if_color_block_mode ? 1.0 : 0.0);
 }
 
 function cursor_track(e, centroid_quadtree, set_inspected_index, inspected_index) {
@@ -393,7 +430,8 @@ function update_tooltip( data, inspected_index, if_color_block_mode ) {
 }
 
 export default function drawJCS( data, now_polygon_data, set_polygon_data, size, color_scheme, if_PCC, if_centroids,
-                                 if_origin_mode, if_color_block_mode, if_inspect_mode, set_inspected_index, inspected_index ) {
+                                 if_origin_mode, now_origin, set_origin, if_color_block_mode, if_inspect_mode,
+                                 set_inspected_index, inspected_index ) {
     // Reset global variables and event listeners:
     polygons = [];
     centroid_quadtree = d3.quadtree();
@@ -454,9 +492,15 @@ export default function drawJCS( data, now_polygon_data, set_polygon_data, size,
     plot_axis_indicator( pcc_data, if_PCC );
 
     // Plot the centroids of polygons if needed:
-    plot_centroids( if_centroids, inspected_index, if_color_block_mode );
+    plot_centroids( "#centroid-indicators", polygons, if_centroids, inspected_index, if_color_block_mode );
 
-    plot_origin( if_centroids, if_origin_mode, if_color_block_mode );
+    // Plot the origin if origin mode is on:
+    if ( if_origin_mode ) {
+        let origin_polygon = compute_origin( now_origin, set_origin, if_origin_mode )
+        plot_origin( origin_polygon, "origin", if_centroids, if_color_block_mode );
+    } else {
+        d3.selectAll(".origin").selectAll("*").attr("opacity", 0);
+    }
 
     // For inspection mode:
     d3.select('#joint-coordinate-canvas').on('mousemove', null);

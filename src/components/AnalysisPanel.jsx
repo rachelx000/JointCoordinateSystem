@@ -4,13 +4,13 @@ import PolygonAlignment from "./PolygonAlignment.jsx";
 import ShapeAnalysis from "./ShapeAnalysis.jsx";
 import { polygonAlignment, shapeAnalysis } from './AnalysisPanel.js';
 
-export default function AnalysisPanel( { nowPolygonData }) {
+export default function AnalysisPanel( { nowPolygonData, nowOrigin, onShowCentroids }) {
     useEffect(() => {
         if (nowPolygonData !== null) {
-            polygonAlignment( nowPolygonData );
-            shapeAnalysis( nowPolygonData );
+            polygonAlignment( nowPolygonData, nowOrigin, onShowCentroids );
+            shapeAnalysis( nowPolygonData, nowOrigin );
         }
-    }, [nowPolygonData]);
+    }, [nowPolygonData, nowOrigin, onShowCentroids]);
 
     return (
         <>
