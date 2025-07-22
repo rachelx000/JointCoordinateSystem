@@ -1,39 +1,30 @@
-export default function ShapeAnalysis() {
+export const shape_metrics = [
+    { id: "cyclicity", title: "Cyclicity" },
+    { id: "compactness", title: "Compactness" },
+    { id: "diagonal-ratio", title: "Diagonal Ratio" },
+    { id: "angular-regularity", title: "Angular Regularity" }
+];
+
+export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scatterplotRefs }) {
     return (
         <div id="shape-analysis">
-            <h3>Shape Metrics</h3>
-            <svg id="sphericity">
-                <rect className="scatterplot-canvas" width={300} height={125} x={40} y={25} />
-                <g id="sphericity_x_axis" transform="translate(40, 125)" />
-                <g id="sphericity_y_axis" transform="translate(40, 25)" />
-                <g id="sphericity_data" transform="translate(40, 25)" />
-                <g id="sphericity_reference" transform="translate(40, 25)" />
-                <text className="scatter-title" transform="translate(140, 14)">Sphericity</text>
-            </svg>
-            <svg id="compactness">
-                <rect className="scatterplot-canvas" width={300} height={125} x={40} y={25} />
-                <g id="compactness_x_axis" transform="translate(40, 125)" />
-                <g id="compactness_y_axis" transform="translate(40, 25)" />
-                <g id="compactness_data" transform="translate(40, 25)" />
-                <g id="compactness_reference" transform="translate(40, 25)" />
-                <text className="scatter-title" transform="translate(140, 14)">Compactness</text>
-            </svg>
-            <svg id="diagonal_ratio">
-                <rect className="scatterplot-canvas" width={300} height={125} x={40} y={25} />
-                <g id="diagonal_ratio_x_axis" transform="translate(40, 125)" />
-                <g id="diagonal_ratio_y_axis" transform="translate(40, 25)" />
-                <g id="diagonal_ratio_data" transform="translate(40, 25)" />
-                <g id="diagonal_ratio_reference" transform="translate(40, 25)" />
-                <text className="scatter-title" transform="translate(140, 14)">Diagonal Ratio</text>
-            </svg>
-            <svg id="angular_regularity">
-                <rect className="scatterplot-canvas" width={300} height={125} x={40} y={25} />
-                <g id="angular_regularity_x_axis" transform="translate(40, 125)" />
-                <g id="angular_regularity_y_axis" transform="translate(40, 25)" />
-                <g id="angular_regularity_data" transform="translate(40, 25)" />
-                <g id="angular_regularity_reference" transform="translate(40, 25)" />
-                <text className="scatter-title" transform="translate(140, 14)">Angular Regularity</text>
-            </svg>
+            { shape_metrics.map(shape_metric => (
+                <div>
+                    <h4 className="scatter-title">{ inspectedIndex === null ? shape_metric.title : shape_metric.title+" = "+alignedPolygonData[inspectedIndex].metrics[shape_metric.id]}</h4>
+                    <div key={shape_metric.id} id={shape_metric.id} className="scatter-container">
+                        <img className="scatter-reset-button" src="/assets/reset.png" onClick={() => { scatterplotRefs.current[shape_metric.id]?.resetZoomPan(); }} />
+                        <svg>
+                            <rect className={"scatterplot-canvas "+shape_metric.id+"-scatterplot"}></rect>
+                            <g>
+                                <g id={shape_metric.id+"-x-axis"}/>
+                                <g id={shape_metric.id+"-y-axis"}/>
+                            </g>
+                            <g id={shape_metric.id+"-data"} className={shape_metric.id+"-scatterplot"}/>
+                            <g id={shape_metric.id+"-reference"} className={shape_metric.id+"-scatterplot"}/>
+                        </svg>
+                    </div>
+                </div>
+            ))}
         </div>
     );
 }

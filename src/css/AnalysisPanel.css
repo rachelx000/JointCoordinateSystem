@@ -1,13 +1,21 @@
 #analysis-panel {
     height: calc(100vh - 15px);
     width: calc(100vw - 740px);
-    min-width: 360px;
+    min-width: 600px;
     background: #eaeaea;
     box-sizing: border-box;
 }
 
 #analysis-panel h3 {
     font-size: medium;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 0;
+    margin-top: 5px;
+}
+
+#analysis-panel h4 {
+    font-size: small;
     text-align: center;
     width: 100%;
     margin-bottom: 0;
@@ -22,11 +30,11 @@
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
+    overflow-y: auto;
 }
 
 #polygon-alignment svg{
-    height: 330px;
-    width: 330px
+    margin-inline: 10px;
 }
 
 #shape-analysis {
@@ -40,16 +48,37 @@
     align-content: flex-start;
 }
 
+#shape-analysis>div {
+    margin: 5px;
+    padding: 0;
+}
+
 #shape-analysis svg{
-    width: 350px;
+    width: 330px;
     height: 150px;
     border: 1px dashed #000;
-    margin: 5px;
     box-sizing: border-box;
 }
 
 .scatterplot-canvas {
+    width: 330px;
+    height: 150px;
     fill: #FFF;
+}
+
+.scatter-container {
+    position: relative;
+    width: 330px;
+    height: 150px;
+}
+
+.scatter-reset-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    opacity: 40%;
 }
 
 .scatter-title{

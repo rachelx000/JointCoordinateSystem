@@ -2,9 +2,9 @@ import * as d3 from 'd3';
 import { isEqual } from "lodash";
 
 // Global data and generators:
-const jcs_origin = [100, 70];
+export const jcs_origin = [100, 70];
 let varnames;
-let coord_len, corner_len, axis_len;
+export let coord_len, corner_len, axis_len;
 let coord_corner_data, axis_translation, axis_indicator_info;
 let left_scale, right_scale, top_scale, bottom_scale, color_scale;
 let polygons;
@@ -147,12 +147,10 @@ function generate_axis_title( axis_id, axis_title, if_vertical ) {
 
 function generate_axis( data, if_origin_mode ) {
     // Define the scaling of the axis
-    let axis_range = [axis_len, 0];
-    left_scale = generate_numerical_scale(data, varnames[0], '#left-axis', d3.axisLeft, axis_range, if_origin_mode, true );
-    top_scale = generate_numerical_scale(data, varnames[1], '#top-axis', d3.axisTop, axis_range, if_origin_mode, false );
-    axis_range = [0, axis_len];
-    right_scale = generate_numerical_scale(data, varnames[2], '#right-axis', d3.axisRight, axis_range, if_origin_mode, true );
-    bottom_scale = generate_numerical_scale(data, varnames[3], '#bottom-axis', d3.axisBottom, axis_range, if_origin_mode, false );
+    left_scale = generate_numerical_scale(data, varnames[0], '#left-axis', d3.axisLeft,[axis_len, 0], if_origin_mode, true );
+    bottom_scale = generate_numerical_scale(data, varnames[1], '#bottom-axis', d3.axisBottom, [0, axis_len], if_origin_mode, false );
+    right_scale = generate_numerical_scale(data, varnames[2], '#right-axis', d3.axisRight, [0, axis_len], if_origin_mode, true );
+    top_scale = generate_numerical_scale(data, varnames[3], '#top-axis', d3.axisTop, [axis_len, 0], if_origin_mode, false );
 
     // Plot the four corners of the axis
     d3.select('#axis-corner')
@@ -162,9 +160,9 @@ function generate_axis( data, if_origin_mode ) {
 
     // Plot the axis titles
     generate_axis_title("#left-axis", varnames[0], true);
-    generate_axis_title("#top-axis", varnames[1], false);
+    generate_axis_title("#bottom-axis", varnames[1], false);
     generate_axis_title("#right-axis", varnames[2], true);
-    generate_axis_title("#bottom-axis", varnames[3], false);
+    generate_axis_title("#top-axis", varnames[3], false);
 }
 
 function calculate_centroid( point_list ) {
@@ -179,23 +177,29 @@ function generate_polygons( data ) {
         let curr_data_entry = data[i];
         let curr_point_list = data_entry_to_point_list(curr_data_entry);
         polygons.push( { id: i,
-                         points: point_list_to_path_str(curr_point_list),
                          color: color_scale(curr_data_entry[varnames[varnames.length-1]]),
-                         centroid: calculate_centroid(curr_point_list) } );
+                         depVal: curr_data_entry[varnames[varnames.length-1]],
+                         points: point_list_to_path_str(curr_point_list),
+                         centroid: calculate_centroid(curr_point_list)
+        });
     }
 }
 
 function data_entry_to_point_list( data_entry ) {
     return [
         [axis_translation["#left-axis"][0], axis_translation["#left-axis"][1] + left_scale(data_entry[varnames[0]])],
-        [axis_translation["#top-axis"][0] + top_scale(data_entry[varnames[1]]), axis_translation["#top-axis"][1]],
+        [axis_translation["#bottom-axis"][0] + bottom_scale(data_entry[varnames[1]]), axis_translation["#bottom-axis"][1]],
         [axis_translation["#right-axis"][0], axis_translation["#right-axis"][1] + right_scale(data_entry[varnames[2]])],
-        [axis_translation["#bottom-axis"][0] + bottom_scale(data_entry[varnames[3]]), axis_translation["#bottom-axis"][1]]
+        [axis_translation["#top-axis"][0] + top_scale(data_entry[varnames[3]]), axis_translation["#top-axis"][1]]
     ]
 }
 
 export function point_list_to_path_str( point_list ){
     return point_list.map(p => p.join(',')).join(' ');
+}
+
+export function path_str_to_point_list( path_str ) {
+    return path_str.split(" ").map(point => point.split(","));
 }
 
 function build_color_scale( data, depend_varname, color_scheme ) {
@@ -259,7 +263,7 @@ export function plot_polygons( canvas_id, polygon_data, inspected_index, if_colo
         .attr('stroke', function(d) { return if_color_block_mode ? '#FFF' : d.color })
         .attr('stroke-width', if_color_block_mode ? 0.0 : 1.5)
         .attr('stroke-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.3 ) : 1.0 ; })
-        .attr('fill-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.1 ) : 0.1 ; })
+        .attr('fill-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.3 ) : 0.3 ; })
         .classed('highlight-stroke', false);
 
     d3.select(canvas_id)
@@ -280,7 +284,7 @@ export function plot_polygons( canvas_id, polygon_data, inspected_index, if_colo
 }
 
 function plot_axis_indicator( pcc_data, if_PCC ) {
-    let axis_orients = ["left", "top", "right", "bottom"];
+    let axis_orients = ["left", "bottom", "right", "top"];
 
     for (let i = 0; i < axis_orients.length; i++) {
         let axis_orient = axis_orients[i];
@@ -292,7 +296,7 @@ function plot_axis_indicator( pcc_data, if_PCC ) {
                 .attr("y", curr_indicator_info["y"])
                 .attr("width", curr_indicator_info["width"])
                 .attr("height", curr_indicator_info["height"])
-                .attr("fill", curr_pcc >= 0 ? "#FF4949" : "#0F4392")
+                .attr("fill", curr_pcc >= 0 ? "#d8315b" : "#3e92cc")
                 .attr("opacity", Math.abs(curr_pcc));
             d3.select("#"+axis_orient+"-indicator>title")
                 .text("PCC Value = "+curr_pcc.toFixed(5));
@@ -342,7 +346,7 @@ function compute_origin( now_origin, set_origin ) {
     let origin_point_list = data_entry_to_point_list(origin_data);
     let origin_polygon = {
         points: point_list_to_path_str(origin_point_list),
-        centroid: calculate_centroid(origin_point_list)
+        centroid: calculate_centroid(origin_point_list),
     };
     if ( !isEqual(now_origin, origin_polygon) ) {
         set_origin(origin_polygon);

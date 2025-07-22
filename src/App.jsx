@@ -10,9 +10,32 @@ export default function App() {
     const [nowPolygonData, setPolygonData] = useState(null);
     const [nowOrigin, setOrigin] = useState(null);
     const [onShowCentroids, setShowCentroids] = useState(false);
+    const [onInspectMode, setInspectMode] = useState(false);
+    const [onColorBlockMode, setColorBlockMode] = useState(false);
+    const [inspectedIndex, setInspectedIndex] = useState(null);
+
 
     function handleSelectData(e) {
         setSelectedDataPath(e.target.value);
+    }
+
+    function handleShowCentroids() {
+        if (onShowCentroids && onInspectMode) {
+            setInspectMode(false);
+        }
+        setShowCentroids(!onShowCentroids);
+    }
+
+    function handleChangeInspectMode() {
+        if (onShowCentroids) {
+            setInspectMode(!onInspectMode);
+        } else {
+            setInspectedIndex(null);
+        }
+    }
+
+    function handleChangeColorBlockMode() {
+        setColorBlockMode(!onColorBlockMode);
     }
 
     useEffect(() => {
@@ -38,9 +61,12 @@ export default function App() {
                 <JCS nowDataPath={ selectedDataPath } nowPolygonData={ nowPolygonData }
                      handleSelectData={ handleSelectData } setPolygonData={ setPolygonData }
                      nowOrigin={ nowOrigin } setOrigin={ setOrigin }
-                     onShowCentroids={ onShowCentroids } setShowCentroids={ setShowCentroids }/>
-                <AnalysisPanel nowPolygonData={ nowPolygonData } nowOrigin={ nowOrigin }
-                               onShowCentroids={ onShowCentroids }/>
+                     onShowCentroids={ onShowCentroids } handleShowCentroids={ handleShowCentroids }
+                     onInspectMode={ onInspectMode } handleChangeInspectMode={ handleChangeInspectMode }
+                     onColorBlockMode={ onColorBlockMode } handleChangeColorBlockMode={ handleChangeColorBlockMode }
+                     inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }/>
+                <AnalysisPanel nowPolygonData={ nowPolygonData }  nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
+                               onColorBlockMode={ onColorBlockMode } inspectedIndex={ inspectedIndex }/>
             </main>
         </>
     );

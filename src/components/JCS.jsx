@@ -6,14 +6,12 @@ import { csv } from "d3";
 import drawJCS from "./JCS.js";
 
 export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSelectData, setPolygonData,
-                              nowOrigin, setOrigin, onShowCentroids, setShowCentroids }) {
+                              nowOrigin, setOrigin, onShowCentroids, handleShowCentroids, onInspectMode, handleChangeInspectMode,
+                              onColorBlockMode, handleChangeColorBlockMode, inspectedIndex, setInspectedIndex}) {
     const [selectedColorScheme, setSelectedColorScheme] = useState(['Blue', 'Red']);
     const [selectedColorGradient, setSelectedColorGradient] = useState("AB");
     const [onShowPCC, setShowPCC] = useState(false);
     const [onOriginMode, setOriginMode] = useState(false);
-    const [onInspectMode, setInspectMode] = useState(false);
-    const [onColorBlockMode, setColorBlockMode] = useState(false);
-    const [inspectedIndex, setInspectedIndex] = useState(null);
 
     function handleSelectColorScheme(e) {
         let colorSchemeList = e.target.value.split(",");
@@ -33,13 +31,6 @@ export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSel
         setShowPCC(!onShowPCC);
     }
 
-    function handleShowCentroids() {
-        if (onShowCentroids && onInspectMode) {
-            setInspectMode(false);
-        }
-        setShowCentroids(!onShowCentroids);
-    }
-
     function handleChangeOriginMode() {
         if (onOriginMode) {
             setOrigin(null);
@@ -47,21 +38,10 @@ export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSel
         setOriginMode(!onOriginMode);
     }
 
-    function handleChangeInspectMode() {
-        if (onShowCentroids) {
-            setInspectMode(!onInspectMode);
-        } else {
-            setInspectedIndex(null);
-        }
-    }
-
-    function handleChangeColorBlockMode() {
-        setColorBlockMode(!onColorBlockMode);
-    }
-
     useEffect(() => {
         csv(nowDataPath).then(data => {
-            drawJCS( data, nowPolygonData, setPolygonData, size, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, nowOrigin, setOrigin, onColorBlockMode, onInspectMode, setInspectedIndex, inspectedIndex );
+            drawJCS( data, nowPolygonData, setPolygonData, size, selectedColorScheme, onShowPCC, onShowCentroids,
+                onOriginMode, nowOrigin, setOrigin, onColorBlockMode, onInspectMode, setInspectedIndex, inspectedIndex );
         }).catch(error => console.error(error));
     }, [nowDataPath, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode, inspectedIndex]);
 
