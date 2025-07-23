@@ -29,33 +29,36 @@ const alignment_modes = [
     }
 ]
 
-export default function PolygonAlignment({ alignMode, handleAlignModeChange }) {
+export default function PolygonAlignment({ alignMode, handleAlignModeChange, alignmentRef }) {
     return(
         <div id="polygon-alignment">
             <h3>Polygon Alignment</h3>
-            <svg height={330} width={330}>
-                <defs>
-                    <linearGradient id="colorGradient"
-                        x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="rgba(9, 12, 155, 1)" />
-                        <stop offset="60%" stopColor="rgba(48, 102, 190, 1)" />
-                    </linearGradient>
-                </defs>
-                <g>
-                    <rect width={205} height={370} x={18} y={75} fill="#FFF" />
-                    { ["alignment-x-axis", "alignment-y-axis"].map(title => (
-                        <g key={title} id={title}>
-                            <line></line>
-                            <polygon></polygon>
-                            <text></text>
-                        </g>
-                    ))}
-                    <g id="aligned-polygons" />
-                    <g id="aligned-origin-polygon" className="aligned-origin"/>
-                    <g id="aligned-centroids" />
-                    <g id="aligned-origin-centroid" className="aligned-origin"/>
-                </g>
-            </svg>
+            <div id="alignment-container">
+                <img id="alignment-reset-button" src="/assets/reset.png" onClick={ () => { alignmentRef.current?.resetZoomPan(); }} />
+                <svg id="alignment-canvas" height={330} width={330}>
+                    <defs>
+                        <linearGradient id="colorGradient"
+                            x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="rgba(9, 12, 155, 1)" />
+                            <stop offset="60%" stopColor="rgba(48, 102, 190, 1)" />
+                        </linearGradient>
+                    </defs>
+                    <g>
+                        <rect width={330} height={330} fill="#FFF" />
+                        { ["alignment-x-axis", "alignment-y-axis"].map(title => (
+                            <g key={title} id={title} className="alignment-plot">
+                                <line></line>
+                                <polygon></polygon>
+                                <text></text>
+                            </g>
+                        ))}
+                        <g id="aligned-polygons" className="alignment-plot" />
+                        <g id="aligned-origin-polygon" className="alignment-plot aligned-origin"/>
+                        <g id="aligned-centroids" className="alignment-plot" />
+                        <g id="aligned-origin-centroid" className="alignment-plot aligned-origin"/>
+                    </g>
+                </svg>
+            </div>
             <svg height={330} width={200}>
                 {alignment_modes.map(mode => (
                     <g key={mode.name}>

@@ -9,9 +9,9 @@ export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scat
     return (
         <div id="shape-analysis">
             { shape_metrics.map(shape_metric => (
-                <div>
+                <div key={shape_metric.id}>
                     <h4 className="scatter-title">{ inspectedIndex === null ? shape_metric.title : shape_metric.title+" = "+alignedPolygonData[inspectedIndex].metrics[shape_metric.id]}</h4>
-                    <div key={shape_metric.id} id={shape_metric.id} className="scatter-container">
+                    <div id={shape_metric.id} className="scatter-container">
                         <img className="scatter-reset-button" src="/assets/reset.png" onClick={() => { scatterplotRefs.current[shape_metric.id]?.resetZoomPan(); }} />
                         <svg>
                             <rect className={"scatterplot-canvas "+shape_metric.id+"-scatterplot"}></rect>
@@ -20,7 +20,7 @@ export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scat
                                 <g id={shape_metric.id+"-y-axis"}/>
                             </g>
                             <g id={shape_metric.id+"-data"} className={shape_metric.id+"-scatterplot"}/>
-                            <g id={shape_metric.id+"-reference"} className={shape_metric.id+"-scatterplot"}/>
+                            <line id={shape_metric.id+"-origin"} className={shape_metric.id+"-scatterplot"}/>
                         </svg>
                     </div>
                 </div>

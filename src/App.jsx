@@ -50,9 +50,13 @@ export default function App() {
         console.log("Current Polygon Data: ", nowPolygonData);
     }, [nowPolygonData]);
 
-    useEffect(() => {
+    /*useEffect(() => {
+        console.log("Current index: ", inspectedIndex);
+    }, [inspectedIndex]);
+
+     useEffect(() => {
         console.log("Current Origin: ", nowOrigin);
-    }, [nowOrigin]);
+    }, [nowOrigin]); */
 
     return (
         <>
@@ -66,7 +70,8 @@ export default function App() {
                      onColorBlockMode={ onColorBlockMode } handleChangeColorBlockMode={ handleChangeColorBlockMode }
                      inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }/>
                 <AnalysisPanel nowPolygonData={ nowPolygonData }  nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
-                               onColorBlockMode={ onColorBlockMode } inspectedIndex={ inspectedIndex }/>
+                               onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
+                               inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />
             </main>
         </>
     );

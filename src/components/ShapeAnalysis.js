@@ -2,7 +2,7 @@ import * as d3 from "d3";
 
 const scatter_width = 280, scatter_height = 130;
 
-export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_order, inspected_index ) {
+export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_order, if_inspect_mode, inspected_index, set_inspected_index, aligned_origin_data ) {
     let zoom_k = 1;
     // Obtain the array of metric data
     let metric_data = aligned_polygons.map(polygon => polygon.metrics[metric_id]);
@@ -54,7 +54,50 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
                     this.parentNode.appendChild(this);
                 }
             });
+
+        if (aligned_origin_data) {
+            d3.select('#' + metric_id + '-origin')
+                .attr('stroke-width', 1 / zoom_k);
+        }
     }
+
+    function setInspect() {
+        if (if_inspect_mode) {
+            d3.select('#'+metric_id+'-data')
+                .selectAll('circle')
+                .on('mouseover', (e, d) => {
+                    inspected_index = aligned_polygons[d].id;
+                    set_inspected_index(aligned_polygons[d].id);
+                })
+                .on('mouseout', () => {
+                    set_inspected_index(null);
+                });
+        } else {
+            d3.select('#'+metric_id+'-data')
+                .selectAll('circle')
+                .on('mouseover', null)
+                .on('mouseout', null);
+        }
+    }
+    setInspect();
+
+    function plotOrigin() {
+        if (aligned_origin_data) {
+            d3.select('#'+metric_id+'-origin')
+                .attr('x1', x_scale(0))
+                .attr('y1', y_scale(aligned_origin_data.metrics[metric_id]))
+                .attr('x2', x_scale(metric_data.length))
+                .attr('y2', y_scale(aligned_origin_data.metrics[metric_id]))
+                .attr('stroke', 'black')
+                .attr('stroke-width', 1)
+                .attr('stroke-dasharray', 4)
+                .attr('opacity', 1);
+        } else {
+            d3.select('#'+metric_id+'-origin')
+                .attr('opacity', 0)
+        }
+    }
+    plotOrigin();
 
     let scatter_zoom = d3.zoom()
         .scaleExtent([1, 10])
@@ -69,18 +112,26 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
         });
     d3.select("#"+metric_id+" svg").call(scatter_zoom);
 
-
     return {
         updateInspectedIndex: (new_index) => {
             inspected_index = new_index;
             updateView();
+        },
+        updateOrigin: (now_aligned_origin_data) => {
+            aligned_origin_data = now_aligned_origin_data;
+            plotOrigin();
+            updateView();
+        },
+        updateInspectMode: (now_inspect_mode) => {
+            if_inspect_mode = now_inspect_mode;
+            setInspect();
         },
         resetZoomPan: () => {
             d3.select("#" + metric_id + " svg")
                 .transition()
                 .duration(500)
                 .call(scatter_zoom.transform, d3.zoomIdentity);
-        }
+        },
     };
 
 }

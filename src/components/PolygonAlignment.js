@@ -7,6 +7,7 @@ import {
     plot_origin,
 } from "./JCS.js";
 import { jcs_origin, coord_len } from "./JCS.js";
+import { isEqual } from "lodash";
 
 const size = 300;
 const scaling = 0.35;
@@ -252,7 +253,7 @@ function plot_alignment_axis( axis_id, axis_obj ) {
         .text(axis_obj.title);
 }
 
-function compute_aligned_polygon_order( aligned_polygons, align_mode ) {
+export function computeAlignedPolygonOrder( aligned_polygons, align_mode ) {
     let angle_list = [];
     let origin = alignment_axes[align_mode.mode].origin;
 
@@ -286,23 +287,114 @@ function compute_aligned_polygon_order( aligned_polygons, align_mode ) {
     return angle_list.map(angle => angle.id);
 }
 
-export function plotPolygonAlignment( aligned_polygons, origin_data, if_centroids, if_color_block_mode, align_mode, inspected_index ) {
+export function plotPolygonAlignment( aligned_polygons, origin_data, if_centroids, if_color_block_mode, align_mode,
+                                      if_inspect_mode, inspected_index, set_inspected_index, aligned_origin_data, set_aligned_origin_data ) {
+    let zoom_k = 1;
     // Plot the axes for alignment:
     plot_alignment_axis( "#alignment-x-axis", alignment_axes[align_mode.mode].x );
     plot_alignment_axis( "#alignment-y-axis", alignment_axes[align_mode.mode].y );
 
     // Plot polygons and centroids (if needed):
-    plot_polygons("#aligned-polygons", aligned_polygons, inspected_index, if_color_block_mode);
-    plot_centroids("#aligned-centroids", aligned_polygons, if_centroids, inspected_index, if_color_block_mode)
+    function plotData() {
+        plot_polygons("#aligned-polygons", aligned_polygons, inspected_index, if_color_block_mode);
+        plot_centroids("#aligned-centroids", aligned_polygons, if_centroids, inspected_index, if_color_block_mode);
+    }
+    plotData();
 
     // Plot origin if origin mode is on:
-    if ( origin_data ) {
-        let aligned_origin = align_a_polygon(origin_data, align_mode);
-        plot_origin( aligned_origin, "aligned-origin", if_centroids, if_color_block_mode);
-    } else {
-        d3.selectAll(".aligned-origin").selectAll("*").attr("opacity", 0);
+    function plotOrigin() {
+        if ( origin_data !== null ) {
+            let curr_aligned_origin = align_a_polygon(origin_data, align_mode);
+            if (!isEqual( curr_aligned_origin, aligned_origin_data))
+                set_aligned_origin_data(curr_aligned_origin);
+            plot_origin( curr_aligned_origin, "aligned-origin", if_centroids, if_color_block_mode);
+        } else {
+            d3.select(".aligned-origin").selectAll("*").attr("opacity", 0);
+            set_aligned_origin_data(null);
+        }
+    }
+    plotOrigin();
+
+    function setInspect() {
+        if (if_inspect_mode) {
+            d3.select('#aligned-centroids')
+                .selectAll('circle')
+                .on('mouseover', (e, d) => {
+                    inspected_index = d.id;
+                    set_inspected_index(d.id);
+                })
+                .on('mouseout', () => {
+                    set_inspected_index(null);
+                });
+        } else {
+            d3.select('#aligned-centroids')
+                .selectAll('circle')
+                .on('mouseover', null)
+                .on('mouseout', null);
+        }
+    }
+    setInspect();
+
+    function updateView() {
+        if (if_centroids) {
+            d3.select('#aligned-centroids')
+                .selectAll('circle')
+                .attr('r', (d) => (d.id === inspected_index) ? (5 / zoom_k) : (4 / zoom_k))
+                .attr('stroke-width', (d) => (if_color_block_mode) ? 1.0 / zoom_k : ( inspected_index !== null ? (d.id === inspected_index ? 1.0 / zoom_k : 0.0 ) : 0.0))
+                .attr('opacity', (d) => (inspected_index !== null) ? (d.id === inspected_index ? 1.0 : 0.4) : 1.0);
+
+            // Move inspected point to front
+            d3.select('#aligned-centroids')
+                .selectAll('circle')
+                .each(function (d, i) {
+                    if (i === inspected_index) {
+                        this.parentNode.appendChild(this);
+                    }
+                });
+        }
     }
 
-    // Sort polygons based on the angle of aligned centroids in increasing order
-    return compute_aligned_polygon_order( aligned_polygons, align_mode );
+    let alignment_zoom = d3.zoom()
+        .scaleExtent([1, 10])
+        .translateExtent([[-200, -200], [500, 500]])
+        .on('zoom', (e) => {
+            zoom_k = e.transform.k;
+            d3.selectAll(".alignment-plot").attr('transform', e.transform);
+            updateView();
+        });
+    d3.select("#alignment-canvas").call(alignment_zoom);
+
+    return {
+        updateInspectedIndex: (new_index) => {
+            inspected_index = new_index;
+            plotData();
+            updateView();
+        },
+        updateColorBlockMode: (now_color_block_mode) => {
+            if_color_block_mode = now_color_block_mode;
+            plotData();
+            updateView();
+        },
+        updateCentroids: (now_if_centroid) => {
+            if_centroids = now_if_centroid;
+            plot_centroids("#aligned-centroids", aligned_polygons, if_centroids, inspected_index, if_color_block_mode);
+            plotOrigin();
+            updateView();
+        },
+        updateOrigin: (now_origin_data, now_aligned_origin_data) => {
+            origin_data = now_origin_data;
+            aligned_origin_data = now_aligned_origin_data;
+            plotOrigin();
+        },
+        updateInspectMode: (now_inspect_mode) => {
+            if_inspect_mode = now_inspect_mode;
+            setInspect();
+        },
+        resetZoomPan: () => {
+            d3.selectAll("#alignment-canvas")
+                .transition()
+                .duration(500)
+                .call(alignment_zoom.transform, d3.zoomIdentity);
+        }
+    };
 }

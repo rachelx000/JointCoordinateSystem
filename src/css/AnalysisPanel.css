@@ -37,6 +37,21 @@
     margin-inline: 10px;
 }
 
+#alignment-container {
+    position: relative;
+    width: 330px;
+    height: 330px;
+}
+
+#alignment-reset-button {
+    position: absolute;
+    top: 0;
+    right: -10px;
+    width: 30px;
+    height: 30px;
+    opacity: 40%;
+}
+
 #shape-analysis {
     width: 100%;
     height: calc(100vh - 385px);
