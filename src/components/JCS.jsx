@@ -8,6 +8,7 @@ import drawJCS from "./JCS.js";
 export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSelectData, setPolygonData,
                               nowOrigin, setOrigin, onShowCentroids, handleShowCentroids, onInspectMode, handleChangeInspectMode,
                               onColorBlockMode, handleChangeColorBlockMode, inspectedIndex, setInspectedIndex}) {
+    const [selectedData, setSelectedData] = useState(null);
     const [selectedColorScheme, setSelectedColorScheme] = useState(['Blue', 'Red']);
     const [selectedColorGradient, setSelectedColorGradient] = useState("AB");
     const [onShowPCC, setShowPCC] = useState(false);
@@ -40,10 +41,17 @@ export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSel
 
     useEffect(() => {
         csv(nowDataPath).then(data => {
-            drawJCS( data, nowPolygonData, setPolygonData, size, selectedColorScheme, onShowPCC, onShowCentroids,
-                onOriginMode, nowOrigin, setOrigin, onColorBlockMode, onInspectMode, setInspectedIndex, inspectedIndex );
+            setSelectedData(data);
         }).catch(error => console.error(error));
-    }, [nowDataPath, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode, inspectedIndex]);
+    }, [nowDataPath]);
+
+
+    useEffect(() => {
+        if ( selectedData !== null ) {
+            drawJCS( selectedData, nowPolygonData, setPolygonData, size, selectedColorScheme, onShowPCC, onShowCentroids,
+                onOriginMode, nowOrigin, setOrigin, onColorBlockMode, onInspectMode, setInspectedIndex, inspectedIndex );
+        }
+    }, [selectedData, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode, inspectedIndex]);
 
     return (
         <>
@@ -54,9 +62,8 @@ export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSel
                            onOriginMode={ onOriginMode } onClickOriginMode = { handleChangeOriginMode }
                            onColorBlockMode={ onColorBlockMode } onClickColorBlockMode={ handleChangeColorBlockMode }
                            onChangeColorGradient={ handleSelectColorGradient }/>
-                <JCSMenu onChangeData={ handleSelectData }
-                         selectedColorScheme={ selectedColorScheme }
-                         onChangeColorScheme={ handleSelectColorScheme } />
+                <JCSMenu selectedData={ selectedData } onChangeData={ handleSelectData }
+                         selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ handleSelectColorScheme } />
             </div>
         </>
     )

@@ -355,7 +355,7 @@ export function plotPolygonAlignment( aligned_polygons, origin_data, if_centroid
     }
 
     let alignment_zoom = d3.zoom()
-        .scaleExtent([1, 10])
+        .scaleExtent([1, 50])
         .translateExtent([[-200, -200], [500, 500]])
         .on('zoom', (e) => {
             zoom_k = e.transform.k;

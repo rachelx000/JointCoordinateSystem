@@ -19,7 +19,7 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
         .attr("transform", "translate(0, 130)");
 
     let y_scale = d3.scaleLinear()
-        .domain([Math.floor(Math.min(...metric_data)-0.0001), Math.ceil(Math.max(...metric_data)+0.0001)])
+        .domain([Math.min(Math.floor(Math.min(...metric_data)-0.0001), 0), Math.ceil(Math.max(...metric_data)+0.0001)])
         .range([scatter_height, 5])
         .nice();
     let y_axis = d3.axisLeft(y_scale).ticks(5);
@@ -44,6 +44,7 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
             .selectAll('circle')
             .attr('r', d => (aligned_polygons[d].id === inspected_index) ? (5 / zoom_k) : (4 / zoom_k))
             .attr('stroke', d => (aligned_polygons[d].id === inspected_index) ? '#FFF' : 'none')
+            .attr('stroke-width', 1.0 / zoom_k )
             .attr('opacity', d => (inspected_index !== null) ? (aligned_polygons[d].id === inspected_index ? 1.0 : 0.4) : 1.0);
 
         // Move inspected point to front
@@ -57,7 +58,7 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
 
         if (aligned_origin_data) {
             d3.select('#' + metric_id + '-origin')
-                .attr('stroke-width', 1 / zoom_k);
+                .attr('stroke-width', 2 / zoom_k);
         }
     }
 
@@ -89,7 +90,7 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
                 .attr('x2', x_scale(metric_data.length))
                 .attr('y2', y_scale(aligned_origin_data.metrics[metric_id]))
                 .attr('stroke', 'black')
-                .attr('stroke-width', 1)
+                .attr('stroke-width', 2)
                 .attr('stroke-dasharray', 4)
                 .attr('opacity', 1);
         } else {

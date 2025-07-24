@@ -11,6 +11,10 @@ let polygons;
 let centroid_quadtree;
 let line_generator = d3.line().defined(function(d) {return d !== null; });
 
+export function get_varnames( data ) {
+    return [...new Set(data.flatMap(obj => Object.keys(obj)))];
+}
+
 function get_variable_names( data ){
     varnames = [...new Set(data.flatMap(obj => Object.keys(obj)))];
     // console.log("Variables of current data: ", varnames);
@@ -433,9 +437,9 @@ function update_tooltip( data, inspected_index, if_color_block_mode ) {
     }
 }
 
-export default function drawJCS( data, now_polygon_data, set_polygon_data, size, color_scheme, if_PCC, if_centroids,
-                                 if_origin_mode, now_origin, set_origin, if_color_block_mode, if_inspect_mode,
-                                 set_inspected_index, inspected_index ) {
+export default function drawJCS( data, now_polygon_data, set_polygon_data, size, color_scheme,
+                                 if_PCC, if_centroids, if_origin_mode, now_origin, set_origin, if_color_block_mode,
+                                 if_inspect_mode, set_inspected_index, inspected_index ) {
     // Reset global variables and event listeners:
     polygons = [];
     centroid_quadtree = d3.quadtree();

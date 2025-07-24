@@ -1,5 +1,6 @@
 import { visualization_data } from "./example-data.js";
 import { isEqual } from "lodash";
+import { get_varnames } from "./JCS.js";
 
 // TODO: Add custom color schemes (2, 3, 4, 5)
 
@@ -30,35 +31,74 @@ const defaultColorSchemes = [
     }
 ];
 
-export default function JCSMenu( { onChangeData, selectedColorScheme, onChangeColorScheme } ) {
+function ColorSchemeSelector({selectedColorScheme, onChangeColorScheme }) {
     return (
-        <div id="control-panel" className="joint-coordinate-system">
-            <div id="color-scheme-control">
-                <div id="color-scheme" onChange={ onChangeColorScheme }>
-                    { defaultColorSchemes.map(colorScheme => (
-                        <div key={ colorScheme.name } onClick={ () => onChangeColorScheme(colorScheme.colors) }
-                            style={{ border: (isEqual(colorScheme.colors, selectedColorScheme) ||
-                                    isEqual(colorScheme.colors.reverse(), selectedColorScheme)) ? '2px solid #090c9b' : '2px solid #eaeaea' }}>
-                            <h4>{ colorScheme.name }</h4>
-                            {colorScheme.colors.map((color, index) => (
-                                <div key={index} style={{ backgroundColor: color, width: 18, height: 18, borderRadius: '2px', margin: 0}} />
-                            ))}
-                        </div>
+        <div id="color-scheme-selector" onChange={ onChangeColorScheme }>
+            { defaultColorSchemes.map(colorScheme => (
+                <div key={ colorScheme.name } onClick={ () => onChangeColorScheme(colorScheme.colors) }
+                     style={{ borderColor: (isEqual(colorScheme.colors, selectedColorScheme) ||
+                             isEqual(colorScheme.colors.reverse(), selectedColorScheme)) ? '#090c9b' : '#fff' }}>
+                    <h4>{ colorScheme.name }</h4>
+                    {colorScheme.colors.map((color, index) => (
+                        <div key={index} className="color-schemes" style={{ backgroundColor: color}} />
                     ))}
                 </div>
+            ))}
+        </div>
+    )
+}
+
+function VarSelector({ selectedData }) {
+    if ( selectedData === null ) {
+        return;
+    }
+    let varnames = get_varnames( selectedData );
+    return (
+        <div id="variable-selector">
+            <div>
+                <div id="variable-title">
+                    <text>Variables</text>
+                </div>
+                <div id="controller-title">
+                    <text>IV</text>
+                    <text>DV</text>
+                </div>
             </div>
+            {varnames.map(varname => (
+                <div key={ varname } id={ varname }>
+                    <div className="variable-names">
+                        <text>{ varname }</text>
+                    </div>
+                    <div className="variable-controllers">
+                        <input type="checkbox" />
+                        <input type="checkbox" />
+                        <img src="/assets/drag-and-drop.png" className="drag-and-drop-icons"/>
+                    </div>
+                </div>
+            ))}
+        </div>
+    )
+}
+
+export default function JCSMenu( { selectedData, onChangeData, selectedColorScheme, onChangeColorScheme } ) {
+    return (
+        <div id="control-panel" className="joint-coordinate-system">
+            <ColorSchemeSelector selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ onChangeColorScheme } />
             <div id="data-control">
                 {/* Drop-down list for selecting different example datasets */}
-                <label htmlFor="example-data">Choose a example data:</label>
-                <select name="example-data" id="example-data" onChange={ onChangeData }>
-                    { visualization_data.map(dataGroup => (
-                        <optgroup key={ dataGroup.name } label={ dataGroup.name }>
-                            { dataGroup.datasets.map(dataset => (
-                                <option key={ dataset.path } value={ dataGroup.basePath + dataset.path + dataGroup.filetype}>{ dataset.title }</option>
-                            ))}
-                        </optgroup>
-                    ))}
-                </select>
+                <div id="example-data-selector">
+                    <label htmlFor="example-data">Choose a example data:</label>
+                    <select name="example-data" id="example-data" onChange={ onChangeData }>
+                        { visualization_data.map(dataGroup => (
+                            <optgroup key={ dataGroup.name } label={ dataGroup.name }>
+                                { dataGroup.datasets.map(dataset => (
+                                    <option key={ dataset.path } value={ dataGroup.basePath + dataset.path + dataGroup.filetype}>{ dataset.title }</option>
+                                ))}
+                            </optgroup>
+                        ))}
+                    </select>
+                </div>
+                <VarSelector selectedData={ selectedData }/>
             </div>
         </div>
     );
