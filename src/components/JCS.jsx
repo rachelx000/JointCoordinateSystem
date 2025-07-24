@@ -13,18 +13,18 @@ export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSel
     const [onShowPCC, setShowPCC] = useState(false);
     const [onOriginMode, setOriginMode] = useState(false);
 
-    function handleSelectColorScheme(e) {
-        let colorSchemeList = e.target.value.split(",");
-        setSelectedColorScheme(colorSchemeList);
-        // console.log("Current selected color scheme: ", colorSchemeList);
+    function handleSelectColorScheme(scheme_color_list) {
+        setSelectedColorScheme(scheme_color_list);
+        console.log("Current selected color scheme: ", scheme_color_list);
     }
 
-    function handleSelectColorGradient(e) {
-        if (e.target.value !== selectedColorGradient) {
-            setSelectedColorGradient(e.target.value);
-            setSelectedColorScheme([...selectedColorScheme].reverse());
-            // console.log("Current selected color scheme: ", e.target.value);
+    function handleSelectColorGradient() {
+        if (selectedColorGradient === "AB") {
+            setSelectedColorGradient("BA");
+        } else {
+            setSelectedColorGradient("AB");
         }
+        setSelectedColorScheme([...selectedColorScheme].reverse());
     }
 
     function handleShowPCC() {
@@ -48,17 +48,15 @@ export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSel
     return (
         <>
             <div id="joint-coordinate-system">
-                <JCSCanvas />
+                <JCSCanvas onShowPCC={ onShowPCC } onClickShowPCC = { handleShowPCC }
+                           onShowCentroids={ onShowCentroids } onClickShowCentroids = { handleShowCentroids }
+                           onInspectMode={ onInspectMode } onClickInspectMode = { handleChangeInspectMode }
+                           onOriginMode={ onOriginMode } onClickOriginMode = { handleChangeOriginMode }
+                           onColorBlockMode={ onColorBlockMode } onClickColorBlockMode={ handleChangeColorBlockMode }
+                           onChangeColorGradient={ handleSelectColorGradient }/>
                 <JCSMenu onChangeData={ handleSelectData }
-                         onChangeColorScheme={ handleSelectColorScheme }
-                         onChangeColorGradient={ handleSelectColorGradient }
-                         onClickShowPCC = { handleShowPCC }
-                         onClickShowCentroids = { handleShowCentroids }
-                         onShowCentroids={ onShowCentroids }
-                         onClickOriginMode = { handleChangeOriginMode }
-                         onClickInspectMode = { handleChangeInspectMode }
-                         onInspectMode={ onInspectMode }
-                         onClickColorBlockMode = { handleChangeColorBlockMode } />
+                         selectedColorScheme={ selectedColorScheme }
+                         onChangeColorScheme={ handleSelectColorScheme } />
             </div>
         </>
     )

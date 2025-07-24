@@ -6,6 +6,7 @@
 }
 
 #joint-coordinate {
+    position: relative;
     height: 600px;
     margin: 0 0 10px 0;
     overflow: auto;
@@ -14,6 +15,54 @@
     justify-content: center;
     align-items: center;
     box-sizing: border-box;
+}
+
+#show-correlation-button {
+     position: absolute;
+     top: 0;
+     right: 0;
+     width: 30px;
+     height: 30px;
+}
+
+#show-centroid-button {
+    position: absolute;
+    top: 31px;
+    right: 0;
+    width: 30px;
+    height: 30px;
+}
+
+#inspect-button {
+    position: absolute;
+    top: 62px;
+    right: 0;
+    width: 30px;
+    height: 30px;
+}
+
+#display-origin-button {
+    position: absolute;
+    top: 93px;
+    right: 0;
+    width: 30px;
+    height: 30px;
+}
+
+#color-block-button {
+    position: absolute;
+    top: 124px;
+    right: 0;
+    width: 30px;
+    height: 30px;
+}
+
+#color-gradient-button {
+    position: absolute;
+    top: 155px;
+    right: 0;
+    width: 30px;
+    height: 30px;
 }
 
 #joint-coordinate h3{
@@ -50,11 +99,53 @@
 }
 
 #control-panel {
-    padding: 15px;
+    width: 100%;
+    padding: 5px;
     margin: 0;
     height: calc(100vh - 625px);
     font-size: 12px;
     box-sizing: border-box;
+    display: inline-flex;
+}
+
+#color-scheme-control {
+    flex: 1;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    overflow: auto;
+}
+
+#data-control {
+    flex: 1.5;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    overflow: auto;
+}
+
+#color-scheme {
+    background-color: #eaeaea;
+    padding: 1px;
+}
+
+#color-scheme>div {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    gap: 5px;
+    height: 30px;
+}
+
+#color-scheme>div>h4 {
+    width: 80px;
+    text-align: center;
+}
+
+#example-data {
+    width: 200px;
 }
 
 #data-tooltip-text {

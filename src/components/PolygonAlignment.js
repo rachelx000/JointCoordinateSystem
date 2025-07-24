@@ -309,7 +309,7 @@ export function plotPolygonAlignment( aligned_polygons, origin_data, if_centroid
                 set_aligned_origin_data(curr_aligned_origin);
             plot_origin( curr_aligned_origin, "aligned-origin", if_centroids, if_color_block_mode);
         } else {
-            d3.select(".aligned-origin").selectAll("*").attr("opacity", 0);
+            d3.selectAll(".aligned-origin").selectAll("*").attr("opacity", 0);
             set_aligned_origin_data(null);
         }
     }
