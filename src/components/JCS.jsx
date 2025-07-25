@@ -5,6 +5,9 @@ import '../css/JCS.css';
 import { csv } from "d3";
 import drawJCS from "./JCS.js";
 
+// TODO: Add the effect of sliding block for the variable selector
+let currSelectedIVs, currSelectedDV;
+
 export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSelectData, setPolygonData,
                               nowOrigin, setOrigin, onShowCentroids, handleShowCentroids, onInspectMode, handleChangeInspectMode,
                               onColorBlockMode, handleChangeColorBlockMode, inspectedIndex, setInspectedIndex}) {
@@ -13,6 +16,9 @@ export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSel
     const [selectedColorGradient, setSelectedColorGradient] = useState("AB");
     const [onShowPCC, setShowPCC] = useState(false);
     const [onOriginMode, setOriginMode] = useState(false);
+    const [selectedIVs, setSelectedIVs] = useState([]);
+    const [selectedDV, setSelectedDV] = useState(null);
+    const [ifRender, setIfRender] = useState(false);
 
     function handleSelectColorScheme(scheme_color_list) {
         setSelectedColorScheme(scheme_color_list);
@@ -45,13 +51,18 @@ export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSel
         }).catch(error => console.error(error));
     }, [nowDataPath]);
 
-
     useEffect(() => {
-        if ( selectedData !== null ) {
-            drawJCS( selectedData, nowPolygonData, setPolygonData, size, selectedColorScheme, onShowPCC, onShowCentroids,
-                onOriginMode, nowOrigin, setOrigin, onColorBlockMode, onInspectMode, setInspectedIndex, inspectedIndex );
+        if (ifRender) {
+            currSelectedIVs = selectedIVs;
+            currSelectedDV = selectedDV;
+            setIfRender(false);
         }
-    }, [selectedData, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode, inspectedIndex]);
+        if (selectedData !== null) {
+            drawJCS( selectedData, currSelectedIVs, currSelectedDV, nowPolygonData, setPolygonData, size, selectedColorScheme,
+                onShowPCC, onShowCentroids, onOriginMode, nowOrigin, setOrigin, onColorBlockMode, onInspectMode,
+                setInspectedIndex, inspectedIndex );
+        }
+    }, [ifRender, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode, inspectedIndex]);
 
     return (
         <>
@@ -63,7 +74,10 @@ export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSel
                            onColorBlockMode={ onColorBlockMode } onClickColorBlockMode={ handleChangeColorBlockMode }
                            onChangeColorGradient={ handleSelectColorGradient }/>
                 <JCSMenu selectedData={ selectedData } onChangeData={ handleSelectData }
-                         selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ handleSelectColorScheme } />
+                         selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ handleSelectColorScheme }
+                         selectedIVs={ selectedIVs } setSelectedIVs={ setSelectedIVs }
+                         selectedDV={ selectedDV } setSelectedDV={ setSelectedDV }
+                         setIfRender={ setIfRender }/>
             </div>
         </>
     )

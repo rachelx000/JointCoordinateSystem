@@ -3,7 +3,6 @@ import { isEqual } from "lodash";
 
 // Global data and generators:
 export const jcs_origin = [100, 70];
-let varnames;
 export let coord_len, corner_len, axis_len;
 let coord_corner_data, axis_translation, axis_indicator_info;
 let left_scale, right_scale, top_scale, bottom_scale, color_scale;
@@ -12,12 +11,12 @@ let centroid_quadtree;
 let line_generator = d3.line().defined(function(d) {return d !== null; });
 
 export function get_varnames( data ) {
-    return [...new Set(data.flatMap(obj => Object.keys(obj)))];
+    return Object.keys(data[0]);
 }
 
-function get_variable_names( data ){
-    varnames = [...new Set(data.flatMap(obj => Object.keys(obj)))];
-    // console.log("Variables of current data: ", varnames);
+export function reset_variable_selector() {
+    d3.selectAll(".IV").property("checked", false);
+    d3.selectAll(".DV").property("checked", false);
 }
 
 function get_min_and_max( data, varname ){
@@ -44,12 +43,12 @@ function calculate_PCC( x_data, y_data ) {
     }
 }
 
-function calculate_PCC_for_dataset( data ) {
+function calculate_PCC_for_dataset( data, now_IVs, now_DV ) {
     let pcc_data = [];
-    let y_data = data.map(obj => parseFloat(obj[varnames[varnames.length-1]]));
+    let y_data = data.map(obj => parseFloat(obj[now_DV]));
 
-    for (let i = 0; i < varnames.length; i++ ) {
-        let x_data = data.map(obj => parseFloat(obj[varnames[i]]));
+    for (let i = 0; i < 4; i++ ) {
+        let x_data = data.map(obj => parseFloat(obj[now_IVs[i]]));
         let curr_r = calculate_PCC( x_data, y_data );
         pcc_data.push(curr_r);
     }
@@ -149,12 +148,12 @@ function generate_axis_title( axis_id, axis_title, if_vertical ) {
     }
 }
 
-function generate_axis( data, if_origin_mode ) {
+function generate_axis( data, now_IVs, if_origin_mode ) {
     // Define the scaling of the axis
-    left_scale = generate_numerical_scale(data, varnames[0], '#left-axis', d3.axisLeft,[axis_len, 0], if_origin_mode, true );
-    bottom_scale = generate_numerical_scale(data, varnames[1], '#bottom-axis', d3.axisBottom, [0, axis_len], if_origin_mode, false );
-    right_scale = generate_numerical_scale(data, varnames[2], '#right-axis', d3.axisRight, [0, axis_len], if_origin_mode, true );
-    top_scale = generate_numerical_scale(data, varnames[3], '#top-axis', d3.axisTop, [axis_len, 0], if_origin_mode, false );
+    left_scale = generate_numerical_scale(data, now_IVs[0], '#left-axis', d3.axisLeft,[axis_len, 0], if_origin_mode, true );
+    bottom_scale = generate_numerical_scale(data, now_IVs[1], '#bottom-axis', d3.axisBottom, [0, axis_len], if_origin_mode, false );
+    right_scale = generate_numerical_scale(data, now_IVs[2], '#right-axis', d3.axisRight, [0, axis_len], if_origin_mode, true );
+    top_scale = generate_numerical_scale(data, now_IVs[3], '#top-axis', d3.axisTop, [axis_len, 0], if_origin_mode, false );
 
     // Plot the four corners of the axis
     d3.select('#axis-corner')
@@ -163,10 +162,10 @@ function generate_axis( data, if_origin_mode ) {
         .style('stroke', 'black');
 
     // Plot the axis titles
-    generate_axis_title("#left-axis", varnames[0], true);
-    generate_axis_title("#bottom-axis", varnames[1], false);
-    generate_axis_title("#right-axis", varnames[2], true);
-    generate_axis_title("#top-axis", varnames[3], false);
+    generate_axis_title("#left-axis", now_IVs[0], true);
+    generate_axis_title("#bottom-axis", now_IVs[1], false);
+    generate_axis_title("#right-axis", now_IVs[2], true);
+    generate_axis_title("#top-axis", now_IVs[3], false);
 }
 
 function calculate_centroid( point_list ) {
@@ -176,25 +175,25 @@ function calculate_centroid( point_list ) {
     return [xsum/point_list.length, ysum/point_list.length];
 }
 
-function generate_polygons( data ) {
+function generate_polygons( data, now_IVs, now_DV ) {
     for (let i = 0; i < data.length; i++) {
         let curr_data_entry = data[i];
-        let curr_point_list = data_entry_to_point_list(curr_data_entry);
+        let curr_point_list = data_entry_to_point_list(curr_data_entry, now_IVs);
         polygons.push( { id: i,
-                         color: color_scale(curr_data_entry[varnames[varnames.length-1]]),
-                         depVal: curr_data_entry[varnames[varnames.length-1]],
+                         color: color_scale(curr_data_entry[now_DV]),
+                         depVal: curr_data_entry[now_DV],
                          points: point_list_to_path_str(curr_point_list),
                          centroid: calculate_centroid(curr_point_list)
         });
     }
 }
 
-function data_entry_to_point_list( data_entry ) {
+function data_entry_to_point_list( data_entry, now_IVs ) {
     return [
-        [axis_translation["#left-axis"][0], axis_translation["#left-axis"][1] + left_scale(data_entry[varnames[0]])],
-        [axis_translation["#bottom-axis"][0] + bottom_scale(data_entry[varnames[1]]), axis_translation["#bottom-axis"][1]],
-        [axis_translation["#right-axis"][0], axis_translation["#right-axis"][1] + right_scale(data_entry[varnames[2]])],
-        [axis_translation["#top-axis"][0] + top_scale(data_entry[varnames[3]]), axis_translation["#top-axis"][1]]
+        [axis_translation["#left-axis"][0], axis_translation["#left-axis"][1] + left_scale(data_entry[now_IVs[0]])],
+        [axis_translation["#bottom-axis"][0] + bottom_scale(data_entry[now_IVs[1]]), axis_translation["#bottom-axis"][1]],
+        [axis_translation["#right-axis"][0], axis_translation["#right-axis"][1] + right_scale(data_entry[now_IVs[2]])],
+        [axis_translation["#top-axis"][0] + top_scale(data_entry[now_IVs[3]]), axis_translation["#top-axis"][1]]
     ]
 }
 
@@ -206,15 +205,15 @@ export function path_str_to_point_list( path_str ) {
     return path_str.split(" ").map(point => point.split(","));
 }
 
-function build_color_scale( data, depend_varname, color_scheme ) {
+function build_color_scale( data, now_DV, color_scheme ) {
     if ( color_scheme.length === 2 ) {
         color_scale = d3.scaleLinear()
-            .domain(get_min_and_max(data, depend_varname))
+            .domain(get_min_and_max(data, now_DV))
             .range(color_scheme);
     }
     else if ( color_scheme.length > 2 ) {
         // calculate pivots for multicolor scale
-        let range_list = get_min_and_max(data, depend_varname);
+        let range_list = get_min_and_max(data, now_DV);
         let num_interval = (range_list[1]-range_list[0]) / (color_scheme.length-1);
         let check_points = [];
         for (let i = range_list[0]; i < range_list[1]+1; ) {
@@ -231,8 +230,8 @@ function build_color_scale( data, depend_varname, color_scheme ) {
     }
 }
 
-function plot_colorscale( data, depend_varname ) {
-    let depend_var_range = get_min_and_max( data, depend_varname );
+function plot_colorscale( data, now_DV ) {
+    let depend_var_range = get_min_and_max( data, now_DV );
     let colorscale_data = d3.range(depend_var_range[0], depend_var_range[1], (depend_var_range[1]-depend_var_range[0])/100);
     let depend_var_scale = d3.scaleLinear()
         .domain(depend_var_range)
@@ -253,7 +252,7 @@ function plot_colorscale( data, depend_varname ) {
 
     // Plot the colorscale axis
     d3.select("#colorscale-axis").call(colorscale_axis);
-    d3.select('#colorscale-axis>text').text(varnames[varnames.length-1]);
+    d3.select('#colorscale-axis>text').text(now_DV);
 }
 
 export function plot_polygons( canvas_id, polygon_data, inspected_index, if_color_block_mode ) {
@@ -345,9 +344,9 @@ export function plot_centroids( id, polygon_data, if_centroids, inspected_index,
     }
 }
 
-function compute_origin( now_origin, set_origin ) {
-    let origin_data = Object.fromEntries( varnames.map(varname => [varname, 0]) );
-    let origin_point_list = data_entry_to_point_list(origin_data);
+function compute_origin( now_IVs, now_origin, set_origin ) {
+    let origin_data = Object.fromEntries( now_IVs.map(varname => [varname, 0]) );
+    let origin_point_list = data_entry_to_point_list(origin_data, now_IVs);
     let origin_polygon = {
         points: point_list_to_path_str(origin_point_list),
         centroid: calculate_centroid(origin_point_list),
@@ -389,15 +388,15 @@ function cursor_track(e, centroid_quadtree, set_inspected_index, inspected_index
     // console.log("Now tracking...");
 }
 
-function get_datapoint_info( data, index ) {
+function get_datapoint_info( data, index, now_IVs ) {
     let info = [];
-    for (let i = 0; i < varnames.length; i++) {
-        info.push(varnames[i]+": "+data[index][varnames[i]]);
+    for (let i = 0; i < 4; i++) {
+        info.push(now_IVs[i]+": "+data[index][now_IVs[i]]);
     }
     return info;
 }
 
-function update_tooltip( data, inspected_index, if_color_block_mode ) {
+function update_tooltip( data, inspected_index, now_IVs, if_color_block_mode ) {
     d3.select('#data-tooltip-text').selectAll('tspan').remove();
     if (inspected_index !== null) {
         // Add info about the specific data entry into the tooltip
@@ -406,7 +405,7 @@ function update_tooltip( data, inspected_index, if_color_block_mode ) {
             .attr("x", pos[0]+16)
             .attr("y", pos[1])
             .selectAll('tspan')
-            .data(get_datapoint_info( data, inspected_index ))
+            .data(get_datapoint_info( data, inspected_index, now_IVs ))
             .enter()
             .append('tspan')
             .attr('x', pos[0]+16)
@@ -437,7 +436,7 @@ function update_tooltip( data, inspected_index, if_color_block_mode ) {
     }
 }
 
-export default function drawJCS( data, now_polygon_data, set_polygon_data, size, color_scheme,
+export default function drawJCS( data, now_IVs, now_DV, now_polygon_data, set_polygon_data, size, color_scheme,
                                  if_PCC, if_centroids, if_origin_mode, now_origin, set_origin, if_color_block_mode,
                                  if_inspect_mode, set_inspected_index, inspected_index ) {
     // Reset global variables and event listeners:
@@ -463,10 +462,10 @@ export default function drawJCS( data, now_polygon_data, set_polygon_data, size,
     }
 
     axis_indicator_info = {
-        "left": {"x": jcs_origin[0]-10, "y": jcs_origin[1]-20, "width": 20, "height": coord_len},
-        "top": {"x": jcs_origin[0], "y": jcs_origin[1]-30, "width": coord_len, "height": 20},
-        "right": {"x": jcs_origin[0]+coord_len-10, "y": jcs_origin[1]-20, "width": 20, "height": coord_len},
-        "bottom": {"x": jcs_origin[0], "y": jcs_origin[1]+coord_len-30, "width": coord_len, "height": 20}
+        "left": {"x": jcs_origin[0]-10, "y": jcs_origin[1]-20, "width": 40, "height": coord_len},
+        "top": {"x": jcs_origin[0], "y": jcs_origin[1]-30, "width": coord_len, "height": 40},
+        "right": {"x": jcs_origin[0]+coord_len-30, "y": jcs_origin[1]-20, "width": 40, "height": coord_len},
+        "bottom": {"x": jcs_origin[0], "y": jcs_origin[1]+coord_len-50, "width": coord_len, "height": 40}
     }
 
     // Plot the background:
@@ -478,15 +477,14 @@ export default function drawJCS( data, now_polygon_data, set_polygon_data, size,
         .style("fill", '#fff');
 
     // Plot the axis:
-    get_variable_names( data );
-    generate_axis( data, if_origin_mode );
+    generate_axis( data, now_IVs, if_origin_mode );
 
     // Plot the colorscale:
-    build_color_scale(data, varnames[varnames.length-1], color_scheme );
-    plot_colorscale(data, varnames[varnames.length-1] );
+    build_color_scale(data, now_DV, color_scheme );
+    plot_colorscale(data, now_DV );
 
     // Plot the data as polygons:
-    generate_polygons( data );
+    generate_polygons( data, now_IVs, now_DV );
     plot_polygons( '#polygon-data', polygons, inspected_index, if_color_block_mode );
     if ( !isEqual(polygons, now_polygon_data) ) {
         set_polygon_data( polygons );
@@ -495,7 +493,7 @@ export default function drawJCS( data, now_polygon_data, set_polygon_data, size,
     // Calculate and plot correlation indicators if needed:
     let pcc_data = []
     if ( if_PCC ) {
-        pcc_data = calculate_PCC_for_dataset( data );
+        pcc_data = calculate_PCC_for_dataset( data, now_IVs, now_DV );
     }
     plot_axis_indicator( pcc_data, if_PCC );
 
@@ -504,7 +502,7 @@ export default function drawJCS( data, now_polygon_data, set_polygon_data, size,
 
     // Plot the origin if origin mode is on:
     if ( if_origin_mode ) {
-        let origin_polygon = compute_origin( now_origin, set_origin, if_origin_mode )
+        let origin_polygon = compute_origin( now_IVs, now_origin, set_origin, if_origin_mode )
         plot_origin( origin_polygon, "origin", if_centroids, if_color_block_mode );
     } else {
         d3.selectAll(".origin").selectAll("*").attr("opacity", 0);
@@ -516,6 +514,6 @@ export default function drawJCS( data, now_polygon_data, set_polygon_data, size,
         centroid_quadtree.x(d => d.x).y(d => d.y)
             .addAll([...polygons.map(polygon => ( { x: polygon.centroid[0], y: polygon.centroid[1], id: polygon.id } ))]);
         d3.select('#joint-coordinate-canvas').on('mousemove', (e) => cursor_track(e, centroid_quadtree, set_inspected_index, inspected_index));
-        update_tooltip( data, inspected_index, if_color_block_mode);
+        update_tooltip( data, inspected_index, now_IVs, if_color_block_mode);
     }
 }
