@@ -19,6 +19,8 @@ export function reset_variable_selector() {
     d3.selectAll(".DV").property("checked", false);
 }
 
+
+
 function get_min_and_max( data, varname ){
     let min = Math.min(...data.map(data_entry => data_entry[varname]));
     let max = Math.max(...data.map(data_entry => data_entry[varname]));

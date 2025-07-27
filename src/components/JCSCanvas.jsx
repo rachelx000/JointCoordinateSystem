@@ -1,9 +1,68 @@
+import { useState } from "react";
+import { isEqual } from "lodash";
+
+// TODO: Add custom color schemes (2, 3, 4, 5)
+
+const defaultColorSchemes = [
+    {
+        name: 'Cool-Warm',
+        colors: ['Blue', 'Red']
+    },
+    {
+        name: 'Isoluminant',
+        colors: ['Green', 'Red']
+    },
+    {
+        name: 'Blue-Yellow',
+        colors: ['Navy', 'Gold']
+    },
+    {
+        name: 'Greyscale',
+        colors: ['Black', '#DCDCDC']
+    },
+    {
+        name: 'Heated-Body',
+        colors: ['Black', 'Red', 'Yellow']
+    },
+    {
+        name: 'Rainbow',
+        colors: ['Blue', 'Cyan', 'Lime', 'Yellow', 'Red']
+    }
+];
+
+function ColorSchemeMenu({selectedColorScheme, onChangeColorScheme }) {
+    return (
+        <div id="color-scheme-menu" onChange={ onChangeColorScheme }>
+            { defaultColorSchemes.map(colorScheme => (
+                <div key={ colorScheme.name } onClick={ () => onChangeColorScheme(colorScheme.colors) }
+                     style={{ borderColor: (isEqual(colorScheme.colors, selectedColorScheme) ||
+                             isEqual(colorScheme.colors.reverse(), selectedColorScheme)) ? '#090c9b' : '#fff' }}>
+                    <h4>{ colorScheme.name }</h4>
+                    {colorScheme.colors.map((color, index) => (
+                        <div key={index} className="color-schemes" style={{ backgroundColor: color}} />
+                    ))}
+                </div>
+            ))}
+        </div>
+    )
+}
+
 export default function JCSCanvas({ onShowPCC, onClickShowPCC, onShowCentroids, onClickShowCentroids,
                                     onInspectMode, onClickInspectMode, onOriginMode, onClickOriginMode,
-                                    onColorBlockMode, onClickColorBlockMode, onChangeColorGradient }) {
+                                    onColorBlockMode, onClickColorBlockMode, onChangeColorGradient,
+                                    selectedColorScheme, onChangeColorScheme }) {
+    const [openColorSchemeMenu, setOpenColorSchemeMenu] = useState(false);
     return (
         <>
             <div id="joint-coordinate">
+                {/* Color Scheme Menu */}
+                <div onMouseEnter={() => setOpenColorSchemeMenu(true)}
+                     onMouseLeave={() => setOpenColorSchemeMenu(false)}>
+                    <img id="color-scheme-menu-icon" className={openColorSchemeMenu ? "rotate" : undefined}
+                         src="/assets/color-picker.png" alt={"Change Color Scheme Menu"} title={"Change Color Scheme"}/>
+                    { openColorSchemeMenu &&
+                        <ColorSchemeMenu selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ onChangeColorScheme } /> }
+                </div>
                 {/* Controlling Buttons */}
                 <img id="show-correlation-button" src="/assets/correlation.png" onClick={onClickShowPCC}
                      style={{opacity: onShowPCC ? "0.8": "0.4"}} alt={"Show correlation button"} title={"Show Correlation"} />
@@ -49,16 +108,16 @@ export default function JCSCanvas({ onShowPCC, onClickShowPCC, onShowCentroids, 
                     {/* Axis Components */}
                     <g id="joint-coordinate-axes">
                         <g id="left-axis">
-                            <text id="left-axis-title" />
+                            <text id="left-axis-title" className="axis-title"/>
                         </g>
                         <g id="top-axis">
-                            <text id="top-axis-title" />
+                            <text id="top-axis-title" className="axis-title"/>
                         </g>
                         <g id="right-axis">
-                            <text id="right-axis-title" />
+                            <text id="right-axis-title" className="axis-title"/>
                         </g>
                         <g id="bottom-axis">
-                            <text id="bottom-axis-title" />
+                            <text id="bottom-axis-title" className="axis-title"/>
                         </g>
                     </g>
                     {/* Main Canvas */}
@@ -81,7 +140,7 @@ export default function JCSCanvas({ onShowPCC, onClickShowPCC, onShowCentroids, 
                 <svg id="colorscale" className="joint-coordinate">
                     <g id="colorscale-content" />
                     <g id="colorscale-axis">
-                        <text />
+                        <text className="axis-title"/>
                     </g>
                 </svg>
             </div>

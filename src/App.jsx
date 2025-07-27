@@ -6,7 +6,6 @@ import AnalysisPanel from "./components/AnalysisPanel.jsx";
 
 export default function App() {
     const [mode, setMode] = useState('data');
-    const [selectedDataPath, setSelectedDataPath] = useState("/data/visualization_data/example/basic_elements.csv");
     const [nowPolygonData, setPolygonData] = useState(null);
     const [nowOrigin, setOrigin] = useState(null);
     const [onShowCentroids, setShowCentroids] = useState(false);
@@ -14,10 +13,6 @@ export default function App() {
     const [onColorBlockMode, setColorBlockMode] = useState(false);
     const [inspectedIndex, setInspectedIndex] = useState(null);
 
-
-    function handleSelectData(e) {
-        setSelectedDataPath(e.target.value);
-    }
 
     function handleShowCentroids() {
         if (onShowCentroids && onInspectMode) {
@@ -39,10 +34,6 @@ export default function App() {
     }
 
     useEffect(() => {
-        console.log("Current selected data path: ", selectedDataPath);
-    }, [selectedDataPath])
-
-    useEffect(() => {
         console.log("Rendering mode changed to", mode);
     }, [mode]);
 
@@ -62,8 +53,7 @@ export default function App() {
         <>
             <NavBar nowMode={ mode } onChangeMode={ setMode }/>
             <main>
-                <JCS nowDataPath={ selectedDataPath } nowPolygonData={ nowPolygonData }
-                     handleSelectData={ handleSelectData } setPolygonData={ setPolygonData }
+                <JCS nowPolygonData={ nowPolygonData } setPolygonData={ setPolygonData }
                      nowOrigin={ nowOrigin } setOrigin={ setOrigin }
                      onShowCentroids={ onShowCentroids } handleShowCentroids={ handleShowCentroids }
                      onInspectMode={ onInspectMode } handleChangeInspectMode={ handleChangeInspectMode }

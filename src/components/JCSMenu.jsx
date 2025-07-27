@@ -1,64 +1,17 @@
-import { useState, useEffect, useReducer } from "react";
+import { useState, useEffect } from "react";
 import { visualization_data } from "./example-data.js";
-import { isEqual } from "lodash";
 import { get_varnames, reset_variable_selector } from "./JCS.js";
-
-// TODO: Add custom color schemes (2, 3, 4, 5)
-
-const defaultColorSchemes = [
-    {
-        name: 'Cool-Warm',
-        colors: ['Blue', 'Red']
-    },
-    {
-        name: 'Isoluminant',
-        colors: ['Green', 'Red']
-    },
-    {
-        name: 'Blue-Yellow',
-        colors: ['Navy', 'Gold']
-    },
-    {
-        name: 'Greyscale',
-        colors: ['Black', '#DCDCDC']
-    },
-    {
-        name: 'Heated-Body',
-        colors: ['Black', 'Red', 'Yellow']
-    },
-    {
-        name: 'Rainbow',
-        colors: ['Blue', 'Cyan', 'Lime', 'Yellow', 'Red']
-    }
-];
-
-function ColorSchemeSelector({selectedColorScheme, onChangeColorScheme }) {
-    return (
-        <div id="color-scheme-selector" onChange={ onChangeColorScheme }>
-            { defaultColorSchemes.map(colorScheme => (
-                <div key={ colorScheme.name } onClick={ () => onChangeColorScheme(colorScheme.colors) }
-                     style={{ borderColor: (isEqual(colorScheme.colors, selectedColorScheme) ||
-                             isEqual(colorScheme.colors.reverse(), selectedColorScheme)) ? '#090c9b' : '#fff' }}>
-                    <h4>{ colorScheme.name }</h4>
-                    {colorScheme.colors.map((color, index) => (
-                        <div key={index} className="color-schemes" style={{ backgroundColor: color}} />
-                    ))}
-                </div>
-            ))}
-        </div>
-    )
-}
 
 function VarSelector({ varnames, setVarnames, selectedIVs, toggleSelectedIV, selectedDV, toggleSelectedDV, setIfRender }) {
     const [draggedIndex, setDraggedIndex] = useState(null);
 
     function handleDrop(index) {
-        if (draggedIndex === null || draggedIndex === index) { return; }
-
-        let newVarnames = [...varnames];
-        let draggedElement = newVarnames.splice(draggedIndex, 1)[0];
-        newVarnames.splice(index, 0, draggedElement);
-        setVarnames(newVarnames);
+        if (draggedIndex !== null && draggedIndex !== index) {
+            let newVarnames = [...varnames];
+            let draggedElement = newVarnames.splice(draggedIndex, 1)[0];
+            newVarnames.splice(index, 0, draggedElement);
+            setVarnames(newVarnames);
+        }
         setDraggedIndex(null);
     }
 
@@ -75,8 +28,8 @@ function VarSelector({ varnames, setVarnames, selectedIVs, toggleSelectedIV, sel
     if ( varnames === null ) { return; }
     return (
         <div id="variable-selector">
-            <div>
-                <div id="variable-title">
+            <div id="variable-selector-title">
+                <div>
                     <p>Variables</p>
                 </div>
                 <div id="controller-title">
@@ -84,23 +37,25 @@ function VarSelector({ varnames, setVarnames, selectedIVs, toggleSelectedIV, sel
                     <p>DV</p>
                 </div>
             </div>
-            {varnames.map((varname, index) => (
-                <div key={ varname } id={ varname } className={ draggedIndex === index ? "variable-row dragged" : "variable-row"}
-                     onDragOver={(e) => e.preventDefault()}
-                     onDrop={() => handleDrop(index)}>
-                    <div className="variable-names">
-                        <p>{ varname }</p>
+            <div id="variables">
+                {varnames.map((varname, index) => (
+                    <div key={ varname } id={ varname } className={ draggedIndex === index ? "variable-row dragged" : "variable-row"}
+                         onDragOver={(e) => e.preventDefault()}
+                         onDrop={() => handleDrop(index)}>
+                        <div className="variable-names">
+                            <p>{ varname }</p>
+                        </div>
+                        <div className={ "variable-controllers" }>
+                            <input id={ varname+"-IV-selector" } className="IV" type="checkbox" onClick={ () => toggleSelectedIV(varname) }
+                                disabled={ !selectedIVs.includes(varname) && selectedIVs.length >= 4 || varname === selectedDV}/>
+                            <input id={ varname+"-DV-selector" } className="DV" type="checkbox" onClick={ () => toggleSelectedDV(varname) }
+                                disabled={ selectedDV !== null && varname !== selectedDV || selectedIVs.includes(varname) }/>
+                            <img src="/assets/drag-and-drop.png" className="drag-and-drop-icons" draggable
+                                onDragStart={(e) => handleDragStart(e, index)} />
+                        </div>
                     </div>
-                    <div className={ "variable-controllers" }>
-                        <input id={ varname+"-IV-selector" } className="IV" type="checkbox" onClick={ () => toggleSelectedIV(varname) }
-                            disabled={ !selectedIVs.includes(varname) && selectedIVs.length >= 4 || varname === selectedDV}/>
-                        <input id={ varname+"-DV-selector" } className="DV" type="checkbox" onClick={ () => toggleSelectedDV(varname) }
-                            disabled={ selectedDV !== null && varname !== selectedDV || selectedIVs.includes(varname) }/>
-                        <img src="/assets/drag-and-drop.png" className="drag-and-drop-icons" draggable
-                            onDragStart={(e) => handleDragStart(e, index)} />
-                    </div>
-                </div>
-            ))}
+                ))}
+            </div>
             <img id="start-render-icon" src="/assets/start.png" title="Run Rendering"
                  onClick={ () => selectedIVs.length >= 4 && selectedDV !== null ? setIfRender(true) : undefined}
                  style={{opacity: selectedIVs.length >= 4 && selectedDV !== null ? 0.8 : 0.4}}/>
@@ -108,9 +63,42 @@ function VarSelector({ varnames, setVarnames, selectedIVs, toggleSelectedIV, sel
     )
 }
 
-export default function JCSMenu( { selectedData, onChangeData, selectedColorScheme, onChangeColorScheme,
-                                   selectedIVs, setSelectedIVs, selectedDV, setSelectedDV, setIfRender } ) {
+function DataSelector({ onChangeExampleData }) {
+    return (
+        <div id="data-selector">
+            <div>
+                <label htmlFor="example-data-selector">Choose an example data: </label>
+                <select name="example-data-selector" id="example-data-selector" onChange={ onChangeExampleData }>
+                    { visualization_data.map(dataGroup => (
+                        <optgroup key={ dataGroup.name } label={ dataGroup.name }>
+                            { dataGroup.datasets.map(dataset => (
+                                <option key={ dataset.path } value={ dataGroup.basePath + dataset.path + dataGroup.filetype}>
+                                    { dataset.title }</option>
+                            ))}
+                        </optgroup>
+                    ))}
+                </select>
+            </div>
+            <div id="custom-data">
+                <label htmlFor="data-upload">Upload a file <span style={{ fontWeight: '700' }}>(.csv only)</span>: </label>
+                <input name="data-upload" id="data-upload" type="file" accept=".csv"/>
+                <br/>
+                <br/>
+                <input type="submit" value="Submit"/>
+                <span>  </span>
+                <span id="error-message">Error</span>
+            </div>
+        </div>
+    )
+}
+
+export default function JCSMenu( { selectedData, setSelectedDataPath, selectedIVs, setSelectedIVs, selectedDV, setSelectedDV, setIfRender } ) {
     const [varnames, setVarnames] = useState(null);
+    const [filename, setFilename] = useState("");
+
+    function handleSelectData(e) {
+        setSelectedDataPath(e.target.value);
+    }
 
     function updateSelectedIVOrder(currSelectedIVs) {
         let updatedSelectedIVs = [...currSelectedIVs];
@@ -138,9 +126,8 @@ export default function JCSMenu( { selectedData, onChangeData, selectedColorSche
         if (selectedData !== null) {
             setSelectedIVs([]);
             setSelectedDV(null);
-            let now_varnames = get_varnames( selectedData );
-            console.log(now_varnames);
-            setVarnames(now_varnames);
+            let currVarnames = get_varnames( selectedData );
+            setVarnames(currVarnames);
         }
         if (varnames !== null) {
             reset_variable_selector();
@@ -162,27 +149,11 @@ export default function JCSMenu( { selectedData, onChangeData, selectedColorSche
 
     return (
         <div id="control-panel" className="joint-coordinate-system">
-            <ColorSchemeSelector selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ onChangeColorScheme } />
-            <div id="data-control">
-                {/* Drop-down list for selecting different example datasets */}
-                <div id="example-data-selector">
-                    <label htmlFor="example-data">Choose a example data:</label>
-                    <select name="example-data" id="example-data" onChange={ onChangeData }>
-                        { visualization_data.map(dataGroup => (
-                            <optgroup key={ dataGroup.name } label={ dataGroup.name }>
-                                { dataGroup.datasets.map(dataset => (
-                                    <option key={ dataset.path } value={ dataGroup.basePath + dataset.path + dataGroup.filetype}>
-                                        { dataset.title }</option>
-                                ))}
-                            </optgroup>
-                        ))}
-                    </select>
-                </div>
-                <VarSelector varnames={ varnames } setVarnames={ setVarnames }
-                             selectedIVs={ selectedIVs } toggleSelectedIV={ toggleSelectedIV }
-                             selectedDV={ selectedDV } toggleSelectedDV={ toggleSelectedDV }
-                             setIfRender={ setIfRender }/>
-            </div>
+            <DataSelector onChangeExampleData={ handleSelectData } />
+            <VarSelector varnames={ varnames } setVarnames={ setVarnames }
+                         selectedIVs={ selectedIVs } toggleSelectedIV={ toggleSelectedIV }
+                         selectedDV={ selectedDV } toggleSelectedDV={ toggleSelectedDV }
+                         setIfRender={ setIfRender } />
         </div>
     );
 }

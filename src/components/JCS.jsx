@@ -6,12 +6,15 @@ import { csv } from "d3";
 import drawJCS from "./JCS.js";
 
 // TODO: Add the effect of sliding block for the variable selector
-let currSelectedIVs, currSelectedDV;
+let currSelectedIVs = [];
+let currSelectedDV = null;
+let currData = null;
 
-export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSelectData, setPolygonData,
-                              nowOrigin, setOrigin, onShowCentroids, handleShowCentroids, onInspectMode, handleChangeInspectMode,
-                              onColorBlockMode, handleChangeColorBlockMode, inspectedIndex, setInspectedIndex}) {
+export default function JCS({ size = 400, nowPolygonData, setPolygonData, nowOrigin, setOrigin, onShowCentroids,
+                              handleShowCentroids, onInspectMode, handleChangeInspectMode, onColorBlockMode,
+                              handleChangeColorBlockMode, inspectedIndex, setInspectedIndex}) {
     const [selectedData, setSelectedData] = useState(null);
+    const [selectedDataPath, setSelectedDataPath] = useState("/data/visualization_data/example/basic_elements.csv");
     const [selectedColorScheme, setSelectedColorScheme] = useState(['Blue', 'Red']);
     const [selectedColorGradient, setSelectedColorGradient] = useState("AB");
     const [onShowPCC, setShowPCC] = useState(false);
@@ -22,7 +25,7 @@ export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSel
 
     function handleSelectColorScheme(scheme_color_list) {
         setSelectedColorScheme(scheme_color_list);
-        console.log("Current selected color scheme: ", scheme_color_list);
+        // console.log("Current selected color scheme: ", scheme_color_list);
     }
 
     function handleSelectColorGradient() {
@@ -46,21 +49,24 @@ export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSel
     }
 
     useEffect(() => {
-        csv(nowDataPath).then(data => {
+        csv(selectedDataPath).then(data => {
             setSelectedData(data);
         }).catch(error => console.error(error));
-    }, [nowDataPath]);
+        console.log("Current selected data path: ", selectedDataPath)
+    }, [selectedDataPath]);
 
     useEffect(() => {
         if (ifRender) {
+            currData = selectedData;
+            setInspectedIndex(null);
             currSelectedIVs = selectedIVs;
             currSelectedDV = selectedDV;
             setIfRender(false);
         }
-        if (selectedData !== null) {
-            drawJCS( selectedData, currSelectedIVs, currSelectedDV, nowPolygonData, setPolygonData, size, selectedColorScheme,
-                onShowPCC, onShowCentroids, onOriginMode, nowOrigin, setOrigin, onColorBlockMode, onInspectMode,
-                setInspectedIndex, inspectedIndex );
+        if (currData !== null) {
+            drawJCS( currData, currSelectedIVs, currSelectedDV, nowPolygonData, setPolygonData, size, selectedColorScheme,
+                    onShowPCC, onShowCentroids, onOriginMode, nowOrigin, setOrigin, onColorBlockMode, onInspectMode,
+                    setInspectedIndex, inspectedIndex );
         }
     }, [ifRender, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode, inspectedIndex]);
 
@@ -72,9 +78,9 @@ export default function JCS({ size = 400, nowDataPath, nowPolygonData, handleSel
                            onInspectMode={ onInspectMode } onClickInspectMode = { handleChangeInspectMode }
                            onOriginMode={ onOriginMode } onClickOriginMode = { handleChangeOriginMode }
                            onColorBlockMode={ onColorBlockMode } onClickColorBlockMode={ handleChangeColorBlockMode }
-                           onChangeColorGradient={ handleSelectColorGradient }/>
-                <JCSMenu selectedData={ selectedData } onChangeData={ handleSelectData }
-                         selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ handleSelectColorScheme }
+                           onChangeColorGradient={ handleSelectColorGradient }
+                           selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ handleSelectColorScheme } />
+                <JCSMenu selectedData={ selectedData } setSelectedDataPath={ setSelectedDataPath }
                          selectedIVs={ selectedIVs } setSelectedIVs={ setSelectedIVs }
                          selectedDV={ selectedDV } setSelectedDV={ setSelectedDV }
                          setIfRender={ setIfRender }/>
