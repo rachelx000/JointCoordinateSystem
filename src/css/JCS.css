@@ -72,7 +72,7 @@
 }
 
 #joint-coordinate text{
-    font-size: 12px;
+    font-size: 10px;
     fill: black;
 }
 
@@ -91,11 +91,11 @@
 }
 
 #colorscale-content {
-    transform: translate(95px, 20px);
+    transform: translate(100px, 20px);
 }
 
 #colorscale-axis{
-    transform: translate(95.5px, 20px);
+    transform: translate(100.5px, 20px);
 }
 
 #colorscale-axis>text {
@@ -209,12 +209,17 @@
 }
 
 #example-data-selector {
+    font-size: 12px;
     width: 200px;
 }
 
 
 #data-selector div {
     margin-bottom: 5px;
+}
+
+#custom-data>input {
+    font-size: 12px;
 }
 
 #variable-selector {
@@ -262,15 +267,26 @@
 }
 
 #controller-title {
-    width: 60px;
+    width: 55px;
     display: flex;
-    gap: 14px;
+    gap: 11px;
 }
 
 .variable-names {
-    width: 80%;
+    width: 75%;
+    max-height: 100%;
     box-sizing: border-box;
+    white-space: nowrap;
     overflow-x: auto;
+    /* Hide scroll bar for Firefox */
+    scrollbar-width: none;
+    /* Hide scroll bar for IE */
+    -ms-overflow-style: none;
+}
+
+.variable-names::-webkit-scrollbar {
+    /* Hide scroll bar for Chrome, Safari */
+    display: none;
 }
 
 .variable-controllers {

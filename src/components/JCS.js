@@ -10,6 +10,7 @@ let polygons;
 let centroid_quadtree;
 let line_generator = d3.line().defined(function(d) {return d !== null; });
 
+
 export function get_varnames( data ) {
     return Object.keys(data[0]);
 }
@@ -124,29 +125,28 @@ function generate_numerical_scale( data, varname, id, axis_generator, axis_range
 function generate_axis_title( axis_id, axis_title, if_vertical ) {
     let axis_selector = d3.select(axis_id + "-title");
     if (if_vertical) {
-        // Apply translation:
-        if ( axis_id === '#left-axis')
-            axis_selector.attr('transform', "translate("+"-40"+","+axis_len*0.5+")");
-        else
-            axis_selector.attr('transform', "translate("+"40"+","+axis_len*0.5+")");
-
-        axis_selector.selectAll("tspan").remove();                       // clear existing text
-
+        axis_selector.selectAll("tspan").remove();  // clear existing text
         let words = axis_title.split(" ");
         // Split the axis title into multiple lines if it contains multiple words
         words.forEach((word, i) => {
             axis_selector.append("tspan")
                 .text(word)
                 .attr('x', 0)
-                .attr('dy', i === 0 ? '0em' : '1.0em');
+                .attr('dy', i === 0 ? '0em' : '1.2em');
         });
+
+        // Apply translation:
+        if ( axis_id === '#left-axis')
+            axis_selector.attr('transform', "translate("+"-35"+","+(axis_len*0.5-axis_selector.node().clientHeight*0.5)+")");
+        else
+            axis_selector.attr('transform', "translate("+"35"+","+(axis_len*0.5-axis_selector.node().clientHeight*0.5)+")");
     }
     else {
-        if ( axis_id === '#top-axis')
-            axis_selector.attr('transform', "translate("+axis_len*0.5+","+"-35"+")");
-        else
-            axis_selector.attr('transform', "translate("+axis_len*0.5+","+"35"+")");
         axis_selector.text(axis_title);
+        if ( axis_id === '#top-axis')
+            axis_selector.attr('transform', "translate("+(axis_len*0.5)+","+"-35"+")");
+        else
+            axis_selector.attr('transform', "translate("+(axis_len*0.5)+","+"35"+")");
     }
 }
 

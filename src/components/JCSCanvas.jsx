@@ -47,7 +47,7 @@ function ColorSchemeMenu({selectedColorScheme, onChangeColorScheme }) {
     )
 }
 
-export default function JCSCanvas({ onShowPCC, onClickShowPCC, onShowCentroids, onClickShowCentroids,
+export default function JCSCanvas({ onShowPCC, setShowPCC, onShowCentroids, onClickShowCentroids,
                                     onInspectMode, onClickInspectMode, onOriginMode, onClickOriginMode,
                                     onColorBlockMode, onClickColorBlockMode, onChangeColorGradient,
                                     selectedColorScheme, onChangeColorScheme }) {
@@ -64,7 +64,7 @@ export default function JCSCanvas({ onShowPCC, onClickShowPCC, onShowCentroids, 
                         <ColorSchemeMenu selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ onChangeColorScheme } /> }
                 </div>
                 {/* Controlling Buttons */}
-                <img id="show-correlation-button" src="/assets/correlation.png" onClick={onClickShowPCC}
+                <img id="show-correlation-button" src="/assets/correlation.png" onClick={ () => setShowPCC(!onShowPCC) }
                      style={{opacity: onShowPCC ? "0.8": "0.4"}} alt={"Show correlation button"} title={"Show Correlation"} />
                 <img id="show-centroid-button" src="/assets/centroid.png" onClick={ onClickShowCentroids }
                      style={{opacity: onShowCentroids ? "0.8": "0.4"}}  alt={"Show centroid button"} title={"Show Centroids"}/>
@@ -108,16 +108,16 @@ export default function JCSCanvas({ onShowPCC, onClickShowPCC, onShowCentroids, 
                     {/* Axis Components */}
                     <g id="joint-coordinate-axes">
                         <g id="left-axis">
-                            <text id="left-axis-title" className="axis-title"/>
+                            <text id="left-axis-title" className="axis-title" dominantBaseline="middle"/>
                         </g>
                         <g id="top-axis">
-                            <text id="top-axis-title" className="axis-title"/>
+                            <text id="top-axis-title" className="axis-title" textAnchor="middle"/>
                         </g>
                         <g id="right-axis">
-                            <text id="right-axis-title" className="axis-title"/>
+                            <text id="right-axis-title" className="axis-title" dominantBaseline="middle"/>
                         </g>
                         <g id="bottom-axis">
-                            <text id="bottom-axis-title" className="axis-title"/>
+                            <text id="bottom-axis-title" className="axis-title" textAnchor="middle"/>
                         </g>
                     </g>
                     {/* Main Canvas */}
@@ -140,7 +140,7 @@ export default function JCSCanvas({ onShowPCC, onClickShowPCC, onShowCentroids, 
                 <svg id="colorscale" className="joint-coordinate">
                     <g id="colorscale-content" />
                     <g id="colorscale-axis">
-                        <text className="axis-title"/>
+                        <text className="axis-title" />
                     </g>
                 </svg>
             </div>

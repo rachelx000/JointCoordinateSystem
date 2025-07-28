@@ -13,8 +13,9 @@ let currData = null;
 export default function JCS({ size = 400, nowPolygonData, setPolygonData, nowOrigin, setOrigin, onShowCentroids,
                               handleShowCentroids, onInspectMode, handleChangeInspectMode, onColorBlockMode,
                               handleChangeColorBlockMode, inspectedIndex, setInspectedIndex}) {
-    const [selectedData, setSelectedData] = useState(null);
-    const [selectedDataPath, setSelectedDataPath] = useState("/data/visualization_data/example/basic_elements.csv");
+    const [data, setData] = useState(null);
+    const [exampleDataPath, setExampleDataPath] = useState("/data/visualization_data/example/basic_elements.csv");
+    const [uploadedData, setUploadedData] = useState(null);
     const [selectedColorScheme, setSelectedColorScheme] = useState(['Blue', 'Red']);
     const [selectedColorGradient, setSelectedColorGradient] = useState("AB");
     const [onShowPCC, setShowPCC] = useState(false);
@@ -25,7 +26,6 @@ export default function JCS({ size = 400, nowPolygonData, setPolygonData, nowOri
 
     function handleSelectColorScheme(scheme_color_list) {
         setSelectedColorScheme(scheme_color_list);
-        // console.log("Current selected color scheme: ", scheme_color_list);
     }
 
     function handleSelectColorGradient() {
@@ -37,10 +37,6 @@ export default function JCS({ size = 400, nowPolygonData, setPolygonData, nowOri
         setSelectedColorScheme([...selectedColorScheme].reverse());
     }
 
-    function handleShowPCC() {
-        setShowPCC(!onShowPCC);
-    }
-
     function handleChangeOriginMode() {
         if (onOriginMode) {
             setOrigin(null);
@@ -49,15 +45,20 @@ export default function JCS({ size = 400, nowPolygonData, setPolygonData, nowOri
     }
 
     useEffect(() => {
-        csv(selectedDataPath).then(data => {
-            setSelectedData(data);
-        }).catch(error => console.error(error));
-        console.log("Current selected data path: ", selectedDataPath)
-    }, [selectedDataPath]);
+        if (exampleDataPath !== null && uploadedData === null) {
+            csv(exampleDataPath).then(data => {
+                setData(data);
+            }).catch(error => console.error(error));
+            console.log("Current selected data path: ", exampleDataPath)
+        }
+        if (uploadedData !== null) {
+            setData(uploadedData);
+        }
+    }, [exampleDataPath, uploadedData]);
 
     useEffect(() => {
-        if (ifRender) {
-            currData = selectedData;
+        if (ifRender && data !== null) {
+            currData = data;
             setInspectedIndex(null);
             currSelectedIVs = selectedIVs;
             currSelectedDV = selectedDV;
@@ -73,14 +74,14 @@ export default function JCS({ size = 400, nowPolygonData, setPolygonData, nowOri
     return (
         <>
             <div id="joint-coordinate-system">
-                <JCSCanvas onShowPCC={ onShowPCC } onClickShowPCC = { handleShowPCC }
-                           onShowCentroids={ onShowCentroids } onClickShowCentroids = { handleShowCentroids }
-                           onInspectMode={ onInspectMode } onClickInspectMode = { handleChangeInspectMode }
-                           onOriginMode={ onOriginMode } onClickOriginMode = { handleChangeOriginMode }
+                <JCSCanvas onShowPCC={ onShowPCC } setShowPCC={ setShowPCC }
+                           onShowCentroids={ onShowCentroids } onClickShowCentroids={ handleShowCentroids }
+                           onInspectMode={ onInspectMode } onClickInspectMode={ handleChangeInspectMode }
+                           onOriginMode={ onOriginMode } onClickOriginMode={ handleChangeOriginMode }
                            onColorBlockMode={ onColorBlockMode } onClickColorBlockMode={ handleChangeColorBlockMode }
                            onChangeColorGradient={ handleSelectColorGradient }
                            selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ handleSelectColorScheme } />
-                <JCSMenu selectedData={ selectedData } setSelectedDataPath={ setSelectedDataPath }
+                <JCSMenu data={ data } setExampleDataPath={ setExampleDataPath } setUploadedData={ setUploadedData }
                          selectedIVs={ selectedIVs } setSelectedIVs={ setSelectedIVs }
                          selectedDV={ selectedDV } setSelectedDV={ setSelectedDV }
                          setIfRender={ setIfRender }/>
