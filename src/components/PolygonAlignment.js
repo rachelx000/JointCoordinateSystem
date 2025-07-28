@@ -40,7 +40,7 @@ function align_a_polygon( polygon_obj, align_mode ) {
             aligned_polygon = align_a_polygon_at_a_side( polygon_obj, align_mode.index, origin );
             break;
         case "centroid":
-            aligned_polygon = align_a_polygon_at_a_side( polygon_obj, align_mode.index, origin );
+            aligned_polygon = align_a_polygon_at_a_centroid( polygon_obj, origin );
             break;
     }
     return aligned_polygon;
@@ -127,9 +127,36 @@ function align_a_polygon_at_a_side( polygon_obj, side_id, origin ) {
     };
 }
 
+function align_a_polygon_at_a_centroid( polygon_obj, origin ) {
+    let polygon_points = path_str_to_point_list(polygon_obj.points);
+    let translation = [0, 1].map(i => polygon_obj.centroid[i]*scaling - origin[i]);
+
+    let aligned_polygon = polygon_points.map((p) =>
+        [p[0]*scaling-translation[0], p[1]*scaling-translation[1]]);
+
+    return {
+        ...(polygon_obj.hasOwnProperty('id') && { id: polygon_obj.id }),
+        ...(polygon_obj.hasOwnProperty('color') && { color: polygon_obj.color }),
+        ...(polygon_obj.hasOwnProperty('depVal') && { depVal: polygon_obj.depVal }),
+        points: point_list_to_path_str( aligned_polygon ),
+        originalPoints: polygon_obj.points,
+        centroid: origin,
+        originalCentroid: polygon_obj.centroid,
+        metrics: {
+            'cyclicity': compute_cyclicity( polygon_points ),
+            'compactness': compute_compactness( polygon_points ),
+            'diagonal-ratio': compute_diagonal_ratio( polygon_points ),
+            'angular-regularity': compute_angular_regularity( polygon_points )
+        }
+    };
+}
+
 // Helper functions for metric computations:
 function norm(p) { return [(p[0] - jcs_origin[0]) / coord_len, (p[1] - jcs_origin[1]) / coord_len]; }
 function dist(p1, p2) { return Math.hypot(p1[0] - p2[0], p1[1] - p2[1]); }
+function multiply_c(p, c) { return [c*p[0], c*p[1]]; }
+function divide_c(p, c) { return [p[0]/c, p[1]/c]; }
+function add(p1, p2) { return [p1[0] + p2[0], p1[1] + p2[1]]; }
 function length(v) { return Math.hypot(v[0], v[1]); }
 function compute_vector(start, end) { return [start[0]-end[0], start[1]-end[1]]; }
 function dot_prod(v1, v2) { return v1[0]*v2[0] + v1[1]*v2[1]; }
@@ -254,37 +281,75 @@ function plot_alignment_axis( axis_id, axis_obj ) {
 }
 
 export function computeAlignedPolygonOrder( aligned_polygons, align_mode ) {
-    let angle_list = [];
-    let origin = alignment_axes[align_mode.mode].origin;
+    if ( align_mode.mode !== "centroid" ) {
+        // Compute order by angles
+        let angle_list = [];
+        let origin = alignment_axes[align_mode.mode].origin;
 
-    aligned_polygons.forEach((polygon) => {
-        let centroid_angle;
-        switch (align_mode.mode) {
-            case "point":
-                centroid_angle = Math.atan((origin[1] - polygon.centroid[1])/(polygon.centroid[0] - origin[0]));
-                break;
-            case "side":
-                centroid_angle = Math.atan((polygon.centroid[0] - origin[0])/(origin[1] - polygon.centroid[1]));
-                break;
-            case "centroid":
-                break;
-        }
-        angle_list.push({
-            id: polygon.id,
-            angle: centroid_angle,
-            length: Math.hypot(polygon.centroid[0] - origin[0], polygon.centroid[1] - origin[1]),
-            depVal: polygon.depVal,
+        aligned_polygons.forEach((polygon) => {
+            let centroid_angle;
+            switch (align_mode.mode) {
+                case "point":
+                    centroid_angle = Math.atan((origin[1] - polygon.centroid[1])/(polygon.centroid[0] - origin[0]));
+                    break;
+                case "side":
+                    centroid_angle = Math.atan((polygon.centroid[0] - origin[0])/(origin[1] - polygon.centroid[1]));
+                    break;
+            }
+            angle_list.push({
+                id: polygon.id,
+                angle: centroid_angle,
+                length: Math.hypot(polygon.centroid[0] - origin[0], polygon.centroid[1] - origin[1]),
+                depVal: polygon.depVal,
+            });
         });
-    });
 
-    angle_list.sort((a, b) => {
-        let angle_diff = a.angle - b.angle;
-        let len_diff = a.length - b.length;
-        let depVal_diff = a.depVal - b.depVal;
-        return angle_diff !== 0 ? angle_diff : (len_diff !== 0 ? len_diff : depVal_diff);
-    });
+        angle_list.sort((a, b) => {
+            let angle_diff = a.angle - b.angle;
+            let len_diff = a.length - b.length;
+            let depVal_diff = a.depVal - b.depVal;
+            return angle_diff !== 0 ? angle_diff : (len_diff !== 0 ? len_diff : depVal_diff);
+        });
 
-    return angle_list.map(angle => angle.id);
+        return angle_list.map(angle => angle.id);
+    } else {
+        // Compute order by simplified Procrustes
+        // Step 1: compute the mean shape
+        let mean = Array(4).fill([0, 0]);
+        aligned_polygons.forEach( (polygon) => {
+                let curr_point_list = path_str_to_point_list(polygon.points);
+                curr_point_list.forEach((p, i) => {
+                    mean[i] = add(mean[i], multiply_c(p, 1.0));
+                })
+            }
+        )
+        mean.forEach((p, i) => { mean[i] = divide_c(p, 4.0); });
+
+        // Step 2: compute Procrustes distance from each quad to the mean shape
+        let flat_mean = mean.flat();
+        let sum_square = 0;
+        let distance = aligned_polygons.map( (polygon) => {
+            let flat_curr_point_list = path_str_to_point_list(polygon.points).flat();
+            let sum_square = 0;
+            flat_curr_point_list.forEach((val, i) => {
+                sum_square += (val - flat_mean[i]) ** 2
+            })
+            return {
+                id: polygon.id,
+                distance: Math.sqrt(sum_square),
+                depVal: polygon.depVal,
+            }
+        });
+
+        // Step 3: sort the aligned polygons by their Procrustes distances
+        distance.sort((a, b) => {
+            let distance_diff = a.distance - b.distance;
+            let depVal_diff = a.depVal - b.depVal;
+            return distance_diff !== 0 ? distance_diff : depVal_diff;
+        });
+
+        return distance.map(distance => distance.id);
+    }
 }
 
 export function plotPolygonAlignment( aligned_polygons, origin_data, if_centroids, if_color_block_mode, align_mode,

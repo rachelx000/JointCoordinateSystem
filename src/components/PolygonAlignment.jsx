@@ -24,7 +24,7 @@ const alignment_modes = [
         name: 'centroid',
         type: 'circle',
         refs: [
-            { id: 'centroid', text: 'centroid with Procrustes analysis', cx: 50+size*0.5, cy: 90+size*0.5 },
+            { id: 'centroid', text: 'centroid with simplified Procrustes', cx: 50+size*0.5, cy: 90+size*0.5 },
         ]
     }
 ]
