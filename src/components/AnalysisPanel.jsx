@@ -92,7 +92,7 @@ export default function AnalysisPanel( { nowPolygonData, nowOrigin, onShowCentro
     }, [alignedPolygonData, alignedPolygonOrder]);
 
     useEffect(() => {
-        console.log("aligned origin data:", alignedOriginData);
+        // console.log("aligned origin data:", alignedOriginData);
         Object.values(scatterplotRefs.current).forEach(plot => {
             if (plot?.updateOrigin) {
                 plot.updateOrigin(alignedOriginData);

@@ -4,15 +4,16 @@ import JCSCanvas from "./JCSCanvas.jsx";
 import '../css/JCS.css';
 import { csv } from "d3";
 import drawJCS from "./JCS.js";
+import { generateGeomData } from "./GeometryVis.js";
 
 // TODO: Add the effect of sliding block for the variable selector
 let currSelectedIVs = [];
 let currSelectedDV = null;
 let currData = null;
 
-export default function JCS({ size = 400, nowPolygonData, setPolygonData, nowOrigin, setOrigin, onShowCentroids,
+export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygonData, setPolygonData, nowOrigin, setOrigin, onShowCentroids,
                               handleShowCentroids, onInspectMode, handleChangeInspectMode, onColorBlockMode,
-                              handleChangeColorBlockMode, inspectedIndex, setInspectedIndex}) {
+                              handleChangeColorBlockMode, inspectedIndex, setInspectedIndex, setMeshRenderingReady}) {
     const [data, setData] = useState(null);
     const [exampleDataPath, setExampleDataPath] = useState("/data/visualization_data/example/basic_elements.csv");
     const [uploadedData, setUploadedData] = useState(null);
@@ -45,16 +46,21 @@ export default function JCS({ size = 400, nowPolygonData, setPolygonData, nowOri
     }
 
     useEffect(() => {
-        if (exampleDataPath !== null && uploadedData === null) {
-            csv(exampleDataPath).then(data => {
-                setData(data);
-            }).catch(error => console.error(error));
-            console.log("Current selected data path: ", exampleDataPath)
+        if (mode === "data") {
+            if (exampleDataPath !== null && uploadedData === null) {
+                csv(exampleDataPath).then(data => {
+                    setData(data);
+                }).catch(error => console.error(error));
+                console.log("Current selected data path: ", exampleDataPath)
+            }
+            if (uploadedData !== null) {
+                setData(uploadedData);
+            }
         }
-        if (uploadedData !== null) {
-            setData(uploadedData);
+        if (mode === "geom") {
+            setData(generateGeomData(geomMode));
         }
-    }, [exampleDataPath, uploadedData]);
+    }, [mode, geomMode, exampleDataPath, uploadedData]);
 
     useEffect(() => {
         if (ifRender && data !== null) {
@@ -68,6 +74,7 @@ export default function JCS({ size = 400, nowPolygonData, setPolygonData, nowOri
             drawJCS( currData, currSelectedIVs, currSelectedDV, nowPolygonData, setPolygonData, size, selectedColorScheme,
                     onShowPCC, onShowCentroids, onOriginMode, nowOrigin, setOrigin, onColorBlockMode, onInspectMode,
                     setInspectedIndex, inspectedIndex );
+            setMeshRenderingReady(true);
         }
     }, [ifRender, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode, inspectedIndex]);
 
@@ -81,10 +88,11 @@ export default function JCS({ size = 400, nowPolygonData, setPolygonData, nowOri
                            onColorBlockMode={ onColorBlockMode } onClickColorBlockMode={ handleChangeColorBlockMode }
                            onChangeColorGradient={ handleSelectColorGradient }
                            selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ handleSelectColorScheme } />
-                <JCSMenu data={ data } setExampleDataPath={ setExampleDataPath } setUploadedData={ setUploadedData }
+                <JCSMenu mode={ mode } data={ data } geomMode={ geomMode } setGeomMode = { setGeomMode }
+                         setExampleDataPath={ setExampleDataPath } setUploadedData={ setUploadedData }
                          selectedIVs={ selectedIVs } setSelectedIVs={ setSelectedIVs }
                          selectedDV={ selectedDV } setSelectedDV={ setSelectedDV }
-                         setIfRender={ setIfRender }/>
+                         setIfRender={ setIfRender } />
             </div>
         </>
     )

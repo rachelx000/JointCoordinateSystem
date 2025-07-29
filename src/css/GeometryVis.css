@@ -1,0 +1,25 @@
+#geometry-vis {
+    height: calc(100vh - 15px);
+    width: calc(100vw - 740px);
+    min-width: 600px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+#geometry-vis h3 {
+    text-align: center;
+    width: 100%;
+    margin-bottom: 0;
+    margin-top: 5px;
+}
+
+#geometry-vis-container {
+    height: 90%;
+    width: 98%;
+    box-sizing: border-box;
+}
+

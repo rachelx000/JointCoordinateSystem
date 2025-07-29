@@ -2,7 +2,7 @@ import { useState } from "react";
 
 // TODO: Allow user to adjust variable titles
 
-export default function VarSelector({ varnames, setVarnames, selectedIVs, toggleSelectedIV, selectedDV, toggleSelectedDV, setIfRender }) {
+export default function VarSelector({ mode, varnames, setVarnames, selectedIVs, toggleSelectedIV, selectedDV, toggleSelectedDV, setIfRender }) {
     const [draggedIndex, setDraggedIndex] = useState(null);
 
     function handleDrop(index) {
@@ -38,7 +38,7 @@ export default function VarSelector({ varnames, setVarnames, selectedIVs, toggle
                 </div>
             </div>
             <div id="variables">
-                {varnames.map((varname, index) => (
+                { varnames.map((varname, index) => (
                     <div key={ varname } id={ varname } className={ draggedIndex === index ? "variable-row dragged" : "variable-row"}
                          onDragOver={(e) => e.preventDefault()}
                          onDrop={() => handleDrop(index)}>
@@ -47,9 +47,11 @@ export default function VarSelector({ varnames, setVarnames, selectedIVs, toggle
                         </div>
                         <div className={ "variable-controllers" }>
                             <input id={ varname+"-IV-selector" } className="IV" type="checkbox" onClick={ () => toggleSelectedIV(varname) }
-                                   disabled={ !selectedIVs.includes(varname) && selectedIVs.length >= 4 || varname === selectedDV}/>
+                                   disabled={ mode === "data" ? !selectedIVs.includes(varname) && selectedIVs.length >= 4 || varname === selectedDV
+                                       : !selectedIVs.includes(varname) && selectedIVs.length >= 4 } />
                             <input id={ varname+"-DV-selector" } className="DV" type="checkbox" onClick={ () => toggleSelectedDV(varname) }
-                                   disabled={ selectedDV !== null && varname !== selectedDV || selectedIVs.includes(varname) }/>
+                                   disabled={ mode === "data" ? selectedDV !== null && varname !== selectedDV || selectedIVs.includes(varname)
+                                       : selectedDV !== null && varname !== selectedDV }/>
                             <img src="/assets/drag-and-drop.png" className="drag-and-drop-icons" draggable
                                  onDragStart={(e) => handleDragStart(e, index)} />
                         </div>

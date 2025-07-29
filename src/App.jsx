@@ -3,16 +3,23 @@ import './css/App.css';
 import NavBar from "./components/Navbar.jsx";
 import JCS from "./components/JCS.jsx";
 import AnalysisPanel from "./components/AnalysisPanel.jsx";
+import GeometryVis from "./components/GeometryVis.jsx";
 
 export default function App() {
     const [mode, setMode] = useState('data');
+    const [geomMode, setGeomMode] = useState("cone");
     const [nowPolygonData, setPolygonData] = useState(null);
     const [nowOrigin, setOrigin] = useState(null);
     const [onShowCentroids, setShowCentroids] = useState(false);
     const [onInspectMode, setInspectMode] = useState(false);
     const [onColorBlockMode, setColorBlockMode] = useState(false);
     const [inspectedIndex, setInspectedIndex] = useState(null);
+    const [meshRenderingReady, setMeshRenderingReady] = useState(false);
 
+    function handleChangeMode(selectedMode) {
+        setMode(selectedMode);
+        setPolygonData(null);
+    }
 
     function handleShowCentroids() {
         if (onShowCentroids && onInspectMode) {
@@ -34,6 +41,10 @@ export default function App() {
     }
 
     useEffect(() => {
+        console.log("Current geom mode changed to: ", geomMode);
+    }, [geomMode]);
+
+    useEffect(() => {
         console.log("Rendering mode changed to", mode);
     }, [mode]);
 
@@ -49,19 +60,33 @@ export default function App() {
         console.log("Current Origin: ", nowOrigin);
     }, [nowOrigin]); */
 
+    function switchMode( mode ) {
+        switch (mode) {
+            case 'data':
+                return <AnalysisPanel nowPolygonData={ nowPolygonData }  nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
+                                   onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
+                                   inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />;
+            case 'geom':
+                return <GeometryVis nowPolygonData={ nowPolygonData } geomMode={ geomMode }
+                                    meshRenderingReady={ meshRenderingReady } setMeshRenderingReady={ setMeshRenderingReady }/>;
+            default:
+                return;
+        }
+    }
+
     return (
         <>
-            <NavBar nowMode={ mode } onChangeMode={ setMode }/>
+            <NavBar nowMode={ mode } onChangeMode={ handleChangeMode }/>
             <main>
-                <JCS nowPolygonData={ nowPolygonData } setPolygonData={ setPolygonData }
+                <JCS mode={ mode } geomMode={ geomMode } setGeomMode = { setGeomMode }
+                     nowPolygonData={ nowPolygonData } setPolygonData={ setPolygonData }
                      nowOrigin={ nowOrigin } setOrigin={ setOrigin }
                      onShowCentroids={ onShowCentroids } handleShowCentroids={ handleShowCentroids }
                      onInspectMode={ onInspectMode } handleChangeInspectMode={ handleChangeInspectMode }
                      onColorBlockMode={ onColorBlockMode } handleChangeColorBlockMode={ handleChangeColorBlockMode }
-                     inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }/>
-                <AnalysisPanel nowPolygonData={ nowPolygonData }  nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
-                               onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
-                               inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />
+                     inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }
+                     setMeshRenderingReady={ setMeshRenderingReady }/>
+                { switchMode( mode ) }
             </main>
         </>
     );

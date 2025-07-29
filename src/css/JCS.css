@@ -182,11 +182,15 @@
     background: #eaeaea;
 }
 
-#data-selector, #variable-selector {
+#data-selector, #variable-selector, #geom-data-selector {
     height: 100%;
     box-sizing: border-box;
     margin: 0;
     padding: 1px;
+}
+
+#geom-data-selector {
+    padding-top: 5px;
 }
 
 #data-selector {
@@ -227,7 +231,7 @@
     width: 55%;
     overflow: visible;
     margin: 0;
-    padding: 2px 10px;
+    padding: 5px 10px;
     box-sizing: border-box;
 }
 

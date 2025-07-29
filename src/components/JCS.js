@@ -21,7 +21,6 @@ export function reset_variable_selector() {
 }
 
 
-
 function get_min_and_max( data, varname ){
     let min = Math.min(...data.map(data_entry => data_entry[varname]));
     let max = Math.max(...data.map(data_entry => data_entry[varname]));

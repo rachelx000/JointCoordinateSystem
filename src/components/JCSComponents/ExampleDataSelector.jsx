@@ -12,7 +12,7 @@ export default function ExampleDataSelector({ onChangeExampleData }) {
                                 { dataset.title }</option>
                         ))}
                     </optgroup>
-                ))}
+                )) }
             </select>
         </div>
     )

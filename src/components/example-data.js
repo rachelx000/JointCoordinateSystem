@@ -131,8 +131,3 @@ export const visualization_data = [
     ]
   }
 ];
-
-export const geometry_data = [
-  {
-  }
-];

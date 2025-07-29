@@ -3,8 +3,11 @@ import { get_varnames, reset_variable_selector } from "./JCS.js";
 import VarSelector from "./JCSComponents/VariableSelector.jsx";
 import ExampleDataSelector from "./JCSComponents/ExampleDataSelector.jsx";
 import UploadFileHandler from "./JCSComponents/UploadFileHandler.jsx";
+import GeomDataSelector from "./JCSComponents/GeomDataSelector.jsx";
 
-export default function JCSMenu( { data, setExampleDataPath, setUploadedData, selectedIVs, setSelectedIVs, selectedDV, setSelectedDV, setIfRender } ) {
+
+export default function JCSMenu( { mode, data, geomMode, setGeomMode, setExampleDataPath, setUploadedData,
+                                     selectedIVs, setSelectedIVs, selectedDV, setSelectedDV, setIfRender } ) {
     const [varnames, setVarnames] = useState(null);
 
     function handleSelectData(e) {
@@ -62,10 +65,17 @@ export default function JCSMenu( { data, setExampleDataPath, setUploadedData, se
     return (
         <div id="control-panel" className="joint-coordinate-system">
             <div id="data-selector">
-                <ExampleDataSelector onChangeExampleData={ handleSelectData } />
-                <UploadFileHandler setUploadedData={ setUploadedData } />
+                { mode === "data" && (
+                    <>
+                        <ExampleDataSelector onChangeExampleData={ handleSelectData } />
+                        <UploadFileHandler setUploadedData={ setUploadedData } />
+                    </>)}
+                { mode === "geom" && (
+                    <>
+                        <GeomDataSelector geomMode={ geomMode } setGeomMode={ setGeomMode }/>
+                    </>
+                )}
             </div>
-            {/* <DataSelector onChangeExampleData={ handleSelectData } setUploadedData={ setUploadedData }/> */}
             <VarSelector varnames={ varnames } setVarnames={ setVarnames }
                          selectedIVs={ selectedIVs } toggleSelectedIV={ toggleSelectedIV }
                          selectedDV={ selectedDV } toggleSelectedDV={ toggleSelectedDV }

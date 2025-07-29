@@ -9,14 +9,14 @@ const navItems = [  // Four rendering modes
         text: 'Geometry Vis',
         mode: 'geom'
     },
-    {
+    /* {
         text: 'Comparison',
         mode: 'compare'
     },
     {
         text: 'Instruction',
         mode: 'instruct'
-    }
+    } */
 ];
 
 export default function NavBar({ nowMode, onChangeMode }) {
