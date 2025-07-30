@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import "../css/AnalysisPanel.css";
-import PolygonAlignment from "./PolygonAlignment.jsx";
-import ShapeAnalysis from "./ShapeAnalysis.jsx";
-import { alignPolygons, plotPolygonAlignment, computeAlignedPolygonOrder } from "./PolygonAlignment.js";
-import { plotShapeMetric } from "./ShapeAnalysis.js";
-import { shape_metrics } from "./ShapeAnalysis.jsx";
+import PolygonAlignment from "./AnalysisPanelComponents/PolygonAlignment.jsx";
+import ShapeAnalysis from "./AnalysisPanelComponents/ShapeAnalysis.jsx";
+import { alignPolygons, plotPolygonAlignment, computeAlignedPolygonOrder } from "./AnalysisPanelComponents/PolygonAlignment.js";
+import { plotShapeMetric } from "./AnalysisPanelComponents/ShapeAnalysis.js";
+import { shape_metrics } from "./AnalysisPanelComponents/ShapeAnalysis.jsx";
 import { isEqual } from "lodash";
 
 export default function AnalysisPanel( { nowPolygonData, nowOrigin, onShowCentroids, onColorBlockMode, onInspectMode, inspectedIndex, setInspectedIndex }) {
@@ -16,9 +16,9 @@ export default function AnalysisPanel( { nowPolygonData, nowOrigin, onShowCentro
     const alignmentRef = useRef({});
 
     function handleAlignModeChange(e) {
-        let mode = e.target.getAttribute('class');
+        let curr_align_mode = e.target.getAttribute('class');
         let index = parseInt(e.target.getAttribute('data-index'));
-        setAlignMode({ mode, index });
+        setAlignMode({ mode: curr_align_mode, index: index });
     }
 
     useEffect(() => {
@@ -41,18 +41,21 @@ export default function AnalysisPanel( { nowPolygonData, nowOrigin, onShowCentro
     }, [alignedPolygonData]);
 
     useEffect(() => {
-        if (alignmentRef.current?.updateInspectedIndex) {
-            alignmentRef.current.updateInspectedIndex(inspectedIndex);
-        }
-
-        Object.values(scatterplotRefs.current).forEach(plot => {
-            if (plot?.updateInspectedIndex) {
-                plot.updateInspectedIndex(inspectedIndex);
+        if (alignedPolygonData !== null) {
+            if (alignmentRef.current?.updateInspectedIndex) {
+                alignmentRef.current.updateInspectedIndex(inspectedIndex);
             }
-        });
+
+            Object.values(scatterplotRefs.current).forEach(plot => {
+                if (plot?.updateInspectedIndex) {
+                    plot.updateInspectedIndex(inspectedIndex);
+                }
+            });
+        }
     }, [inspectedIndex]);
 
     useEffect(() => {
+
         if (alignmentRef.current?.updateInspectMode) {
             alignmentRef.current.updateInspectMode(onInspectMode);
         }

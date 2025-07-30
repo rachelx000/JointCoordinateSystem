@@ -182,15 +182,11 @@
     background: #eaeaea;
 }
 
-#data-selector, #variable-selector, #geom-data-selector {
+#data-selector, #variable-selector {
     height: 100%;
     box-sizing: border-box;
     margin: 0;
     padding: 1px;
-}
-
-#geom-data-selector {
-    padding-top: 5px;
 }
 
 #data-selector {
@@ -202,6 +198,7 @@
     margin: 0;
     box-sizing: border-box;
     padding: 5px 10px;
+    overflow: auto;
 }
 
 #data-selector>div {
@@ -216,7 +213,6 @@
     font-size: 12px;
     width: 200px;
 }
-
 
 #data-selector div {
     margin-bottom: 5px;

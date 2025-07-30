@@ -1,3 +1,17 @@
+/* JCS Menu */
+#geom-data-selector {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#geom-data-selector fieldset {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+/* Geometry Visualization */
 #geometry-vis {
     height: calc(100vh - 15px);
     width: calc(100vw - 740px);

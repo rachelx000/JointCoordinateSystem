@@ -1,8 +1,14 @@
 import { useRef, useEffect } from "react";
 import "../css/GeometryVis.css"
 import {
-    initializeRender, generateParamSurfaceMesh,
-    coneParamFunction, helixParamFunction, torusParamFunction
+    initializeRender,
+    generateParamSurfaceMesh,
+    cylinderParamFunction,
+    coneParamFunction,
+    helixParamFunction,
+    torusParamFunction,
+    ellipticParaParamFunction,
+    hyperbolicParaParamFunction
 } from "./GeometryVis.js";
 
 export default function GeometryVis({ nowPolygonData, geomMode, meshRenderingReady, setMeshRenderingReady }) {
@@ -23,7 +29,8 @@ export default function GeometryVis({ nowPolygonData, geomMode, meshRenderingRea
 
 
     useEffect(() => {
-        if (sceneRef.current !== null && nowPolygonData !== null && meshRenderingReady) {
+        if (sceneRef.current !== null && nowPolygonData !== null
+            && nowPolygonData.length === 561 && meshRenderingReady) {
             // Remove old mesh from the scene
             if (meshRef.current) {
                 sceneRef.current.remove(meshRef.current);
@@ -32,18 +39,31 @@ export default function GeometryVis({ nowPolygonData, geomMode, meshRenderingRea
             }
 
             // Create new mesh and add to the scene
-            let mesh;
+            let mesh, paramFunction;
             switch (geomMode) {
+                case "cylinder":
+                    paramFunction = cylinderParamFunction;
+                    break;
                 case "cone":
-                    mesh = generateParamSurfaceMesh( coneParamFunction, nowPolygonData );
+                    paramFunction = coneParamFunction;
                     break;
                 case "helix":
-                    mesh = generateParamSurfaceMesh( helixParamFunction, nowPolygonData );
+                    paramFunction = helixParamFunction;
                     break;
                 case "torus":
-                    mesh = generateParamSurfaceMesh( torusParamFunction, nowPolygonData );
+                    paramFunction = torusParamFunction;
                     break;
+                case "ellipticPara":
+                    paramFunction = ellipticParaParamFunction;
+                    break;
+                case "hyperbolicPara":
+                    paramFunction = hyperbolicParaParamFunction;
+                    break;
+                default:
+                    throw Error("No valid parametric function is found!");
             }
+            mesh = generateParamSurfaceMesh( paramFunction, nowPolygonData );
+
             meshRef.current = mesh;
             sceneRef.current.add(mesh);
             setMeshRenderingReady(false);

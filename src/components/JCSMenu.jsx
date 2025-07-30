@@ -76,7 +76,7 @@ export default function JCSMenu( { mode, data, geomMode, setGeomMode, setExample
                     </>
                 )}
             </div>
-            <VarSelector varnames={ varnames } setVarnames={ setVarnames }
+            <VarSelector mode={ mode } varnames={ varnames } setVarnames={ setVarnames }
                          selectedIVs={ selectedIVs } toggleSelectedIV={ toggleSelectedIV }
                          selectedDV={ selectedDV } toggleSelectedDV={ toggleSelectedDV }
                          setIfRender={ setIfRender } />

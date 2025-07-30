@@ -2,6 +2,7 @@ import { useState } from "react";
 import { isEqual } from "lodash";
 
 // TODO: Add custom color schemes (2, 3, 4, 5)
+// TODO: Add cleaning the canvas
 
 const defaultColorSchemes = [
     {
@@ -49,7 +50,7 @@ function ColorSchemeMenu({selectedColorScheme, onChangeColorScheme }) {
 
 export default function JCSCanvas({ onShowPCC, setShowPCC, onShowCentroids, onClickShowCentroids,
                                     onInspectMode, onClickInspectMode, onOriginMode, onClickOriginMode,
-                                    onColorBlockMode, onClickColorBlockMode, onChangeColorGradient,
+                                    onColorBlockMode, onClickColorBlockMode, onChangeColorGradient, disableControl,
                                     selectedColorScheme, onChangeColorScheme }) {
     const [openColorSchemeMenu, setOpenColorSchemeMenu] = useState(false);
     return (
@@ -64,18 +65,18 @@ export default function JCSCanvas({ onShowPCC, setShowPCC, onShowCentroids, onCl
                         <ColorSchemeMenu selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ onChangeColorScheme } /> }
                 </div>
                 {/* Controlling Buttons */}
-                <img id="show-correlation-button" src="/assets/correlation.png" onClick={ () => setShowPCC(!onShowPCC) }
+                <img id="show-correlation-button" src="/assets/correlation.png" onClick={ disableControl ? undefined : (() => setShowPCC(!onShowPCC)) }
                      style={{opacity: onShowPCC ? "0.8": "0.4"}} alt={"Show correlation button"} title={"Show Correlation"} />
-                <img id="show-centroid-button" src="/assets/centroid.png" onClick={ onClickShowCentroids }
+                <img id="show-centroid-button" src="/assets/centroid.png" onClick={ disableControl ? undefined : (() => onClickShowCentroids()) }
                      style={{opacity: onShowCentroids ? "0.8": "0.4"}}  alt={"Show centroid button"} title={"Show Centroids"}/>
-                <img id="inspect-button" src="/assets/inspect.png" onClick={ onShowCentroids ? onClickInspectMode : undefined }
+                <img id="inspect-button" src="/assets/inspect.png" onClick={ onShowCentroids ? (() => onClickInspectMode()) : undefined }
                      style={{opacity: onShowCentroids ? (onInspectMode ? "0.8": "0.4") : "0.2"}} alt={"Toggle Inspection Button"} title={"Toggle Inspection Mode"}/>
-                <img id="display-origin-button" src="/assets/origin.png" onClick={ onClickOriginMode }
+                <img id="display-origin-button" src="/assets/origin.png" onClick={ disableControl ? undefined : onClickOriginMode }
                      style={{opacity: onOriginMode ? "0.8": "0.4"}} alt={"Toggle Origin Button"} title={"Toggle Origin Mode"}/>
-                <img id="color-block-button" src="/assets/color-block.png" onClick={ onClickColorBlockMode }
+                <img id="color-block-button" src="/assets/color-block.png" onClick={ disableControl ? undefined : (() => onClickColorBlockMode()) }
                      style={{opacity: onColorBlockMode ? "0.8": "0.4"}} alt={"Toggle Color Block Button"} title={"Toggle Color Block Mode"}/>
-                <img id="color-gradient-button" src="/assets/reverse.png" onClick={ onChangeColorGradient }
-                     style={{opacity: "0.8"}} alt={"Toggle Color Gradient Button"} title={"Toggle Color Gradient"}/>
+                <img id="color-gradient-button" src="/assets/reverse.png" onClick={ disableControl ? undefined : onChangeColorGradient }
+                     style={{opacity: disableControl ? "0.4": "0.8"}} alt={"Toggle Color Gradient Button"} title={"Toggle Color Gradient"}/>
                 <h3 className="joint-coordinate">Joint Coordinate System</h3>
                 <svg id="joint-coordinate-canvas" className="joint-coordinate">
                     {/* Correlation Indicator */}

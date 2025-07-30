@@ -4,12 +4,13 @@ import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.j
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 
 // TODO: Add WireFrame and Inspection Mode
+// TODO: Make num_slice and num_stack adjustable by the user
 
 const num_slice = 50, num_stack = 10;
 
 export function coneParamFunction( u, v, target ) {
-    let v_prime = v * 2 * Math.PI;              // range(u) = [0, 2]
-    let u_prime = u * 2;                      // range(v) = [0, 2PI]
+    let v_prime = v * 2 * Math.PI;            // range(v) = [0, 2PI]
+    let u_prime = u * 2;                      // range(u) = [0, 2]
 
     let x = u_prime * Math.cos(v_prime);
     let y = u_prime;
@@ -35,6 +36,7 @@ function generate_cone_surface_data( num_slice, num_stack ) {
             y = u;
             z = u * Math.sin(v);
             data.push({
+                "u": u,
                 "v": v,
                 "[x] u*cos(v)": x,
                 "[y] u": y,
@@ -46,8 +48,8 @@ function generate_cone_surface_data( num_slice, num_stack ) {
 }
 
 export function helixParamFunction( u, v, target ) {
-    let v_prime = v * 2 * Math.PI;              // range(u) = [0, 2]
-    let u_prime = u * 2;                      // range(v) = [0, 2PI]
+    let v_prime = v * 2 * Math.PI;            // range(v) = [0, 2PI]
+    let u_prime = u * 2;                      // range(u) = [0, 2]
 
     let x = u_prime * Math.cos(v_prime);
     let y = 0.5*v_prime;
@@ -87,12 +89,12 @@ function generate_helix_surface_data( num_slice, num_stack ) {
 export function torusParamFunction( u, v, target ) {
     let R = 1.5, r = 0.5;
 
-    let v_prime = v * 2 * Math.PI;              // range(u) = [0, 2PI]
-    let u_prime = u * 2 * Math.PI;              // range(v) = [0, 2PI]
+    let v_prime = v * 2 * Math.PI;              // range(v) = [0, 2PI]
+    let u_prime = u * 2 * Math.PI;              // range(u) = [0, 2PI]
 
     let x = (R + r * Math.cos(v_prime)) * Math.cos(u_prime);
     let y = (R + r * Math.cos(v_prime)) * Math.sin(u_prime);
-    const z = r * Math.sin(v_prime);
+    let z = r * Math.sin(v_prime);
 
     target.set(x, y, z);
 }
@@ -126,14 +128,139 @@ function generate_torus_surface_data( num_slice, num_stack ) {
     return data;
 }
 
+export function cylinderParamFunction( u, v, target ) {
+    let v_prime = v * 2 * Math.PI;              // range(v) = [0, 2PI]
+    let u_prime = u * 2;                        // range(u) = [0, 2]
+
+    let x = Math.cos(v_prime);
+    let y = u_prime;
+    let z = Math.sin(v_prime);
+
+    target.set(x, y, z);
+}
+
+function generate_cylinder_surface_data( num_slice, num_stack ) {
+    /*
+        This creates a point cloud dataset for a cylinder along the y:
+            x(u, v) = cos(v),
+            y(u, v) = u,
+            z(u, v) = sin(v)
+     */
+    let data = [];
+    let u, v, x, y, z;
+    for (let i = 0; i <= num_stack; i++) {
+        u = i / num_stack * 2;
+        for (let j = 0; j <= num_slice; j++) {
+            v = j / num_slice * 2 * Math.PI;
+            let x = Math.cos(v);
+            let y = u;
+            let z = Math.sin(v);
+            data.push({
+                "u": u,
+                "v": v,
+                "[x] cos(v)": x,
+                "[y] u": y,
+                "[z] sin(v)": z
+            })
+        }
+    }
+    return data;
+}
+
+export function ellipticParaParamFunction( u, v, target ) {
+    let v_prime = v * 2 * Math.PI;              // range(v) = [0, 2PI]
+    let u_prime = u * 1.5;                      // range(u) = [0, 1.5]
+
+    let x = u_prime * Math.cos(v_prime);
+    let y = u_prime * u_prime;
+    let z = u_prime * Math.sin(v_prime);
+
+    target.set(x, y, z);
+}
+
+function generate_elliptic_paraboloid_surface_data( num_slice, num_stack ) {
+    /*
+        This creates a point cloud dataset for a elliptic paraboloid along the y:
+            x(u, v) = u*cos(v),
+            y(u, v) = u*u,
+            z(u, v) = u*sin(v)
+     */
+    let data = [];
+    let u, v, x, y, z;
+    for (let i = 0; i <= num_stack; i++) {
+        u = i / num_stack * 1.5;
+        for (let j = 0; j <= num_slice; j++) {
+            v = j / num_slice * 2 * Math.PI;
+            let x = u*Math.cos(v);
+            let y = u*u;
+            let z = u*Math.sin(v);
+            data.push({
+                "u": u,
+                "v": v,
+                "[x] u*cos(v)": x,
+                "[y] u*u": y,
+                "[z] u*sin(v)": z
+            })
+        }
+    }
+    return data;
+}
+
+export function hyperbolicParaParamFunction( u, v, target ) {
+    let v_prime = v * 2 * Math.PI;              // range(v) = [0, 2PI]
+    let u_prime = u * 0.8;                      // range(u) = [0, 1.5]
+
+    let x = u_prime * (1 / Math.cos(v_prime));
+    let y = u_prime * u_prime;
+    let z = u_prime * Math.tan(v_prime);
+
+    target.set(x, y, z);
+}
+
+function generate_hyperbolic_paraboloid_surface_data( num_slice, num_stack ) {
+    /*
+        This creates a point cloud dataset for a hyperbolic paraboloid along the y:
+            x(u, v) = u*sec(v),
+            y(u, v) = u*u,
+            z(u, v) = u*tan(v)
+     */
+    let data = [];
+    let u, v, x, y, z;
+    for (let i = 0; i <= num_stack; i++) {
+        u = i / num_stack * 0.8;
+        for (let j = 0; j <= num_slice; j++) {
+            v = j / num_slice * 2 * Math.PI;
+            let x = u*(1 / Math.cos(v));
+            let y = u*u;
+            let z = u*Math.tan(v);
+            data.push({
+                "u": u,
+                "v": v,
+                "[x] u*cos(v)": x,
+                "[y] u*u": y,
+                "[z] u*sin(v)": z
+            })
+        }
+    }
+    return data;
+}
+
 export function generateGeomData( mode ) {
     switch (mode) {
+        case "cylinder":
+            return generate_cylinder_surface_data( num_slice, num_stack );
         case "cone":
             return generate_cone_surface_data( num_slice, num_stack );
         case "helix":
             return generate_helix_surface_data( num_slice, num_stack );
         case "torus":
             return generate_torus_surface_data( num_slice, num_stack );
+        case "ellipticPara":
+            return generate_elliptic_paraboloid_surface_data( num_slice, num_stack );
+        case "hyperbolicPara":
+            return generate_hyperbolic_paraboloid_surface_data( num_slice, num_stack );
+        default:
+            return;
     }
 }
 
@@ -223,7 +350,7 @@ export function initializeRender( container ) {
         generate_axis_label('Z', "blue", [0, 0, 3.6]);
     });
 
-    let animate = () => {
+    function animate() {
         requestAnimationFrame(animate);
         controls.update();
         renderer.render(scene, camera);

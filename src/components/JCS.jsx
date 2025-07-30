@@ -7,6 +7,8 @@ import drawJCS from "./JCS.js";
 import { generateGeomData } from "./GeometryVis.js";
 
 // TODO: Add the effect of sliding block for the variable selector
+// TODO: ALlow the user to download the JCS visualization result
+
 let currSelectedIVs = [];
 let currSelectedDV = null;
 let currData = null;
@@ -24,6 +26,21 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
     const [selectedIVs, setSelectedIVs] = useState([]);
     const [selectedDV, setSelectedDV] = useState(null);
     const [ifRender, setIfRender] = useState(false);
+    const [disableControl, setDisableControl] = useState(true);
+
+    useEffect(() => {
+        console.log("Disable Control:", disableControl);
+    }, [disableControl]);
+
+    function reset() {
+        setShowPCC(false);
+        handleShowCentroids(false);
+        handleChangeInspectMode(false);
+        setInspectedIndex(null);
+        setOriginMode(false);
+        handleChangeColorBlockMode(false);
+        setDisableControl(true);
+    }
 
     function handleSelectColorScheme(scheme_color_list) {
         setSelectedColorScheme(scheme_color_list);
@@ -46,6 +63,7 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
     }
 
     useEffect(() => {
+        reset();
         if (mode === "data") {
             if (exampleDataPath !== null && uploadedData === null) {
                 csv(exampleDataPath).then(data => {
@@ -69,6 +87,7 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
             currSelectedIVs = selectedIVs;
             currSelectedDV = selectedDV;
             setIfRender(false);
+            setDisableControl(false);
         }
         if (currData !== null) {
             drawJCS( currData, currSelectedIVs, currSelectedDV, nowPolygonData, setPolygonData, size, selectedColorScheme,
@@ -86,7 +105,7 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
                            onInspectMode={ onInspectMode } onClickInspectMode={ handleChangeInspectMode }
                            onOriginMode={ onOriginMode } onClickOriginMode={ handleChangeOriginMode }
                            onColorBlockMode={ onColorBlockMode } onClickColorBlockMode={ handleChangeColorBlockMode }
-                           onChangeColorGradient={ handleSelectColorGradient }
+                           onChangeColorGradient={ handleSelectColorGradient } disableControl={ disableControl }
                            selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ handleSelectColorScheme } />
                 <JCSMenu mode={ mode } data={ data } geomMode={ geomMode } setGeomMode = { setGeomMode }
                          setExampleDataPath={ setExampleDataPath } setUploadedData={ setUploadedData }

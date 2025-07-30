@@ -1,5 +1,9 @@
 const geom_data_mode = [
     {
+        id: "cylinder",
+        title: "Cylinder Surface",
+    },
+    {
         id: "cone",
         title: "Cone Surface",
     },
@@ -10,6 +14,14 @@ const geom_data_mode = [
     {
         id: "torus",
         title: "Torus",
+    },
+    {
+        id: "ellipticPara",
+        title: "Elliptic Paraboloid"
+    },
+    {
+        id: "hyperbolicPara",
+        title: "Hyperbolic Paraboloid"
     }
 ];
 

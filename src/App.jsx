@@ -21,23 +21,35 @@ export default function App() {
         setPolygonData(null);
     }
 
-    function handleShowCentroids() {
-        if (onShowCentroids && onInspectMode) {
-            setInspectMode(false);
-        }
-        setShowCentroids(!onShowCentroids);
-    }
-
-    function handleChangeInspectMode() {
-        if (onShowCentroids) {
-            setInspectMode(!onInspectMode);
+    function handleShowCentroids( boolVal=null ) {
+        if ( boolVal === null ) {
+            if (onShowCentroids && onInspectMode) {
+                setInspectMode(false);
+            }
+            setShowCentroids(!onShowCentroids);
         } else {
-            setInspectedIndex(null);
+            setShowCentroids(boolVal);
         }
     }
 
-    function handleChangeColorBlockMode() {
-        setColorBlockMode(!onColorBlockMode);
+    function handleChangeInspectMode( boolVal=null ) {
+        if ( boolVal === null ) {
+            if (onShowCentroids) {
+                setInspectMode(!onInspectMode);
+            } else {
+                setInspectedIndex(null);
+            }
+        } else {
+            setInspectMode(boolVal);
+        }
+    }
+
+    function handleChangeColorBlockMode( boolVal=null ) {
+        if ( boolVal === null ) {
+            setColorBlockMode(!onColorBlockMode);
+        } else {
+            setColorBlockMode(boolVal);
+        }
     }
 
     useEffect(() => {
@@ -52,11 +64,11 @@ export default function App() {
         console.log("Current Polygon Data: ", nowPolygonData);
     }, [nowPolygonData]);
 
-    /*useEffect(() => {
+    useEffect(() => {
         console.log("Current index: ", inspectedIndex);
     }, [inspectedIndex]);
 
-     useEffect(() => {
+    /*useEffect(() => {
         console.log("Current Origin: ", nowOrigin);
     }, [nowOrigin]); */
 

@@ -5,8 +5,8 @@ import {
     plot_polygons,
     plot_centroids,
     plot_origin,
-} from "./JCS.js";
-import { jcs_origin, coord_len } from "./JCS.js";
+} from "../JCS.js";
+import { jcs_origin, coord_len } from "../JCS.js";
 import { isEqual } from "lodash";
 
 const size = 300;
