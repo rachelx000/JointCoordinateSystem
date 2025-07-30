@@ -89,11 +89,12 @@ export default function GeometryVis({ nowPolygonData, geomMode, meshRenderingRea
                 positions.getY(inspectedIndex),
                 positions.getZ(inspectedIndex)
             );
-            let indicator_geometry = new THREE.SphereGeometry(0.08, 16, 16);
+            let indicator_geometry = new THREE.SphereGeometry(0.1, 16, 16);
             let indicator_material = new THREE.MeshStandardMaterial({
                 color: nowPolygonData[inspectedIndex].color,
+                opacity: 1.0,
                 emissive: 0xffffff,
-                emissiveIntensity: 0.1
+                emissiveIntensity: 0.5
             });
             let indicator = new THREE.Mesh(indicator_geometry, indicator_material);
             indicator.position.copy(inspected_p);

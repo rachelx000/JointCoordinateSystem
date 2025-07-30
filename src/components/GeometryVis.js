@@ -7,6 +7,7 @@ import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
 // TODO: Make num_slice and num_stack adjustable by the user
+// TODO: Helix Modeling Problem
 
 const num_slice = 10, num_stack = 10;
 
@@ -95,8 +96,8 @@ export function torusParamFunction( u, v, target ) {
     let u_prime = u * 2 * Math.PI;              // range(u) = [0, 2PI]
 
     let x = (R + r * Math.cos(v_prime)) * Math.cos(u_prime);
-    let y = (R + r * Math.cos(v_prime)) * Math.sin(u_prime);
-    let z = r * Math.sin(v_prime);
+    let y = r * Math.sin(v_prime);
+    let z = (R + r * Math.cos(v_prime)) * Math.sin(u_prime);
 
     target.set(x, y, z);
 }
@@ -105,8 +106,8 @@ function generate_torus_surface_data( num_slice, num_stack ) {
     /*
         This creates a point cloud dataset for a torus:
             x(u, v) = (1.5+0.5*cos(v))*cos(u),
-            y(u, v) = (1.5+0.5*cos(v))*sin(u),
-            z(u, v) = 0.5*sin(v)
+            y(u, v) = 0.5*sin(v),
+            z(u, v) = (1.5+0.5*cos(v))*sin(u)
      */
     let R = 1.5, r = 0.5;
     let data = [];
@@ -115,15 +116,15 @@ function generate_torus_surface_data( num_slice, num_stack ) {
         u = i / num_stack * 2 * Math.PI;
         for (let j = 0; j <= num_slice; j++) {
             v = j / num_slice * 2 * Math.PI
-            let x = (R + r * Math.cos(v)) * Math.cos(u);
-            let y = (R + r * Math.cos(v)) * Math.sin(u);
-            const z = r * Math.sin(v);
+            x = (R + r * Math.cos(v)) * Math.cos(u);
+            y = r * Math.sin(v);
+            z = (R + r * Math.cos(v)) * Math.sin(u);
             data.push({
                 "u": u,
                 "v": v,
                 "[x] (1.5+0.5*cos(v))*cos(u)": x,
-                "[y] (1.5+0.5*cos(v))*sin(u)": y,
-                "[z] 0.5*sin(v)": z
+                "[y] 0.5*sin(v)": y,
+                "[z] (1.5+0.5*cos(v))*sin(u)": z
             })
         }
     }
@@ -154,9 +155,9 @@ function generate_cylinder_surface_data( num_slice, num_stack ) {
         u = i / num_stack * 2;
         for (let j = 0; j <= num_slice; j++) {
             v = j / num_slice * 2 * Math.PI;
-            let x = Math.cos(v);
-            let y = u;
-            let z = Math.sin(v);
+            x = Math.cos(v);
+            y = u;
+            z = Math.sin(v);
             data.push({
                 "u": u,
                 "v": v,
@@ -193,9 +194,9 @@ function generate_elliptic_paraboloid_surface_data( num_slice, num_stack ) {
         u = i / num_stack * 1.5;
         for (let j = 0; j <= num_slice; j++) {
             v = j / num_slice * 2 * Math.PI;
-            let x = u*Math.cos(v);
-            let y = u*u;
-            let z = u*Math.sin(v);
+            x = u*Math.cos(v);
+            y = u*u;
+            z = u*Math.sin(v);
             data.push({
                 "u": u,
                 "v": v,
@@ -232,9 +233,9 @@ function generate_hyperbolic_paraboloid_surface_data( num_slice, num_stack ) {
         u = i / num_stack * 0.8;
         for (let j = 0; j <= num_slice; j++) {
             v = j / num_slice * 2 * Math.PI;
-            let x = u*(1 / Math.cos(v));
-            let y = u*u;
-            let z = u*Math.tan(v);
+            x = u*(1 / Math.cos(v));
+            y = u*u;
+            z = u*Math.tan(v);
             data.push({
                 "u": u,
                 "v": v,
@@ -266,7 +267,7 @@ export function generateGeomData( mode ) {
     }
 }
 
-export function generateParamSurfaceMesh( param_function, polygon_data ) {
+export function generateParamSurfaceMesh( param_function, polygon_data, wrap_u=1, wrap_v=1 ) {
     // Create the mesh based on the parametric surface function
     let geometry = new ParametricGeometry(param_function, num_slice, num_stack);
 
@@ -288,8 +289,8 @@ export function generateParamSurfaceMesh( param_function, polygon_data ) {
 
     // Create wireframe mesh: generate lines only for the parametric grid
     let wireframe_positions = [];
-    for (let i = 0; i <= num_stack; i++) {
-        for (let j = 0; j <= num_slice; j++) {
+    for (let i = 0; i < num_stack; i++) {
+        for (let j = 0; j < num_slice; j++) {
             const u1 = i / num_stack;
             const v1 = j / num_slice;
             const u2 = (i + 1) / num_stack;
@@ -300,17 +301,11 @@ export function generateParamSurfaceMesh( param_function, polygon_data ) {
 
             param_function(u1, v1, p1);
 
-            // line segment along u-direction
-            if (i < num_stack) {
-                param_function(u2, v1, p2);
-                wireframe_positions.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
-            }
+            param_function(u2, v1, p2);
+            wireframe_positions.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
 
-            // line segment along v-direction
-            if (j < num_slice) {
-                param_function(u1, v2, p2);
-                wireframe_positions.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
-            }
+            param_function(u1, v2, p2);
+            wireframe_positions.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
         }
 
     }
@@ -348,7 +343,7 @@ export function initializeRender( container ) {
         0.1,
         1000
     );
-    camera.position.set(3.5, 3.5, 3.5);
+    camera.position.set(3, 4.5, 3);
     camera.up.set(0, 1, 0);
     camera.lookAt(0, 0, 0);
 
@@ -377,8 +372,8 @@ export function initializeRender( container ) {
     // Add axis labels
     const loader = new FontLoader();
     let label_meshes = [];
-    loader.load('/fonts/Roboto_Regular.typeface.json', function (font) {
-        function generate_axis_label(text, color, pos, face_pos) {
+    loader.load(`${import.meta.env.BASE_URL}fonts/Roboto_Regular.typeface.json`, function (font) {
+        function generate_axis_label(text, color, pos) {
             const shapes = font.generateShapes(text, 0.2);
             const geometry = new THREE.ShapeGeometry(shapes);
             const material = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });

@@ -23,7 +23,7 @@ export default function NavBar({ nowMode, onChangeMode }) {
     return (
         <>
             <nav>
-                <img src="/favicons/favicon_white.png" width="100px" height="100px" alt="JCS icon"/>
+                <img src={`${import.meta.env.BASE_URL}favicons/favicon_white.png`} width="100px" height="100px" alt="JCS icon"/>
                 <h1>Joint Coordinate System</h1>
                 <ul>
                     {navItems.map(item => (

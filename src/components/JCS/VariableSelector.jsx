@@ -52,13 +52,13 @@ export default function VarSelector({ mode, varnames, setVarnames, selectedIVs, 
                             <input id={ varname+"-DV-selector" } className="DV" type="checkbox" onClick={ () => toggleSelectedDV(varname) }
                                    disabled={ mode === "data" ? selectedDV !== null && varname !== selectedDV || selectedIVs.includes(varname)
                                        : selectedDV !== null && varname !== selectedDV }/>
-                            <img src="/assets/drag-and-drop.png" className="drag-and-drop-icons" draggable
+                            <img src={`${import.meta.env.BASE_URL}assets/drag-and-drop.png`} className="drag-and-drop-icons" draggable
                                  onDragStart={(e) => handleDragStart(e, index)} />
                         </div>
                     </div>
                 ))}
             </div>
-            <img id="start-render-icon" src="/assets/start.png" title="Run Rendering"
+            <img id="start-render-icon" src={`${import.meta.env.BASE_URL}assets/start.png`} title="Run Rendering"
                  onClick={ () => selectedIVs.length >= 4 && selectedDV !== null ? setIfRender(true) : undefined}
                  style={{opacity: selectedIVs.length >= 4 && selectedDV !== null ? 0.8 : 0.4}}/>
         </div>

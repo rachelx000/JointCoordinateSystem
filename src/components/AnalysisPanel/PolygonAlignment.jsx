@@ -34,7 +34,7 @@ export default function PolygonAlignment({ alignMode, handleAlignModeChange, ali
         <div id="polygon-alignment">
             <h3>Polygon Alignment</h3>
             <div id="alignment-container">
-                <img id="alignment-reset-button" src="/assets/reset.png" onClick={ () => { alignmentRef.current?.resetZoomPan(); }} />
+                <img id="alignment-reset-button" src={`${import.meta.env.BASE_URL}assets/reset.png`} onClick={ () => { alignmentRef.current?.resetZoomPan(); }} />
                 <svg id="alignment-canvas" height={330} width={330}>
                     <defs>
                         <linearGradient id="colorGradient"

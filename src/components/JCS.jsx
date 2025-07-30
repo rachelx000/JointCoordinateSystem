@@ -18,7 +18,7 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
                               handleShowCentroids, onInspectMode, handleChangeInspectMode, onColorBlockMode,
                               handleChangeColorBlockMode, inspectedIndex, setInspectedIndex, setMeshRenderingReady}) {
     const [data, setData] = useState(null);
-    const [exampleDataPath, setExampleDataPath] = useState("/data/visualization_data/example/basic_elements.csv");
+    const [exampleDataPath, setExampleDataPath] = useState(`${import.meta.env.BASE_URL}data/visualization_data/example/basic_elements.csv`);
     const [uploadedData, setUploadedData] = useState(null);
     const [selectedColorScheme, setSelectedColorScheme] = useState(['Blue', 'Red']);
     const [selectedColorGradient, setSelectedColorGradient] = useState("AB");

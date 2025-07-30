@@ -1,7 +1,7 @@
 export const visualization_data = [
   {
     name: "Example Data 1",
-    basePath: "/data/visualization_data/example/",
+    basePath: `${import.meta.env.BASE_URL}data/visualization_data/example/`,
     filetype: ".csv",
     datasets: [
       {
@@ -39,7 +39,7 @@ export const visualization_data = [
   },
   {
     name: "Example Data 2",
-    basePath: "/data/visualization_data/example/",
+    basePath: `${import.meta.env.BASE_URL}data/visualization_data/example/`,
     filetype: ".csv",
     datasets: [
       {
@@ -69,7 +69,7 @@ export const visualization_data = [
   },
     {
     name: "Hyperparameter Tuning Data",
-    basePath: "/data/visualization_data/hyperparam_tuning/",
+    basePath: `${import.meta.env.BASE_URL}data/visualization_data/hyperparam_tuning/`,
     filetype: ".csv",
     datasets: [
       {

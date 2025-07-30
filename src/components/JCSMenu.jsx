@@ -49,12 +49,14 @@ export default function JCSMenu( { mode, data, geomMode, setGeomMode, setExample
         }
     }, [data]);
 
-    /* useEffect(() => {
-        updateSelectedIVOrder(selectedIVs);
-        console.log("Current Varnames:", varnames)
-    }, [varnames])
-
     useEffect(() => {
+        if (selectedIVs !== null) {
+            updateSelectedIVOrder(selectedIVs);
+        }
+        // console.log("Current Varnames:", varnames);
+    }, [varnames]);
+
+    /*useEffect(() => {
         console.log("Current Selected IVs:", selectedIVs)
     }, [selectedIVs])
 

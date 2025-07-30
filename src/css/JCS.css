@@ -252,6 +252,15 @@
     border-radius: 0;
     margin: 0;
     overflow: auto;
+    /* Hide scroll bar for Firefox */
+    scrollbar-width: none;
+    /* Hide scroll bar for IE */
+    -ms-overflow-style: none;
+}
+
+#variables::-webkit-scrollbar {
+    /* Hide scroll bar for Chrome, Safari */
+    display: none;
 }
 
 #variable-selector p {
@@ -272,21 +281,12 @@
     gap: 11px;
 }
 
-.variable-names {
+.variables {
     width: 75%;
     max-height: 100%;
     box-sizing: border-box;
     white-space: nowrap;
     overflow-x: auto;
-    /* Hide scroll bar for Firefox */
-    scrollbar-width: none;
-    /* Hide scroll bar for IE */
-    -ms-overflow-style: none;
-}
-
-.variable-names::-webkit-scrollbar {
-    /* Hide scroll bar for Chrome, Safari */
-    display: none;
 }
 
 .variable-controllers {
