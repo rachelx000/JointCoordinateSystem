@@ -55,7 +55,7 @@ export default function UploadFileHandler({ setUploadedData }) {
                     }
 
                     setUploadedData(parsedData);
-                    console.log("Parsed data:", parsedData);
+                    // console.log("Parsed data:", parsedData);
                     setMessage({type: "Success", content: "Uploaded: "+fileRef.current.name });
                 },
                 error: (err) => {

@@ -64,9 +64,9 @@ export default function App() {
         console.log("Current Polygon Data: ", nowPolygonData);
     }, [nowPolygonData]); */
 
-    useEffect(() => {
+    /* useEffect(() => {
         console.log("Current index: ", inspectedIndex);
-    }, [inspectedIndex]);
+    }, [inspectedIndex]); */
 
     /* useEffect(() => {
         console.log("Current Origin: ", nowOrigin);
