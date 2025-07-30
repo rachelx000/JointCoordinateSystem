@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import "../css/AnalysisPanel.css";
-import PolygonAlignment from "./AnalysisPanelComponents/PolygonAlignment.jsx";
-import ShapeAnalysis from "./AnalysisPanelComponents/ShapeAnalysis.jsx";
-import { alignPolygons, plotPolygonAlignment, computeAlignedPolygonOrder } from "./AnalysisPanelComponents/PolygonAlignment.js";
-import { plotShapeMetric } from "./AnalysisPanelComponents/ShapeAnalysis.js";
-import { shape_metrics } from "./AnalysisPanelComponents/ShapeAnalysis.jsx";
+import PolygonAlignment from "./AnalysisPanel/PolygonAlignment.jsx";
+import ShapeAnalysis from "./AnalysisPanel/ShapeAnalysis.jsx";
+import { alignPolygons, plotPolygonAlignment, computeAlignedPolygonOrder } from "./AnalysisPanel/PolygonAlignment.js";
+import { plotShapeMetric } from "./AnalysisPanel/ShapeAnalysis.js";
+import { shape_metrics } from "./AnalysisPanel/ShapeAnalysis.jsx";
 import { isEqual } from "lodash";
 
 export default function AnalysisPanel( { nowPolygonData, nowOrigin, onShowCentroids, onColorBlockMode, onInspectMode, inspectedIndex, setInspectedIndex }) {

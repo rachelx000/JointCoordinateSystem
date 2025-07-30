@@ -52,7 +52,7 @@ export default function App() {
         }
     }
 
-    useEffect(() => {
+    /* useEffect(() => {
         console.log("Current geom mode changed to: ", geomMode);
     }, [geomMode]);
 
@@ -62,13 +62,13 @@ export default function App() {
 
     useEffect(() => {
         console.log("Current Polygon Data: ", nowPolygonData);
-    }, [nowPolygonData]);
+    }, [nowPolygonData]); */
 
     useEffect(() => {
         console.log("Current index: ", inspectedIndex);
     }, [inspectedIndex]);
 
-    /*useEffect(() => {
+    /* useEffect(() => {
         console.log("Current Origin: ", nowOrigin);
     }, [nowOrigin]); */
 
@@ -80,7 +80,8 @@ export default function App() {
                                    inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />;
             case 'geom':
                 return <GeometryVis nowPolygonData={ nowPolygonData } geomMode={ geomMode }
-                                    meshRenderingReady={ meshRenderingReady } setMeshRenderingReady={ setMeshRenderingReady }/>;
+                                    meshRenderingReady={ meshRenderingReady } setMeshRenderingReady={ setMeshRenderingReady }
+                                    inspectedIndex={ inspectedIndex }/>;
             default:
                 return;
         }

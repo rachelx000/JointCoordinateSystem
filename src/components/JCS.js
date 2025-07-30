@@ -511,7 +511,7 @@ export default function drawJCS( data, now_IVs, now_DV, now_polygon_data, set_po
 
     // For inspection mode:
     d3.select('#joint-coordinate-canvas').on('mousemove', null);
-    if (if_inspect_mode) {
+    if ( if_inspect_mode ) {
         centroid_quadtree.x(d => d.x).y(d => d.y)
             .addAll([...polygons.map(polygon => ( { x: polygon.centroid[0], y: polygon.centroid[1], id: polygon.id } ))]);
         d3.select('#joint-coordinate-canvas').on('mousemove', (e) => cursor_track(e, centroid_quadtree, set_inspected_index, inspected_index));

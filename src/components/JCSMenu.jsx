@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { get_varnames, reset_variable_selector } from "./JCS.js";
-import VarSelector from "./JCSComponents/VariableSelector.jsx";
-import ExampleDataSelector from "./JCSComponents/ExampleDataSelector.jsx";
-import UploadFileHandler from "./JCSComponents/UploadFileHandler.jsx";
-import GeomDataSelector from "./JCSComponents/GeomDataSelector.jsx";
+import VarSelector from "./JCS/VariableSelector.jsx";
+import ExampleDataSelector from "./JCS/ExampleDataSelector.jsx";
+import UploadFileHandler from "./JCS/UploadFileHandler.jsx";
+import GeomDataSelector from "./JCS/GeomDataSelector.jsx";
 
 
 export default function JCSMenu( { mode, data, geomMode, setGeomMode, setExampleDataPath, setUploadedData,
@@ -49,7 +49,7 @@ export default function JCSMenu( { mode, data, geomMode, setGeomMode, setExample
         }
     }, [data]);
 
-    useEffect(() => {
+    /* useEffect(() => {
         updateSelectedIVOrder(selectedIVs);
         console.log("Current Varnames:", varnames)
     }, [varnames])
@@ -60,7 +60,7 @@ export default function JCSMenu( { mode, data, geomMode, setGeomMode, setExample
 
     useEffect(() => {
         console.log("Current Selected DV:", selectedDV)
-    }, [selectedDV])
+    }, [selectedDV]) */
 
     return (
         <div id="control-panel" className="joint-coordinate-system">

@@ -2,11 +2,13 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
-// TODO: Add WireFrame and Inspection Mode
 // TODO: Make num_slice and num_stack adjustable by the user
 
-const num_slice = 50, num_stack = 10;
+const num_slice = 10, num_stack = 10;
 
 export function coneParamFunction( u, v, target ) {
     let v_prime = v * 2 * Math.PI;            // range(v) = [0, 2PI]
@@ -282,8 +284,50 @@ export function generateParamSurfaceMesh( param_function, polygon_data ) {
         vertexColors: true,
         side: THREE.DoubleSide,
     });
+    let mesh = new THREE.Mesh(geometry, material)
 
-    return new THREE.Mesh(geometry, material);
+    // Create wireframe mesh: generate lines only for the parametric grid
+    let wireframe_positions = [];
+    for (let i = 0; i <= num_stack; i++) {
+        for (let j = 0; j <= num_slice; j++) {
+            const u1 = i / num_stack;
+            const v1 = j / num_slice;
+            const u2 = (i + 1) / num_stack;
+            const v2 = (j + 1) / num_slice;
+
+            let p1 = new THREE.Vector3();
+            let p2 = new THREE.Vector3();
+
+            param_function(u1, v1, p1);
+
+            // line segment along u-direction
+            if (i < num_stack) {
+                param_function(u2, v1, p2);
+                wireframe_positions.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+            }
+
+            // line segment along v-direction
+            if (j < num_slice) {
+                param_function(u1, v2, p2);
+                wireframe_positions.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+            }
+        }
+
+    }
+    let wireframe_line_geometry = new LineGeometry();
+    wireframe_line_geometry.setPositions(wireframe_positions);
+
+    const wireframe_material = new LineMaterial({
+        color: 0xffffff,
+        linewidth: 1.0,
+        transparent: true,
+        opacity: 0.5,
+        depthTest: false,
+    });
+    wireframe_material.resolution.set(window.innerWidth, window.innerHeight);
+    let wireframe_mesh = new LineSegments2(wireframe_line_geometry, wireframe_material);
+
+    return { mesh: mesh, wireframe: wireframe_mesh };
 }
 
 export function initializeRender( container ) {
@@ -314,9 +358,9 @@ export function initializeRender( container ) {
     container.appendChild(renderer.domElement);
 
     // Set up the lighting
-    const ambientlight = new THREE.AmbientLight( 'white', 30 );
+    const ambientlight = new THREE.AmbientLight( 'white', 5 );
     scene.add(ambientlight);
-    const directLight = new THREE.DirectionalLight('white', 10);
+    const directLight = new THREE.DirectionalLight('white', 1);
     directLight.position.set(5, 8, 5);
     scene.add(directLight);
 

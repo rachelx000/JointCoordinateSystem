@@ -5,6 +5,7 @@ import '../css/JCS.css';
 import { csv } from "d3";
 import drawJCS from "./JCS.js";
 import { generateGeomData } from "./GeometryVis.js";
+import * as d3 from "d3";
 
 // TODO: Add the effect of sliding block for the variable selector
 // TODO: ALlow the user to download the JCS visualization result
@@ -28,11 +29,12 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
     const [ifRender, setIfRender] = useState(false);
     const [disableControl, setDisableControl] = useState(true);
 
-    useEffect(() => {
+    /* useEffect(() => {
         console.log("Disable Control:", disableControl);
-    }, [disableControl]);
+    }, [disableControl]); */
 
     function reset() {
+        currData = null;
         setShowPCC(false);
         handleShowCentroids(false);
         handleChangeInspectMode(false);
@@ -40,6 +42,8 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
         setOriginMode(false);
         handleChangeColorBlockMode(false);
         setDisableControl(true);
+        setMeshRenderingReady(false);
+        d3.select('#joint-coordinate-canvas').on('mousemove', null);
     }
 
     function handleSelectColorScheme(scheme_color_list) {
@@ -69,7 +73,7 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
                 csv(exampleDataPath).then(data => {
                     setData(data);
                 }).catch(error => console.error(error));
-                console.log("Current selected data path: ", exampleDataPath)
+                // console.log("Current selected data path: ", exampleDataPath)
             }
             if (uploadedData !== null) {
                 setData(uploadedData);
