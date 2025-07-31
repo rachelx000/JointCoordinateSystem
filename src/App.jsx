@@ -5,6 +5,8 @@ import JCS from "./components/JCS.jsx";
 import AnalysisPanel from "./components/AnalysisPanel.jsx";
 import GeometryVis from "./components/GeometryVis.jsx";
 
+// TODO: Create Sliding Effect for toggler
+
 export default function App() {
     const [mode, setMode] = useState('data');
     const [geomMode, setGeomMode] = useState("cone");
@@ -15,10 +17,12 @@ export default function App() {
     const [onColorBlockMode, setColorBlockMode] = useState(false);
     const [inspectedIndex, setInspectedIndex] = useState(null);
     const [meshRenderingReady, setMeshRenderingReady] = useState(false);
+    const [geomVisMode, setGeomVisMode] = useState(false);   //
 
     function handleChangeMode(selectedMode) {
         setMode(selectedMode);
         setPolygonData(null);
+        setGeomVisMode(false);
     }
 
     function handleShowCentroids( boolVal=null ) {
@@ -52,6 +56,10 @@ export default function App() {
         }
     }
 
+    useEffect(() => {
+        console.log("Geom Vis Mode:", geomVisMode)
+    }, [geomVisMode]);
+
     /* useEffect(() => {
         console.log("Current geom mode changed to: ", geomMode);
     }, [geomMode]);
@@ -79,9 +87,23 @@ export default function App() {
                                    onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
                                    inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />;
             case 'geom':
-                return <GeometryVis nowPolygonData={ nowPolygonData } geomMode={ geomMode }
-                                    meshRenderingReady={ meshRenderingReady } setMeshRenderingReady={ setMeshRenderingReady }
-                                    inspectedIndex={ inspectedIndex }/>;
+                return (
+                    <>
+                        <div id="toggle-container">
+                            <input id="toggle-checkbox" type="checkbox" onChange={() => { setGeomVisMode(!geomVisMode); }}/>
+                            <label id="toggle-button" htmlFor="toggle-checkbox">
+                                <div>Rendering</div>
+                                <div>Shape Analysis</div>
+                            </label>
+                        </div>
+                        { !geomVisMode && <GeometryVis nowPolygonData={nowPolygonData} geomMode={geomMode}
+                                                      meshRenderingReady={meshRenderingReady}
+                                                      setMeshRenderingReady={ setMeshRenderingReady }
+                                                      inspectedIndex={ inspectedIndex }/> }
+                        { geomVisMode && <AnalysisPanel nowPolygonData={ nowPolygonData }  nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
+                                                         onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
+                                                         inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } /> }
+                    </>);
             default:
                 return;
         }

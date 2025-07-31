@@ -9,6 +9,7 @@ import * as d3 from "d3";
 
 // TODO: Add the effect of sliding block for the variable selector
 // TODO: ALlow the user to download the JCS visualization result
+// TODO: Change cursor to improve interactivity
 
 let currSelectedIVs = [];
 let currSelectedDV = null;

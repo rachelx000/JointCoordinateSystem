@@ -18,10 +18,68 @@ main {
   overflow: auto;
   justify-content: flex-start;
   align-items: center;
+  transition: background 0.3s, color 0.3s;
 }
 
 main div {
   background-color: #ffffff;
   border-radius: 5px;
   margin: 5px;
+}
+
+#toggle-container {
+  position: absolute;
+  top: 2px;
+  left: 735px;
+}
+
+#toggle-checkbox {
+  display: none;
+}
+
+#toggle-button {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  width: fit-content;
+  border: 2px solid #3c3744;
+  border-radius: 15px;
+  font-size: 13px;
+  color: #3c3744;
+  font-weight: bold;
+  background: #3c3744;
+}
+
+#toggle-button div {
+  z-index: 2;
+  border-radius: 15px;
+  margin: 0.5px;
+  padding: 2px 6px;
+  text-align: center;
+  user-select: none;
+}
+
+#toggle-checkbox:checked + #toggle-button .slider-thumb {
+  transform: translateX(100%);
+}
+
+/* Default (not checked): Rendering active */
+#toggle-checkbox:not(:checked) + #toggle-button div:first-child {
+  background: #fff;
+  color: #3c3744;
+}
+
+#toggle-checkbox:not(:checked) + #toggle-button div:last-child {
+  background: #3c3744;
+  color: #fff;
+}
+
+/* Checked: Analysis active */
+#toggle-checkbox:checked + #toggle-button div:first-child {
+  background: #3c3744;
+  color: #fff;
+}
+
+#toggle-checkbox:checked + #toggle-button div:last-child {
+  background: #fff;
+  color: #3c3744;
 }
