@@ -5,9 +5,9 @@ import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import {LineSegmentsGeometry} from "three/addons";
 
 // TODO: Make num_slice and num_stack adjustable by the user
-// TODO: Helix Modeling Problem
 
 const num_slice = 10, num_stack = 10;
 
@@ -267,7 +267,7 @@ export function generateGeomData( mode ) {
     }
 }
 
-export function generateParamSurfaceMesh( param_function, polygon_data, wrap_u=1, wrap_v=1 ) {
+export function generateParamSurfaceMesh( param_function, polygon_data ) {
     // Create the mesh based on the parametric surface function
     let geometry = new ParametricGeometry(param_function, num_slice, num_stack);
 
@@ -309,14 +309,14 @@ export function generateParamSurfaceMesh( param_function, polygon_data, wrap_u=1
         }
 
     }
-    let wireframe_line_geometry = new LineGeometry();
+    let wireframe_line_geometry = new LineSegmentsGeometry();
     wireframe_line_geometry.setPositions(wireframe_positions);
 
     const wireframe_material = new LineMaterial({
         color: 0xffffff,
-        linewidth: 1.0,
+        linewidth: 1.5,
         transparent: true,
-        opacity: 0.5,
+        opacity: 0.6,
         depthTest: false,
     });
     wireframe_material.resolution.set(window.innerWidth, window.innerHeight);

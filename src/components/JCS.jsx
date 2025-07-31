@@ -3,7 +3,7 @@ import JCSMenu from "./JCSMenu.jsx";
 import JCSCanvas from "./JCSCanvas.jsx";
 import '../css/JCS.css';
 import { csv } from "d3";
-import drawJCS from "./JCS.js";
+import drawJCS, { resetJCS } from "./JCS.js";
 import { generateGeomData } from "./GeometryVis.js";
 import * as d3 from "d3";
 
@@ -21,7 +21,6 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
     const [exampleDataPath, setExampleDataPath] = useState(`${import.meta.env.BASE_URL}data/visualization_data/example/basic_elements.csv`);
     const [uploadedData, setUploadedData] = useState(null);
     const [selectedColorScheme, setSelectedColorScheme] = useState(['Blue', 'Red']);
-    const [selectedColorGradient, setSelectedColorGradient] = useState("AB");
     const [onShowPCC, setShowPCC] = useState(false);
     const [onOriginMode, setOriginMode] = useState(false);
     const [selectedIVs, setSelectedIVs] = useState([]);
@@ -50,12 +49,8 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
         setSelectedColorScheme(scheme_color_list);
     }
 
-    function handleSelectColorGradient() {
-        if (selectedColorGradient === "AB") {
-            setSelectedColorGradient("BA");
-        } else {
-            setSelectedColorGradient("AB");
-        }
+    function handleSelectColorGradient(e) {
+        e.stopPropagation();
         setSelectedColorScheme([...selectedColorScheme].reverse());
     }
 
@@ -65,6 +60,12 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
         }
         setOriginMode(!onOriginMode);
     }
+
+    useEffect(() => {
+        resetJCS();
+        setUploadedData(null);
+        setExampleDataPath(`${import.meta.env.BASE_URL}data/visualization_data/example/basic_elements.csv`);
+    }, [mode]);
 
     useEffect(() => {
         reset();
@@ -112,7 +113,8 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
                            onChangeColorGradient={ handleSelectColorGradient } disableControl={ disableControl }
                            selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ handleSelectColorScheme } />
                 <JCSMenu mode={ mode } data={ data } geomMode={ geomMode } setGeomMode = { setGeomMode }
-                         setExampleDataPath={ setExampleDataPath } setUploadedData={ setUploadedData }
+                         setExampleDataPath={ setExampleDataPath }
+                         uploadedData={ uploadedData } setUploadedData={ setUploadedData }
                          selectedIVs={ selectedIVs } setSelectedIVs={ setSelectedIVs }
                          selectedDV={ selectedDV } setSelectedDV={ setSelectedDV }
                          setIfRender={ setIfRender } />

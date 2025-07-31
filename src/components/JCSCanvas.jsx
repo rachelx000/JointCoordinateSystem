@@ -31,17 +31,22 @@ const defaultColorSchemes = [
     }
 ];
 
-function ColorSchemeMenu({selectedColorScheme, onChangeColorScheme }) {
+function ColorSchemeMenu({ selectedColorScheme, onChangeColorScheme, onChangeColorGradient }) {
     return (
         <div id="color-scheme-menu" onChange={ onChangeColorScheme }>
             { defaultColorSchemes.map(colorScheme => (
                 <div key={ colorScheme.name } onClick={ () => onChangeColorScheme(colorScheme.colors) }
                      style={{ borderColor: (isEqual(colorScheme.colors, selectedColorScheme) ||
                              isEqual(colorScheme.colors.reverse(), selectedColorScheme)) ? '#090c9b' : '#fff' }}>
-                    <h4>{ colorScheme.name }</h4>
-                    {colorScheme.colors.map((color, index) => (
-                        <div key={index} className="color-schemes" style={{ backgroundColor: color}} />
-                    ))}
+                    <div id="color-scheme-blocks">
+                        <h4>{ colorScheme.name }</h4>
+                        {colorScheme.colors.map((color, index) => (
+                            <div key={index} className="color-schemes" style={{ backgroundColor: color}} />
+                        ))}
+                    </div>
+                    { (isEqual(colorScheme.colors, selectedColorScheme)) &&
+                        <img id="color-gradient-button" src={`${import.meta.env.BASE_URL}assets/reverse.png`}
+                             onClick={ onChangeColorGradient } alt={"Toggle Color Gradient Button"} title={"Toggle Color Gradient"}/> }
                 </div>
             ))}
         </div>
@@ -61,8 +66,8 @@ export default function JCSCanvas({ onShowPCC, setShowPCC, onShowCentroids, onCl
                      onMouseLeave={() => setOpenColorSchemeMenu(false)}>
                     <img id="color-scheme-menu-icon" className={openColorSchemeMenu ? "rotate" : undefined}
                          src={`${import.meta.env.BASE_URL}assets/color-picker.png`} alt={"Change Color Scheme Menu"} title={"Change Color Scheme"}/>
-                    { openColorSchemeMenu &&
-                        <ColorSchemeMenu selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ onChangeColorScheme } /> }
+                    {openColorSchemeMenu &&
+                        <ColorSchemeMenu selectedColorScheme={ selectedColorScheme } onChangeColorScheme={ onChangeColorScheme } onChangeColorGradient={ onChangeColorGradient }/> }
                 </div>
                 {/* Controlling Buttons */}
                 <img id="show-correlation-button" src={`${import.meta.env.BASE_URL}assets/correlation.png`} onClick={ disableControl ? undefined : (() => setShowPCC(!onShowPCC)) }
@@ -75,8 +80,6 @@ export default function JCSCanvas({ onShowPCC, setShowPCC, onShowCentroids, onCl
                      style={{opacity: onOriginMode ? "0.8": "0.4"}} alt={"Toggle Origin Button"} title={"Toggle Origin Mode"}/>
                 <img id="color-block-button" src={`${import.meta.env.BASE_URL}assets/color-block.png`} onClick={ disableControl ? undefined : (() => onClickColorBlockMode()) }
                      style={{opacity: onColorBlockMode ? "0.8": "0.4"}} alt={"Toggle Color Block Button"} title={"Toggle Color Block Mode"}/>
-                <img id="color-gradient-button" src={`${import.meta.env.BASE_URL}assets/reverse.png`} onClick={ disableControl ? undefined : onChangeColorGradient }
-                     style={{opacity: disableControl ? "0.4": "0.8"}} alt={"Toggle Color Gradient Button"} title={"Toggle Color Gradient"}/>
                 <h3 className="joint-coordinate">Joint Coordinate System</h3>
                 <svg id="joint-coordinate-canvas" className="joint-coordinate">
                     {/* Correlation Indicator */}
@@ -130,7 +133,6 @@ export default function JCSCanvas({ onShowPCC, setShowPCC, onShowCentroids, onCl
                         <g id="centroid-indicators" />
                         <g id="origin-centroid" className="origin" />
                     </g>
-                    <circle id="inspected_centroid" />
                     <g id="data-tooltip">
                         <rect />
                         <polygon />

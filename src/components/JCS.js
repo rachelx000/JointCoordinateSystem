@@ -240,8 +240,6 @@ function plot_colorscale( data, now_DV ) {
     let colorscale_axis = d3.axisTop(depend_var_scale);
 
     // Plot the colorscale
-    d3.selectAll('.colorscale').attr('opacity', 1);
-
     d3.select("#colorscale-content")
         .selectAll('rect')
         .data(colorscale_data)
@@ -435,6 +433,32 @@ function update_tooltip( data, inspected_index, now_IVs, if_color_block_mode ) {
     } else {
         d3.select("#data-tooltip").attr('opacity', 0.0);
     }
+}
+
+export function resetJCS() {
+    let axis_orients = ["left", "top", "right", "bottom"];
+
+    // Reset axes
+    axis_orients.forEach( axis_orient => {
+        d3.select("#"+axis_orient+"-axis")
+            .selectAll("g").remove();
+        d3.select("#"+axis_orient+"-axis-title").text("");
+    })
+
+    // Reset polygons
+    d3.select("#polygon-data").selectAll("polygon").remove();
+
+    // Reset colorscale
+    d3.select("#colorscale-content").selectAll("rect").remove();
+    d3.select("#colorscale-axis").selectAll("g, path").remove();
+    d3.select("#colorscale-axis>text").text("");
+
+    // Reset correlation indicators
+    plot_axis_indicator(null, false);
+    // Reset origin
+    d3.selectAll(".origin").selectAll("*").attr("opacity", 0);
+    // Reset centroids
+    d3.select("#centroid-indicators").selectAll('circle').attr('opacity', 0);
 }
 
 export default function drawJCS( data, now_IVs, now_DV, now_polygon_data, set_polygon_data, size, color_scheme,

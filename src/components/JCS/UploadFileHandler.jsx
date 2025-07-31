@@ -1,18 +1,13 @@
-import { useRef, useState } from "react";
+import { useState, useEffect } from "react";
 import Papa from "papaparse";
 
-export default function UploadFileHandler({ setUploadedData }) {
+export default function UploadFileHandler({ uploadedData, setUploadedData }) {
     const [message, setMessage] = useState({type: "", content: ""});
-    const fileRef = useRef(null);
 
-    function handleUploadFile(e) {
-        fileRef.current = e.target.files[0];
-    }
-
-    function handleSubmission() {
+    function handleFileUpload(e) {
         let parsedData = [];
         let skippedLines = 0;
-        let file = fileRef.current;
+        let file = e.target.files[0];
         // Check if the file is empty or not valid
         if (!file || file.size === 0) {
             setMessage({ type: "Error", content: "File is empty or undefined" });
@@ -40,7 +35,7 @@ export default function UploadFileHandler({ setUploadedData }) {
                     // Check if the data field is not empty
                     if (parsedData.length === 0) {
                         if (skippedLines > 0) {
-                            setMessage({type: "Error", content: "All data rows contain either null or non-numeric elements"});
+                            setMessage({type: "Error", content: "There are null or non-numeric variable(s)"});
                         } else {
                             setMessage({type: "Error", content: "The data field is empty"});
                         }
@@ -56,7 +51,7 @@ export default function UploadFileHandler({ setUploadedData }) {
 
                     setUploadedData(parsedData);
                     // console.log("Parsed data:", parsedData);
-                    setMessage({type: "Success", content: "Uploaded: "+fileRef.current.name });
+                    setMessage({type: "Success", content: "Uploaded: "+file.name });
                 },
                 error: (err) => {
                     setMessage({type: "Error", content: "Failed to parse: "+err.message });
@@ -65,14 +60,18 @@ export default function UploadFileHandler({ setUploadedData }) {
         )
     }
 
+    useEffect(() => {
+        if (uploadedData === null) {
+            document.getElementById("data-upload").value = "";
+            setMessage({type: "", content: ""});
+        }
+    }, [uploadedData])
+
     return (
         <div id="custom-data">
             <label htmlFor="data-upload">Upload a file <span style={{ fontWeight: '700' }}>(.csv only and {"<="} 1MB)</span>: </label>
-            <input name="data-upload" id="data-upload" type="file" accept=".csv" onChange={ handleUploadFile }/>
-            <br/>
-            <br/>
-            <input type="submit" value="Submit" onClick={ handleSubmission }/>
-            <span id="error-message" style={{ color: message.type === "Success" ? "#000" : "#d8315b"}}>   {message.content}</span>
+            <input name="data-upload" id="data-upload" type="file" accept=".csv" onChange={ handleFileUpload } />
+            <p id="error-message" style={{ color: message.type === "Success" ? "#218380" : "#d8315b"}}>{message.content}</p>
         </div>
     )
 }

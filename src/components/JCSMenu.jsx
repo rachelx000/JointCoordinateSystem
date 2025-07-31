@@ -6,7 +6,7 @@ import UploadFileHandler from "./JCS/UploadFileHandler.jsx";
 import GeomDataSelector from "./JCS/GeomDataSelector.jsx";
 
 
-export default function JCSMenu( { mode, data, geomMode, setGeomMode, setExampleDataPath, setUploadedData,
+export default function JCSMenu( { mode, data, geomMode, setGeomMode, setExampleDataPath, uploadedData, setUploadedData,
                                      selectedIVs, setSelectedIVs, selectedDV, setSelectedDV, setIfRender } ) {
     const [varnames, setVarnames] = useState(null);
 
@@ -70,7 +70,7 @@ export default function JCSMenu( { mode, data, geomMode, setGeomMode, setExample
                 { mode === "data" && (
                     <>
                         <ExampleDataSelector onChangeExampleData={ handleSelectData } />
-                        <UploadFileHandler setUploadedData={ setUploadedData } />
+                        <UploadFileHandler uploadedData={ uploadedData } setUploadedData={ setUploadedData } />
                     </>)}
                 { mode === "geom" && (
                     <>

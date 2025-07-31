@@ -58,14 +58,6 @@
     height: 30px;
 }
 
-#color-gradient-button {
-    position: absolute;
-    top: 155px;
-    right: 0;
-    width: 30px;
-    height: 30px;
-}
-
 #joint-coordinate h3{
     margin-bottom: 0;
     margin-top: 10px;
@@ -144,9 +136,10 @@
 
 #color-scheme-menu>div {
     display: flex;
+    justify-content: space-between;
     align-items: center;
     margin: 0 0 3px 0;
-    gap: 5px;
+    padding: 0 5px;
     height: 27px;
     box-sizing: border-box;
     border: 2px solid;
@@ -156,16 +149,34 @@
     margin-bottom: 0;
 }
 
-#color-scheme-menu>div>h4 {
+#color-scheme-menu h4 {
+    margin: 0;
+    height: 12px;
     width: 80px;
     text-align: center;
 }
 
-.color-schemes {
+#color-scheme-blocks {
+    box-sizing: border-box;
+    height: 100%;
+    width: 90%;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    gap: 5px;
+}
+
+#color-scheme-blocks>div {
     width: 18px;
     height: 18px;
     border-radius: 2px;
     margin: 0
+}
+
+#color-gradient-button {
+    width: 16px;
+    height: 16px;
+    opacity: 80%;
 }
 
 /* JCS Menu */
