@@ -96,10 +96,10 @@ function generate_numerical_scale( data, varname, id, axis_generator, axis_range
     // Remove 0 to avoid conflicts with the d3 log-scale
     if ( if_log === "log10" && if_origin_mode === false ) {
         if (data_range[0] === 0) {
-            data_range[0] = unique_data[1] / 10;
+            data_range[0] = d3.min(unique_data.filter(d => d > 0)) / 10;
             unique_data.unshift(0);
         } else if (data_range[1] === 0) {
-            data_range[1] = unique_data[0] / 10;
+            data_range[1] = d3.min(unique_data.filter(d => d > 0)) / 10;
             unique_data.push(0);
         }
         scale = d3.scaleLog().base(10).clamp(true).domain(data_range).range(axis_range).nice();
@@ -207,51 +207,66 @@ export function path_str_to_point_list( path_str ) {
 }
 
 function build_color_scale( data, now_DV, color_scheme ) {
-    if ( color_scheme.length === 2 ) {
-        color_scale = d3.scaleLinear()
-            .domain(get_min_and_max(data, now_DV))
-            .range(color_scheme);
-    }
-    else if ( color_scheme.length > 2 ) {
-        // calculate pivots for multicolor scale
-        let range_list = get_min_and_max(data, now_DV);
-        let num_interval = (range_list[1]-range_list[0]) / (color_scheme.length-1);
-        let check_points = [];
-        for (let i = range_list[0]; i < range_list[1]+1; ) {
-            check_points.push(i)
-            i+=num_interval;
+    // check if the dependent var follows a log scale
+    let [if_log, unique_data] = logarithmic_growth_check( data, now_DV );
+    let data_range = get_min_and_max(data, now_DV);
+    let color_interpolator = d3.interpolateRgbBasis(color_scheme);
+
+    // Remove 0 to avoid conflicts with the d3 log-scale
+    if ( if_log === "log10" ) {
+        if (data_range[0] === 0) {
+            data_range[0] = d3.min(unique_data.filter(d => d > 0)) / 10;
+            unique_data.unshift(0);
+        } else if (data_range[1] === 0) {
+            data_range[1] = d3.min(unique_data.filter(d => d > 0)) / 10;
+            unique_data.push(0);
         }
-        // console.log(check_points);
-        color_scale = d3.scaleLinear()
-            .domain(check_points)
-            .range(color_scheme);
     }
-    else {
-        throw new Error("Invalid colorscale!");
-    }
+    let scale_0_to_1 = (if_log === "log10") ? d3.scaleLog().domain(data_range).range([0, 1]).clamp(true) :
+        d3.scaleLinear().domain(data_range).range([0, 1]).clamp(true);
+
+    color_scale = d => color_interpolator(scale_0_to_1(d));
+
+    return [if_log, data_range, unique_data];
 }
 
-function plot_colorscale( data, now_DV ) {
-    let depend_var_range = get_min_and_max( data, now_DV );
-    let colorscale_data = d3.range(depend_var_range[0], depend_var_range[1], (depend_var_range[1]-depend_var_range[0])/100);
-    let depend_var_scale = d3.scaleLinear()
-        .domain(depend_var_range)
-        .range([0, coord_len]);
-    let colorscale_axis = d3.axisTop(depend_var_scale);
+function plot_colorscale( now_DV, data_range, if_log, colorscale_ticks ) {
+    let depend_var_scale, colorscale_data, colorscale_axis;
+    if ( if_log === "log10" ) {
+        depend_var_scale = d3.scaleLog()
+            .domain(data_range)
+            .range([0, coord_len])
+            .clamp(true);
+        colorscale_axis = d3.axisTop(depend_var_scale)
+            .tickValues(colorscale_ticks).tickFormat(d3.format(".0e"));
+        colorscale_data = d3.range(Math.log10(data_range[0]), Math.log10(data_range[1]), (Math.log10(data_range[1])-Math.log10(data_range[0]))/100);
+    } else {
+        depend_var_scale = d3.scaleLinear()
+            .domain(data_range)
+            .range([0, coord_len])
+            .clamp(true);
+        colorscale_axis = d3.axisTop(depend_var_scale);
+        colorscale_data = d3.range(data_range[0], data_range[1], (data_range[1]-data_range[0])/100);
+    }
 
     // Plot the colorscale
     d3.select("#colorscale-content")
         .selectAll('rect')
-        .data(colorscale_data)
+        .data(colorscale_data.filter(d => {
+            let x = if_log === "log10" ? depend_var_scale(10 ** d) : depend_var_scale(d);
+            return x < 400;
+        }))
         .join('rect')
-        .attr('x', function(d) { return depend_var_scale(d); })
+        .attr('x', function(d) { return if_log === "log10" ? depend_var_scale(10**d) : depend_var_scale(d); })
         .attr('width', 5)
         .attr('height', 15)
-        .style('fill', function(d) { return color_scale(d); });
+        .style('fill', function(d) { return if_log === "log10" ? color_scale(10**d) : color_scale(d); });
 
     // Plot the colorscale axis
     d3.select("#colorscale-axis").call(colorscale_axis);
     d3.select('#colorscale-axis>text').text(now_DV);
+
+    console.log(color_scale(0));
 }
 
 export function plot_polygons( canvas_id, polygon_data, inspected_index, if_color_block_mode ) {
@@ -387,15 +402,16 @@ function cursor_track(e, centroid_quadtree, set_inspected_index, inspected_index
     // console.log("Now tracking...");
 }
 
-function get_datapoint_info( data, index, now_IVs ) {
+function get_datapoint_info( data, index, now_IVs, now_DV ) {
     let info = [];
     for (let i = 0; i < 4; i++) {
         info.push(now_IVs[i]+": "+data[index][now_IVs[i]]);
     }
+    info.push(now_DV+": "+data[index][now_DV]);
     return info;
 }
 
-function update_tooltip( data, inspected_index, now_IVs, if_color_block_mode ) {
+function update_tooltip( data, inspected_index, now_IVs, now_DV, if_color_block_mode ) {
     d3.select('#data-tooltip-text').selectAll('tspan').remove();
     if (inspected_index !== null) {
         // Add info about the specific data entry into the tooltip
@@ -404,7 +420,7 @@ function update_tooltip( data, inspected_index, now_IVs, if_color_block_mode ) {
             .attr("x", pos[0]+16)
             .attr("y", pos[1])
             .selectAll('tspan')
-            .data(get_datapoint_info( data, inspected_index, now_IVs ))
+            .data(get_datapoint_info( data, inspected_index, now_IVs, now_DV ))
             .enter()
             .append('tspan')
             .attr('x', pos[0]+16)
@@ -505,8 +521,8 @@ export default function drawJCS( data, now_IVs, now_DV, now_polygon_data, set_po
     generate_axis( data, now_IVs, if_origin_mode );
 
     // Plot the colorscale:
-    build_color_scale(data, now_DV, color_scheme );
-    plot_colorscale(data, now_DV );
+    let [colorscale_if_log, colorscale_range, colorscale_ticks] = build_color_scale( data, now_DV, color_scheme );
+    plot_colorscale( now_DV, colorscale_range, colorscale_if_log, colorscale_ticks );
 
     // Plot the data as polygons:
     generate_polygons( data, now_IVs, now_DV );
@@ -539,6 +555,6 @@ export default function drawJCS( data, now_IVs, now_DV, now_polygon_data, set_po
         centroid_quadtree.x(d => d.x).y(d => d.y)
             .addAll([...polygons.map(polygon => ( { x: polygon.centroid[0], y: polygon.centroid[1], id: polygon.id } ))]);
         d3.select('#joint-coordinate-canvas').on('mousemove', (e) => cursor_track(e, centroid_quadtree, set_inspected_index, inspected_index));
-        update_tooltip( data, inspected_index, now_IVs, if_color_block_mode);
+        update_tooltip( data, inspected_index, now_IVs, now_DV, if_color_block_mode);
     }
 }

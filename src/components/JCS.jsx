@@ -19,7 +19,7 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
                               handleShowCentroids, onInspectMode, handleChangeInspectMode, onColorBlockMode,
                               handleChangeColorBlockMode, inspectedIndex, setInspectedIndex, setMeshRenderingReady}) {
     const [data, setData] = useState(null);
-    const [exampleDataPath, setExampleDataPath] = useState(`${import.meta.env.BASE_URL}data/visualization_data/example/basic_elements.csv`);
+    const [exampleDataPath, setExampleDataPath] = useState(`${import.meta.env.BASE_URL}data/basics/basic_elements.csv`);
     const [uploadedData, setUploadedData] = useState(null);
     const [selectedColorScheme, setSelectedColorScheme] = useState(['Blue', 'Red']);
     const [onShowPCC, setShowPCC] = useState(false);
@@ -65,7 +65,7 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
     useEffect(() => {
         resetJCS();
         setUploadedData(null);
-        setExampleDataPath(`${import.meta.env.BASE_URL}data/visualization_data/example/basic_elements.csv`);
+        setExampleDataPath(`${import.meta.env.BASE_URL}data/basics/basic_elements.csv`);
     }, [mode]);
 
     useEffect(() => {

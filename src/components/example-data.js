@@ -1,75 +1,104 @@
+// TODO: Add testing datasets for uploading
+
+
 export const visualization_data = [
-  {
-    name: "Example Data 1",
-    basePath: `${import.meta.env.BASE_URL}data/visualization_data/example/`,
+  { name: "Basic Datasets",
+    basePath: `${import.meta.env.BASE_URL}data/basics/`,
     filetype: ".csv",
     datasets: [
       {
-        title: "Default",
+        title: "Dataset #1 (Default)",
         path: "basic_elements"
       },
       {
-        title: "No correlation exists",
-        path: "random_df"
+        title: "Dataset #2",
+        path: "basic_elements_2"
       },
       {
-        title: "Four (+)",
-        path: "correlated_df_case1"
-      },
-      {
-        title: "Three (+) One (-)",
-        path: "correlated_df_case2"
-      },
-      {
-        title: "One (+) Three (-)",
-        path: "correlated_df_case3"
-      },
-      {
-        title: "Two (+) Two (-) [Case1]",
-        path: "correlated_df_case4"
-      },
-      {
-        title: "Two (+) Two (-) [Case2]",
-        path: "correlated_df_case5"
-      },
-      {
-        title: "Iris dataset",
-        path: "iris_numeric"
-      }]
+        title: "Dataset #3",
+        path: "basic_elements_3"
+      }
+    ]
   },
   {
-    name: "Example Data 2",
-    basePath: `${import.meta.env.BASE_URL}data/visualization_data/example/`,
+    name: "Base Cases (Origin included, Perfect Correlations)",
+    basePath: `${import.meta.env.BASE_URL}data/base_cases_incl_origin_perfect_corr/`,
     filetype: ".csv",
     datasets: [
       {
         title: "No correlation exists",
-        path: "random_df2"
+        path: "random"
       },
       {
         title: "Four (+)",
-        path: "correlated_df2_case1"
+        path: "correlated_case1"
       },
       {
         title: "Three (+) One (-)",
-        path: "correlated_df2_case2"
+        path: "correlated_case2"
       },
       {
         title: "One (+) Three (-)",
-        path: "correlated_df2_case3"
+        path: "correlated_case3"
       },
       {
         title: "Two (+) Two (-) [Case1]",
-        path: "correlated_df2_case4"
+        path: "correlated_case4"
       },
       {
         title: "Two (+) Two (-) [Case2]",
-        path: "correlated_df2_case5"
+        path: "correlated_case5"
       }]
   },
-    {
+  {
+    name: "Base Cases (Origin not included, Non-perfect Correlations)",
+    basePath: `${import.meta.env.BASE_URL}data/base_cases_excl_origin_imperf_corr/`,
+    filetype: ".csv",
+    datasets: [
+      {
+        title: "No correlation exists",
+        path: "random"
+      },
+      {
+        title: "Four (+)",
+        path: "correlated_case1"
+      },
+      {
+        title: "Three (+) One (-)",
+        path: "correlated_case2"
+      },
+      {
+        title: "One (+) Three (-)",
+        path: "correlated_case3"
+      },
+      {
+        title: "Two (+) Two (-) [Case1]",
+        path: "correlated_case4"
+      },
+      {
+        title: "Two (+) Two (-) [Case2]",
+        path: "correlated_case5"
+      },
+    ]
+  },
+  {
+    name: "Real-life Applications",
+    basePath: `${import.meta.env.BASE_URL}data/real_life_datasets/`,
+    filetype: ".csv",
+    datasets: [
+      {
+        title: "Iris dataset",
+        path: "iris_numeric"
+      },
+      {
+        title: "Palmer Penguins Dataset",
+        path: "penguins"
+      }
+    ]
+  },
+  {
     name: "Hyperparameter Tuning Data",
-    basePath: `${import.meta.env.BASE_URL}data/visualization_data/hyperparam_tuning/`,
+    basePath: `${import.meta.env.BASE_URL}data/hyperparam_tuning/`,
     filetype: ".csv",
     datasets: [
       {

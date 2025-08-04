@@ -5,8 +5,6 @@ import JCS from "./components/JCS.jsx";
 import AnalysisPanel from "./components/AnalysisPanel.jsx";
 import GeometryVis from "./components/GeometryVis.jsx";
 
-// TODO: Create Sliding Effect for toggler
-
 export default function App() {
     const [mode, setMode] = useState('data');
     const [geomMode, setGeomMode] = useState("cone");

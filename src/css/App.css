@@ -41,7 +41,7 @@ main div {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   width: fit-content;
-  border: 2px solid #3c3744;
+  border: 2.5px solid #3c3744;
   border-radius: 15px;
   font-size: 13px;
   color: #3c3744;
@@ -50,36 +50,48 @@ main div {
 }
 
 #toggle-button div {
-  z-index: 2;
+  z-index: 1;
   border-radius: 15px;
   margin: 0.5px;
   padding: 2px 6px;
   text-align: center;
   user-select: none;
+  background: none;
 }
 
-#toggle-checkbox:checked + #toggle-button .slider-thumb {
-  transform: translateX(100%);
-}
-
-/* Default (not checked): Rendering active */
-#toggle-checkbox:not(:checked) + #toggle-button div:first-child {
+#toggle-button::before {
+  content: "";
+  position: absolute;
+  width: 50%;
+  height: calc(100% - 5px);
+  top: 2.5px;
+  left: 2.5px;
+  border-radius: 15px;
   background: #fff;
-  color: #3c3744;
+  transition: all 0.3s ease-in-out;
 }
 
-#toggle-checkbox:not(:checked) + #toggle-button div:last-child {
-  background: #3c3744;
-  color: #fff;
+#toggle-checkbox:checked + #toggle-button::before {
+  left: calc(50% - 2.5px);
 }
 
-/* Checked: Analysis active */
 #toggle-checkbox:checked + #toggle-button div:first-child {
-  background: #3c3744;
   color: #fff;
+  transition: 0.3s ease-in-out;
 }
 
 #toggle-checkbox:checked + #toggle-button div:last-child {
-  background: #fff;
   color: #3c3744;
+  transition: 0.3s ease-in-out;
 }
+
+#toggle-checkbox:not(:checked) + #toggle-button div:first-child {
+  color: #3c3744;
+  transition: 0.3s ease-in-out;
+}
+
+#toggle-checkbox:not(:checked) + #toggle-button div:last-child {
+  color: #fff;
+  transition: 0.3s ease-in-out;
+}
+
