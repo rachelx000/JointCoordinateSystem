@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import { isEqual } from "lodash";
 import { compute_area } from "./AnalysisPanel/PolygonAlignment.js"
+import {log10Dependencies} from "mathjs";
 
 // Global data and generators:
 export const jcs_origin = [100, 70];
@@ -21,10 +22,18 @@ export function reset_variable_selector() {
     d3.selectAll(".DV").property("checked", false);
 }
 
-function get_min_and_max( data, varname ){
+/* function get_min_and_max( data, varname ){
     let min = Math.min(...data.map(data_entry => parseFloat(data_entry[varname])));
     let max = Math.max(...data.map(data_entry => parseFloat(data_entry[varname])));
     return [min, max];
+} */
+
+function unpack( data, varname ) {
+    return data.map(entry => entry[varname]);
+}
+
+function get_range( data ) {
+    return [Math.min(...data), Math.max(...data)];
 }
 
 function calculate_PCC( x_data, y_data ) {
@@ -75,14 +84,14 @@ export function logarithmic_growth_check( data, varname ) {
     log10_data.sort((a, b) => a - b);
     pcc = calculate_PCC(indices, log10_data);
     if (pcc > 0.999) { log = "log10"; }
+
     return [ log, unique_data ];
 }
 
 function generate_numerical_scale( data, varname, id, axis_generator, axis_range, if_origin_mode, if_vertical ) {
     // Check if the logarithmic scale is needed and generate the corresponding scale
     let [if_log, unique_data] = logarithmic_growth_check( data, varname );
-
-    let data_range = get_min_and_max(data, varname);
+    let data_range = get_range(unpack(data, varname));
     let scale;
 
     // Convert to the scale where 0 is at the middle when origin mode is on
@@ -96,12 +105,20 @@ function generate_numerical_scale( data, varname, id, axis_generator, axis_range
 
     // Remove 0 to avoid conflicts with the d3 log-scale
     if ( if_log === "log10" && if_origin_mode === false ) {
+        let log10_data = unique_data.map((x) => x === 0 ? 0 : Math.log10(x));
+        log10_data.sort((a, b) => a - b);
+        data_range = get_range(log10_data);
         if (data_range[0] === 0) {
-            data_range[0] = d3.min(unique_data.filter(d => d > 0)) / 10;
-            unique_data.unshift(0);
+            data_range[0] = 10**log10_data[1] / 10;
+            data_range[1] = 10**log10_data.at(-1);
+            log10_data.unshift(0);
         } else if (data_range[1] === 0) {
-            data_range[1] = d3.min(unique_data.filter(d => d > 0)) / 10;
-            unique_data.push(0);
+            let zero = log10_data.pop();
+            data_range[1] = 10**log10_data.at(-1);
+            data_range[0] = 10**log10_data[0] / 10;
+            log10_data.unshift(zero);
+        } else {
+            data_range = [10**data_range[0], 10**data_range[1]];
         }
         scale = d3.scaleLog().base(10).clamp(true).domain(data_range).range(axis_range).nice();
     }
@@ -211,19 +228,28 @@ export function path_str_to_point_list( path_str ) {
 function build_color_scale( data, now_DV, color_scheme ) {
     // check if the dependent var follows a log scale
     let [if_log, unique_data] = logarithmic_growth_check( data, now_DV );
-    let data_range = get_min_and_max(data, now_DV);
+    let data_range = get_range(unpack(data, now_DV));
     let color_interpolator = d3.interpolateRgbBasis(color_scheme);
 
     // Remove 0 to avoid conflicts with the d3 log-scale
     if ( if_log === "log10" ) {
+        let log10_data = unique_data.map((x) => x === 0 ? 0 : Math.log10(x));
+        log10_data.sort((a, b) => a - b);
+        data_range = get_range(log10_data);
         if (data_range[0] === 0) {
-            data_range[0] = d3.min(unique_data.filter(d => d > 0)) / 10;
-            unique_data.unshift(0);
+            data_range[0] = 10 ** log10_data[1] / 10;
+            data_range[1] = 10 ** log10_data.at(-1);
+            log10_data.unshift(0);
         } else if (data_range[1] === 0) {
-            data_range[1] = d3.min(unique_data.filter(d => d > 0)) / 10;
-            unique_data.push(0);
+            let zero = log10_data.pop();
+            data_range[1] = 10 ** log10_data.at(-1);
+            data_range[0] = 10 ** log10_data[0] / 10;
+            log10_data.unshift(zero);
+        } else {
+            data_range = [10 ** data_range[0], 10 ** data_range[1]];
         }
     }
+
     let scale_0_to_1 = (if_log === "log10") ? d3.scaleLog().domain(data_range).range([0, 1]).clamp(true) :
         d3.scaleLinear().domain(data_range).range([0, 1]).clamp(true);
 
@@ -267,8 +293,6 @@ function plot_colorscale( now_DV, data_range, if_log, colorscale_ticks ) {
     // Plot the colorscale axis
     d3.select("#colorscale-axis").call(colorscale_axis);
     d3.select('#colorscale-axis>text').text(now_DV);
-
-    console.log(color_scale(0));
 }
 
 export function plot_polygons( canvas_id, polygon_data, inspected_index, if_color_block_mode ) {
