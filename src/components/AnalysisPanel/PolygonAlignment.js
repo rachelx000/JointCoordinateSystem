@@ -71,15 +71,15 @@ function align_a_polygon_at_a_corner( polygon_obj, corner_id, origin ) {
     let aligned_centroid = rotate_point([0, 1].map((i) => [polygon_obj.centroid[i]*scaling-translation[i]]));
 
     return {
-        ...(polygon_obj.hasOwnProperty('id') && { id: polygon_obj.id }),
-        ...(polygon_obj.hasOwnProperty('color') && { color: polygon_obj.color }),
-        ...(polygon_obj.hasOwnProperty('depVal') && { depVal: polygon_obj.depVal }),
+        ...(Object.prototype.hasOwnProperty.call(polygon_obj, 'id') && { id: polygon_obj.id }),
+        ...(Object.prototype.hasOwnProperty.call(polygon_obj, 'color') && { color: polygon_obj.color }),
+        ...(Object.prototype.hasOwnProperty.call(polygon_obj, 'depVal') && { depVal: polygon_obj.depVal }),
         points: point_list_to_path_str( aligned_polygon ),
         originalPoints: polygon_obj.points,
         centroid: aligned_centroid,
         originalCentroid: polygon_obj.centroid,
         metrics: {
-            'cyclicity': compute_cyclicity( polygon_points ),
+            'area': polygon_obj.area,
             'compactness': compute_compactness( polygon_points ),
             'diagonal-ratio': compute_diagonal_ratio( polygon_points ),
             'angular-regularity': compute_angular_regularity( polygon_points )
@@ -111,15 +111,15 @@ function align_a_polygon_at_a_side( polygon_obj, side_id, origin ) {
     let aligned_centroid = rotate_point(aligned_centroid_at_origin);
 
     return {
-        ...(polygon_obj.hasOwnProperty('id') && { id: polygon_obj.id }),
-        ...(polygon_obj.hasOwnProperty('color') && { color: polygon_obj.color }),
-        ...(polygon_obj.hasOwnProperty('depVal') && { depVal: polygon_obj.depVal }),
+        ...(Object.prototype.hasOwnProperty.call(polygon_obj, 'id') && { id: polygon_obj.id }),
+        ...(Object.prototype.hasOwnProperty.call(polygon_obj, 'color') && { color: polygon_obj.color }),
+        ...(Object.prototype.hasOwnProperty.call(polygon_obj, 'depVal') && { depVal: polygon_obj.depVal }),
         points: point_list_to_path_str( aligned_polygon ),
         originalPoints: polygon_obj.points,
         centroid: aligned_centroid,
         originalCentroid: polygon_obj.centroid,
         metrics: {
-            'cyclicity': compute_cyclicity( polygon_points ),
+            'area': polygon_obj.area,
             'compactness': compute_compactness( polygon_points ),
             'diagonal-ratio': compute_diagonal_ratio( polygon_points ),
             'angular-regularity': compute_angular_regularity( polygon_points )
@@ -135,15 +135,15 @@ function align_a_polygon_at_a_centroid( polygon_obj, origin ) {
         [p[0]*scaling-translation[0], p[1]*scaling-translation[1]]);
 
     return {
-        ...(polygon_obj.hasOwnProperty('id') && { id: polygon_obj.id }),
-        ...(polygon_obj.hasOwnProperty('color') && { color: polygon_obj.color }),
-        ...(polygon_obj.hasOwnProperty('depVal') && { depVal: polygon_obj.depVal }),
+        ...(Object.prototype.hasOwnProperty.call(polygon_obj, 'id') && { id: polygon_obj.id }),
+        ...(Object.prototype.hasOwnProperty.call(polygon_obj, 'color') && { color: polygon_obj.color }),
+        ...(Object.prototype.hasOwnProperty.call(polygon_obj, 'depVal') && { depVal: polygon_obj.depVal }),
         points: point_list_to_path_str( aligned_polygon ),
         originalPoints: polygon_obj.points,
         centroid: origin,
         originalCentroid: polygon_obj.centroid,
         metrics: {
-            'cyclicity': compute_cyclicity( polygon_points ),
+            'area': polygon_obj.area,
             'compactness': compute_compactness( polygon_points ),
             'diagonal-ratio': compute_diagonal_ratio( polygon_points ),
             'angular-regularity': compute_angular_regularity( polygon_points )
@@ -176,7 +176,7 @@ function calc_area( point_list ) {
     return round(Math.abs(area / 2), 5);
 }
 
-function compute_cyclicity( point_list ) {
+/* function compute_cyclicity( point_list ) {
     let ab, bc, cd, da, ac, bd;
     let [va, vb, vc, vd] = point_list.map(point => norm(point));
 
@@ -190,6 +190,11 @@ function compute_cyclicity( point_list ) {
 
     // Ptolemy's theorem:
     return round(ac*bd - (ab*cd+da*bc), 2);
+} */
+
+export function compute_area( point_list ) {
+    let [va, vb, vc, vd] = point_list.map(point => norm(point));
+    return calc_area([va, vb, vc, vd]);
 }
 
 function compute_compactness( point_list ) {
@@ -327,7 +332,6 @@ export function computeAlignedPolygonOrder( aligned_polygons, align_mode ) {
 
         // Step 2: compute Procrustes distance from each quad to the mean shape
         let flat_mean = mean.flat();
-        let sum_square = 0;
         let distance = aligned_polygons.map( (polygon) => {
             let flat_curr_point_list = path_str_to_point_list(polygon.points).flat();
             let sum_square = 0;

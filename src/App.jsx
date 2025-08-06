@@ -4,8 +4,22 @@ import NavBar from "./components/Navbar.jsx";
 import JCS from "./components/JCS.jsx";
 import AnalysisPanel from "./components/AnalysisPanel.jsx";
 import GeometryVis from "./components/GeometryVis.jsx";
+import ComparisonPanel from "./components/Comparison.jsx"
+
+const sidePanelNavItems = {
+    "data" : [
+        {   text: 'Shape Analysis', mode: 'shape'   },
+        {   text: 'Comparison', mode: 'compare'   }
+    ],
+    "geom" : [
+        {   text: 'Rendering', mode: 'render'   },
+        {   text: 'Shape Analysis', mode: 'shape'   },
+        {   text: 'Comparison', mode: 'compare'   }
+    ]
+};
 
 export default function App() {
+    const [data, setData] = useState(null);
     const [mode, setMode] = useState('data');
     const [geomMode, setGeomMode] = useState("cone");
     const [nowPolygonData, setPolygonData] = useState(null);
@@ -15,12 +29,21 @@ export default function App() {
     const [onColorBlockMode, setColorBlockMode] = useState(false);
     const [inspectedIndex, setInspectedIndex] = useState(null);
     const [meshRenderingReady, setMeshRenderingReady] = useState(false);
-    const [geomVisMode, setGeomVisMode] = useState(false);   //
+    const [sidePanelMode, setSidePanelMode] = useState("shape");
+    const [selectedIVs, setSelectedIVs] = useState([]);
+    const [selectedDV, setSelectedDV] = useState(null);
+    const [ifRender, setIfRender] = useState(false);
+    const [selectedColorScheme, setSelectedColorScheme] = useState(['Blue', 'Red']);
 
     function handleChangeMode(selectedMode) {
         setMode(selectedMode);
         setPolygonData(null);
-        setGeomVisMode(false);
+        if (selectedMode === 'data') {
+            setSidePanelMode('shape');
+        }
+        if (selectedMode === 'geom') {
+            setSidePanelMode('render');
+        }
     }
 
     function handleShowCentroids( boolVal=null ) {
@@ -54,10 +77,6 @@ export default function App() {
         }
     }
 
-    useEffect(() => {
-        console.log("Geom Vis Mode:", geomVisMode)
-    }, [geomVisMode]);
-
     /* useEffect(() => {
         console.log("Current geom mode changed to: ", geomMode);
     }, [geomMode]);
@@ -68,7 +87,7 @@ export default function App() {
 
     useEffect(() => {
         console.log("Current Polygon Data: ", nowPolygonData);
-    }, [nowPolygonData]); */
+    }, [nowPolygonData]);
 
     /* useEffect(() => {
         console.log("Current index: ", inspectedIndex);
@@ -78,32 +97,20 @@ export default function App() {
         console.log("Current Origin: ", nowOrigin);
     }, [nowOrigin]); */
 
-    function switchMode( mode ) {
-        switch (mode) {
-            case 'data':
+    function sidePanelSwitchMode( sidePanelMode ) {
+        switch (sidePanelMode) {
+            case 'shape':
                 return <AnalysisPanel nowPolygonData={ nowPolygonData }  nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
-                                   onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
-                                   inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />;
-            case 'geom':
-                return (
-                    <>
-                        <div id="toggle-container">
-                            <input id="toggle-checkbox" type="checkbox" onChange={() => { setGeomVisMode(!geomVisMode); }}/>
-                            <label id="toggle-button" htmlFor="toggle-checkbox">
-                                <div>Rendering</div>
-                                <div>Shape Analysis</div>
-                            </label>
-                        </div>
-                        { !geomVisMode && <GeometryVis nowPolygonData={nowPolygonData} geomMode={geomMode}
-                                                      meshRenderingReady={meshRenderingReady}
-                                                      setMeshRenderingReady={ setMeshRenderingReady }
-                                                      inspectedIndex={ inspectedIndex }/> }
-                        { geomVisMode && <AnalysisPanel nowPolygonData={ nowPolygonData }  nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
-                                                         onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
-                                                         inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } /> }
-                    </>);
-            default:
-                return;
+                                      onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
+                                      inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />
+            case 'compare':
+                return <ComparisonPanel data={ data } ifRender={ ifRender } selectedIVs={ selectedIVs } selectedDV= { selectedDV }
+                                        colorScheme={ selectedColorScheme } />
+            case 'render':
+                return <GeometryVis nowPolygonData={nowPolygonData} geomMode={geomMode}
+                                    meshRenderingReady={meshRenderingReady}
+                                    setMeshRenderingReady={ setMeshRenderingReady }
+                                    inspectedIndex={ inspectedIndex } />
         }
     }
 
@@ -111,7 +118,10 @@ export default function App() {
         <>
             <NavBar nowMode={ mode } onChangeMode={ handleChangeMode }/>
             <main>
-                <JCS mode={ mode } geomMode={ geomMode } setGeomMode = { setGeomMode }
+                <JCS data={ data } setData={ setData } mode={ mode } geomMode={ geomMode } setGeomMode = { setGeomMode }
+                     selectedIVs={ selectedIVs } setSelectedIVs={ setSelectedIVs } selectedDV={ selectedDV }
+                     setSelectedDV={ setSelectedDV } ifRender={ ifRender } setIfRender={ setIfRender }
+                     selectedColorScheme={ selectedColorScheme } setSelectedColorScheme={ setSelectedColorScheme }
                      nowPolygonData={ nowPolygonData } setPolygonData={ setPolygonData }
                      nowOrigin={ nowOrigin } setOrigin={ setOrigin }
                      onShowCentroids={ onShowCentroids } handleShowCentroids={ handleShowCentroids }
@@ -119,7 +129,15 @@ export default function App() {
                      onColorBlockMode={ onColorBlockMode } handleChangeColorBlockMode={ handleChangeColorBlockMode }
                      inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }
                      setMeshRenderingReady={ setMeshRenderingReady }/>
-                { switchMode( mode ) }
+                <div id="side-panel-navbar" className="no-text-select">
+                    <ul>
+                        {sidePanelNavItems[mode].map(item => (
+                            <li key={item.mode} className={ (item.mode === sidePanelMode) ? 'active' : '' }
+                                onClick = {() => setSidePanelMode(item.mode)}>{item.text}</li>
+                        ))}
+                    </ul>
+                </div>
+                { sidePanelSwitchMode(sidePanelMode) }
             </main>
         </>
     );

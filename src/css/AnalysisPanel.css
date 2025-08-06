@@ -1,5 +1,6 @@
 #analysis-panel {
-    height: calc(100vh - 15px);
+    padding-top: 20px;
+    height: calc(100vh - 30px);
     width: calc(100vw - 740px);
     min-width: 600px;
     background: #eaeaea;
@@ -54,7 +55,7 @@
 
 #shape-analysis {
     width: 100%;
-    height: calc(100vh - 385px);
+    height: calc(100vh - 412.5px);
     display: flex;
     flex-wrap: wrap;
     overflow-y: auto;
@@ -64,13 +65,14 @@
 }
 
 #shape-analysis>div {
-    margin: 5px;
+    margin: 5px 5px 0;
     padding: 0;
 }
 
 #shape-analysis svg{
+    padding-top: 5px;
     width: 330px;
-    height: 150px;
+    height: 140px;
     border: 1px dashed #000;
     box-sizing: border-box;
 }
@@ -84,7 +86,7 @@
 .scatter-container {
     position: relative;
     width: 330px;
-    height: 150px;
+    height: 140px;
 }
 
 .scatter-reset-button {

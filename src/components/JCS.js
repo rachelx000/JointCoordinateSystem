@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import { isEqual } from "lodash";
+import { compute_area } from "./AnalysisPanel/PolygonAlignment.js"
 
 // Global data and generators:
 export const jcs_origin = [100, 70];
@@ -20,10 +21,9 @@ export function reset_variable_selector() {
     d3.selectAll(".DV").property("checked", false);
 }
 
-
 function get_min_and_max( data, varname ){
-    let min = Math.min(...data.map(data_entry => data_entry[varname]));
-    let max = Math.max(...data.map(data_entry => data_entry[varname]));
+    let min = Math.min(...data.map(data_entry => parseFloat(data_entry[varname])));
+    let max = Math.max(...data.map(data_entry => parseFloat(data_entry[varname])));
     return [min, max];
 }
 
@@ -58,7 +58,7 @@ function calculate_PCC_for_dataset( data, now_IVs, now_DV ) {
     return pcc_data;
 }
 
-function logarithmic_growth_check( data, varname ) {
+export function logarithmic_growth_check( data, varname ) {
     let pcc, log;
 
     // filter and sort unique values from the input data array
@@ -81,6 +81,7 @@ function logarithmic_growth_check( data, varname ) {
 function generate_numerical_scale( data, varname, id, axis_generator, axis_range, if_origin_mode, if_vertical ) {
     // Check if the logarithmic scale is needed and generate the corresponding scale
     let [if_log, unique_data] = logarithmic_growth_check( data, varname );
+
     let data_range = get_min_and_max(data, varname);
     let scale;
 
@@ -184,7 +185,8 @@ function generate_polygons( data, now_IVs, now_DV ) {
                          color: color_scale(curr_data_entry[now_DV]),
                          depVal: curr_data_entry[now_DV],
                          points: point_list_to_path_str(curr_point_list),
-                         centroid: calculate_centroid(curr_point_list)
+                         centroid: calculate_centroid(curr_point_list),
+                         area: compute_area(curr_point_list)
         });
     }
 }
@@ -364,6 +366,7 @@ function compute_origin( now_IVs, now_origin, set_origin ) {
     let origin_polygon = {
         points: point_list_to_path_str(origin_point_list),
         centroid: calculate_centroid(origin_point_list),
+        area: compute_area(origin_point_list)
     };
     if ( !isEqual(now_origin, origin_polygon) ) {
         set_origin(origin_polygon);

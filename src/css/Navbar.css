@@ -18,6 +18,7 @@ nav h1 {
 }
 
 nav ul {
+    height: 60%;
     width: 100%;
     list-style-type: none;
     margin: 0;
@@ -39,4 +40,18 @@ nav .active {
 
 nav li:hover:not(.active) {
     background-color: #154ACC;
+}
+
+#footer {
+    font-size: 12px;
+    padding: 2px;
+}
+
+#footer p {
+    margin: 5px;
+    padding: 0;
+}
+
+#footer img {
+    margin-left: 5px;
 }

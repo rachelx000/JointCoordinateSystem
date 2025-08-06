@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 
-const scatter_width = 280, scatter_height = 130;
+const scatter_width = 280, scatter_height = 110;
 
 export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_order, if_inspect_mode, inspected_index, set_inspected_index, aligned_origin_data ) {
     let zoom_k = 1;
@@ -10,13 +10,13 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
     // Generate and plot two axes
     let x_scale = d3.scaleLinear()
         .domain([0, metric_data.length])
-        .range([35, scatter_width+35])
+        .range([40, scatter_width+40])
         .nice();
     let x_axis = d3.axisBottom(x_scale).ticks( Math.min(metric_data.length, 10) );
     let x_axis_group = d3.select('#'+metric_id+'-x-axis');
     x_axis_group
         .call(x_axis)
-        .attr("transform", "translate(0, 130)");
+        .attr("transform", "translate(0, "+scatter_height+")");
 
     let y_scale = d3.scaleLinear()
         .domain([Math.min(Math.floor(Math.min(...metric_data)-0.0001), 0), Math.ceil(Math.max(...metric_data)+0.0001)])
@@ -26,7 +26,7 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
     let y_axis_group = d3.select('#'+metric_id+'-y-axis');
     y_axis_group
         .call(y_axis)
-        .attr("transform", "translate(35, 0)");
+        .attr("transform", "translate(40, 0)");
 
     d3.select('#'+metric_id+'-data')
         .selectAll('circle')

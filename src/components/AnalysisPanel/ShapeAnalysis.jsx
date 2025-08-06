@@ -1,6 +1,6 @@
 // eslint-disable-next-line react-refresh/only-export-components
 export const shape_metrics = [
-    { id: "cyclicity", title: "Cyclicity" },
+    { id: "area", title: "Area" },
     { id: "compactness", title: "Compactness" },
     { id: "diagonal-ratio", title: "Diagonal Ratio" },
     { id: "angular-regularity", title: "Angular Regularity" }

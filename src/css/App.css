@@ -10,6 +10,7 @@ html, body, #root {
 }
 
 main {
+  position: relative;
   margin-left: 120px;
   height: 100vh;
   display: flex;
@@ -25,6 +26,43 @@ main div {
   background-color: #ffffff;
   border-radius: 5px;
   margin: 5px;
+}
+
+#side-panel-navbar {
+  width: calc(100vw - 740px);
+  font-size: 13px;
+  position: absolute;
+  top: 2px;
+  left: 610px;
+  height: 25px;
+  border-radius: 2px;
+  background: #090c9b;
+  color: #fff;
+}
+
+#side-panel-navbar ul {
+  height: 100%;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#side-panel-navbar li {
+  width: 100px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  float: left;
+  padding: 0 10px;
+}
+
+#side-panel-navbar .active {
+  background-color: #3e92cc;
+}
+
+#side-panel-navbar li:hover:not(.active) {
+  background-color: #154ACC;
 }
 
 #toggle-container {
@@ -95,3 +133,9 @@ main div {
   transition: 0.3s ease-in-out;
 }
 
+.no-text-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}

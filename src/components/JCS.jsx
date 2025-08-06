@@ -15,18 +15,15 @@ let currSelectedIVs = [];
 let currSelectedDV = null;
 let currData = null;
 
-export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygonData, setPolygonData, nowOrigin, setOrigin, onShowCentroids,
-                              handleShowCentroids, onInspectMode, handleChangeInspectMode, onColorBlockMode,
-                              handleChangeColorBlockMode, inspectedIndex, setInspectedIndex, setMeshRenderingReady}) {
-    const [data, setData] = useState(null);
+export default function JCS({ size = 400, data, setData, mode, geomMode, setGeomMode, selectedIVs, setSelectedIVs,
+                                selectedDV, setSelectedDV, ifRender, setIfRender, selectedColorScheme, setSelectedColorScheme,
+                                nowPolygonData, setPolygonData, nowOrigin, setOrigin, onShowCentroids, handleShowCentroids,
+                                onInspectMode, handleChangeInspectMode, onColorBlockMode, handleChangeColorBlockMode,
+                                inspectedIndex, setInspectedIndex, setMeshRenderingReady}) {
     const [exampleDataPath, setExampleDataPath] = useState(`${import.meta.env.BASE_URL}data/basics/basic_elements.csv`);
     const [uploadedData, setUploadedData] = useState(null);
-    const [selectedColorScheme, setSelectedColorScheme] = useState(['Blue', 'Red']);
     const [onShowPCC, setShowPCC] = useState(false);
     const [onOriginMode, setOriginMode] = useState(false);
-    const [selectedIVs, setSelectedIVs] = useState([]);
-    const [selectedDV, setSelectedDV] = useState(null);
-    const [ifRender, setIfRender] = useState(false);
     const [disableControl, setDisableControl] = useState(true);
 
     /* useEffect(() => {
@@ -73,7 +70,17 @@ export default function JCS({ mode, geomMode, setGeomMode, size = 400, nowPolygo
         if (mode === "data") {
             if (exampleDataPath !== null && uploadedData === null) {
                 csv(exampleDataPath).then(data => {
-                    setData(data);
+                    // Parse all data to float
+                    let parsed_data = data.map(entry => {
+                        const parsed_entry = {};
+                        for (let key in entry) {
+                            const val = entry[key];
+                            const parsed_val = parseFloat(val);
+                            parsed_entry[key] = isNaN(parsed_val) ? val : parsed_val;
+                        }
+                        return parsed_entry;
+                    });
+                    setData(parsed_data);
                 }).catch(error => console.error(error));
                 // console.log("Current selected data path: ", exampleDataPath)
             }
