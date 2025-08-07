@@ -1,7 +1,6 @@
 import * as d3 from 'd3';
 import { isEqual } from "lodash";
 import { compute_area } from "./AnalysisPanel/PolygonAlignment.js"
-import {log10Dependencies} from "mathjs";
 
 // Global data and generators:
 export const jcs_origin = [100, 70];
@@ -22,18 +21,38 @@ export function reset_variable_selector() {
     d3.selectAll(".DV").property("checked", false);
 }
 
-/* function get_min_and_max( data, varname ){
-    let min = Math.min(...data.map(data_entry => parseFloat(data_entry[varname])));
-    let max = Math.max(...data.map(data_entry => parseFloat(data_entry[varname])));
-    return [min, max];
-} */
-
-function unpack( data, varname ) {
+export function unpack( data, varname ) {
     return data.map(entry => entry[varname]);
 }
 
-function get_range( data ) {
+export function get_range( data ) {
     return [Math.min(...data), Math.max(...data)];
+}
+
+export function get_axis_range( data, varname ) {
+    let [if_log, unique_data] = logarithmic_growth_check( data, varname );
+    let data_range;
+    if (if_log === "log10") {
+        let log10_data = unique_data.map((x) => x === 0 ? 0 : Math.log10(x));
+        log10_data.sort((a, b) => a - b);
+        let log10_range = get_range(log10_data);
+        if (unique_data.includes(0)) {
+            if (log10_range[0] === 0) {
+                data_range = [10 ** log10_data[1] / 10, 10 ** log10_data.at(-1)];
+            } else if (log10_range[1] === 0) {
+                log10_data.pop();
+                data_range = [10 ** log10_data[0] / 10, 10 ** log10_data.at(-1)];
+            } else {
+                data_range = [10 ** log10_data[0] / 10, 10 ** log10_data.at(-1)];
+            }
+        } else {
+            data_range = [10 ** log10_range[0], 10 ** log10_range[1]];
+        }
+    }
+    else {
+        data_range = get_range(unpack(data, varname));
+    }
+    return [if_log, unique_data, data_range];
 }
 
 function calculate_PCC( x_data, y_data ) {
@@ -67,31 +86,27 @@ function calculate_PCC_for_dataset( data, now_IVs, now_DV ) {
     return pcc_data;
 }
 
-export function logarithmic_growth_check( data, varname ) {
+function logarithmic_growth_check( data, varname ) {
     let pcc, log;
 
     // filter and sort unique values from the input data array
     let unique_data = [...new Set([...data.map(obj => obj[varname])])];
     unique_data.sort((a, b)=> a - b);
 
-    let indices = [...Array(unique_data.length).keys()];
-
     // check if it is base-10 logarithmic growth
-    let log10_data = unique_data.map((x) => Math.log10(x));
-
-    // replace infinite vals and sort it in ascending order
-    log10_data = log10_data.map((x) => (x === Infinity) || (x === -Infinity) ? 0 : x );
+    let log10_data = unique_data.filter(x => (x !== 0));
+    let indices = [...Array(log10_data.length).keys()];
+    log10_data = log10_data.map((x) => Math.log10(x));
     log10_data.sort((a, b) => a - b);
     pcc = calculate_PCC(indices, log10_data);
-    if (pcc > 0.999) { log = "log10"; }
+    if (pcc === 1.0 && log10_data.length > 2) { log = "log10"; }
 
     return [ log, unique_data ];
 }
 
 function generate_numerical_scale( data, varname, id, axis_generator, axis_range, if_origin_mode, if_vertical ) {
     // Check if the logarithmic scale is needed and generate the corresponding scale
-    let [if_log, unique_data] = logarithmic_growth_check( data, varname );
-    let data_range = get_range(unpack(data, varname));
+    let [if_log, unique_data, data_range] = get_axis_range( data, varname );
     let scale;
 
     // Convert to the scale where 0 is at the middle when origin mode is on
@@ -105,21 +120,6 @@ function generate_numerical_scale( data, varname, id, axis_generator, axis_range
 
     // Remove 0 to avoid conflicts with the d3 log-scale
     if ( if_log === "log10" && if_origin_mode === false ) {
-        let log10_data = unique_data.map((x) => x === 0 ? 0 : Math.log10(x));
-        log10_data.sort((a, b) => a - b);
-        data_range = get_range(log10_data);
-        if (data_range[0] === 0) {
-            data_range[0] = 10**log10_data[1] / 10;
-            data_range[1] = 10**log10_data.at(-1);
-            log10_data.unshift(0);
-        } else if (data_range[1] === 0) {
-            let zero = log10_data.pop();
-            data_range[1] = 10**log10_data.at(-1);
-            data_range[0] = 10**log10_data[0] / 10;
-            log10_data.unshift(zero);
-        } else {
-            data_range = [10**data_range[0], 10**data_range[1]];
-        }
         scale = d3.scaleLog().base(10).clamp(true).domain(data_range).range(axis_range).nice();
     }
     else {
@@ -226,29 +226,9 @@ export function path_str_to_point_list( path_str ) {
 }
 
 function build_color_scale( data, now_DV, color_scheme ) {
-    // check if the dependent var follows a log scale
-    let [if_log, unique_data] = logarithmic_growth_check( data, now_DV );
-    let data_range = get_range(unpack(data, now_DV));
+    // Check if the logarithmic scale is needed and generate the corresponding scale
+    let [if_log, unique_data, data_range] = get_axis_range( data, now_DV );
     let color_interpolator = d3.interpolateRgbBasis(color_scheme);
-
-    // Remove 0 to avoid conflicts with the d3 log-scale
-    if ( if_log === "log10" ) {
-        let log10_data = unique_data.map((x) => x === 0 ? 0 : Math.log10(x));
-        log10_data.sort((a, b) => a - b);
-        data_range = get_range(log10_data);
-        if (data_range[0] === 0) {
-            data_range[0] = 10 ** log10_data[1] / 10;
-            data_range[1] = 10 ** log10_data.at(-1);
-            log10_data.unshift(0);
-        } else if (data_range[1] === 0) {
-            let zero = log10_data.pop();
-            data_range[1] = 10 ** log10_data.at(-1);
-            data_range[0] = 10 ** log10_data[0] / 10;
-            log10_data.unshift(zero);
-        } else {
-            data_range = [10 ** data_range[0], 10 ** data_range[1]];
-        }
-    }
 
     let scale_0_to_1 = (if_log === "log10") ? d3.scaleLog().domain(data_range).range([0, 1]).clamp(true) :
         d3.scaleLinear().domain(data_range).range([0, 1]).clamp(true);

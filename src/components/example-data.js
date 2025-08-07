@@ -89,10 +89,6 @@ export const visualization_data = [
       {
         title: "Iris dataset",
         path: "iris_numeric"
-      },
-      {
-        title: "Palmer Penguins Dataset",
-        path: "penguins"
       }
     ]
   },
