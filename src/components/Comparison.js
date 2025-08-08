@@ -83,3 +83,5 @@ export function drawPCP( data, curr_IVs, curr_DV, color_scheme ) {
 
     Plotly.newPlot('pcp-container', pcp_data);
 }
+
+

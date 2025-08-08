@@ -13,6 +13,7 @@
 
 /* Geometry Visualization */
 #geometry-vis {
+    position: relative;
     height: calc(100vh - 42px);
     width: calc(100vw - 740px);
     min-width: 600px;
@@ -38,3 +39,12 @@
     box-sizing: border-box;
 }
 
+#geometry-vis-gui-container {
+    position: absolute;
+    top: 55px;
+    right: 3px;
+}
+
+#geometry-vis-gui-container div{
+    border-radius: 0;
+}

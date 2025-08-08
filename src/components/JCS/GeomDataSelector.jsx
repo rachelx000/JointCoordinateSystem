@@ -1,27 +1,15 @@
 const geom_data_mode = [
     {
-        id: "cylinder",
-        title: "Cylinder Surface",
+        id: "hyperSphere",
+        title: "Hypersphere"
     },
     {
-        id: "cone",
-        title: "Cone Surface",
+        id: "kleinSurface",
+        title: "4D Klein Surface"
     },
     {
-        id: "helix",
-        title: "Helix Surface",
-    },
-    {
-        id: "torus",
-        title: "Torus",
-    },
-    {
-        id: "ellipticPara",
-        title: "Elliptic Paraboloid"
-    },
-    {
-        id: "hyperbolicPara",
-        title: "Hyperbolic Paraboloid"
+        id: "kleinBottle",
+        title: "4D Klein Bottle"
     }
 ];
 

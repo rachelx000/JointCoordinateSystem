@@ -24,6 +24,7 @@
 }
 
 #polygon-alignment {
+    background-color: #ffffff;
     width: 100%;
     height: 360px;
     margin: 0 0 10px 0;
@@ -54,6 +55,7 @@
 }
 
 #shape-analysis {
+    background-color: #ffffff;
     width: 100%;
     height: calc(100vh - 412.5px);
     display: flex;

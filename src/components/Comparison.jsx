@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import "../css/Comparison.css"
 import PCP from "./Comparison/PCP.jsx"
+import Hypercube from "./Comparison/Hypercube.jsx";
 
 const plots = [
     {   name: 'Parallel Coordinate Plot', id: 'pcp'   },
@@ -24,6 +25,9 @@ export default function ComparisonPanel({ data, ifRender, selectedIVs, selectedD
             case 'pcp':
                 return <PCP data={ data } ifRender={ ifRender } selectedIVs={ selectedIVs } selectedDV={ selectedDV }
                             colorScheme={ colorScheme }/>
+            case 'hypercube':
+                return <Hypercube data={ data } ifRender={ ifRender } selectedIVs={ selectedIVs } selectedDV={ selectedDV }
+                                  colorScheme={ colorScheme } />
         }
     }
 

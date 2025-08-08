@@ -21,7 +21,7 @@ const sidePanelNavItems = {
 export default function App() {
     const [data, setData] = useState(null);
     const [mode, setMode] = useState('data');
-    const [geomMode, setGeomMode] = useState("cone");
+    const [geomMode, setGeomMode] = useState("hyperSphere");
     const [nowPolygonData, setPolygonData] = useState(null);
     const [nowOrigin, setOrigin] = useState(null);
     const [onShowCentroids, setShowCentroids] = useState(false);
@@ -107,7 +107,7 @@ export default function App() {
                 return <ComparisonPanel data={ data } ifRender={ ifRender } selectedIVs={ selectedIVs } selectedDV= { selectedDV }
                                         colorScheme={ selectedColorScheme } />
             case 'render':
-                return <GeometryVis nowPolygonData={nowPolygonData} geomMode={geomMode}
+                return <GeometryVis data={ data } nowPolygonData={nowPolygonData} geomMode={geomMode}
                                     meshRenderingReady={meshRenderingReady}
                                     setMeshRenderingReady={ setMeshRenderingReady }
                                     inspectedIndex={ inspectedIndex } />
