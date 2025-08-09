@@ -104,8 +104,10 @@ export default function App() {
                                       onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
                                       inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />
             case 'compare':
-                return <ComparisonPanel data={ data } ifRender={ ifRender } selectedIVs={ selectedIVs } selectedDV= { selectedDV }
-                                        colorScheme={ selectedColorScheme } />
+                return <ComparisonPanel data={ data } nowPolygonData={ nowPolygonData } ifRender={ ifRender }
+                                        selectedIVs={ selectedIVs } selectedDV= { selectedDV }  colorScheme={ selectedColorScheme }
+                                        onColorBlockMode = { onColorBlockMode } onInspectMode={ onInspectMode }
+                                        inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />
             case 'render':
                 return <GeometryVis data={ data } nowPolygonData={nowPolygonData} geomMode={geomMode}
                                     meshRenderingReady={meshRenderingReady}

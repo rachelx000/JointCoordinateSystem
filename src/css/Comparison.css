@@ -12,7 +12,13 @@
     transform: translateY(13.5px);
 }
 
-#pcp, #hypercube {
+#plot-selector {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+#pcp, #spider, #hypercube {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -23,14 +29,83 @@
     padding: 0;
 }
 
-#plot-selector {
-    position: absolute;
-    top: 0;
-    right: 0;
+#spider {
+    background: #eaeaea;
+}
+
+#spider h4 {
+    margin: 0.8em;
+    padding: 0;
+    text-align: center;
+}
+
+#spider-main, #area-comparison {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    height: 50%;
+    width: 100%;
+    background: #fff;
+}
+
+#spider-main {
+    margin: 0 0 10px;
+}
+
+#area-comparison {
+    margin: 0;
+}
+
+#spider-canvas {
+    height: 310px;
+    width: 600px;
 }
 
 #pcp-container, #hypercube-container {
     height: 90%;
     width: 98%;
     box-sizing: border-box;
+}
+
+#area-scatterplots {
+    width: 100%;
+    height: 90%;
+    display: flex;
+    flex-wrap: wrap;
+    overflow-y: auto;
+    margin: 0;
+    justify-content: center;
+    align-content: flex-start;
+}
+
+#area-scatterplots svg {
+    padding-top: 5px;
+    width: 330px;
+    height: 140px;
+    border: 1px dashed #000;
+    box-sizing: border-box;
+}
+
+.scatterplot-canvas {
+    width: 330px;
+    height: 140px;
+    transform: translate(0px, -5px);
+    fill: #FFF;
+}
+
+.scatter-container {
+    position: relative;
+    width: 330px;
+    height: 140px;
+}
+
+.scatter-reset-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    opacity: 80%;
 }

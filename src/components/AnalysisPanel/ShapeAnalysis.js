@@ -134,5 +134,4 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
                 .call(scatter_zoom.transform, d3.zoomIdentity);
         },
     };
-
 }
