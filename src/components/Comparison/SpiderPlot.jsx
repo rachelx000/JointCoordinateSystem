@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { drawSpider, sortPolygonsByDepVarVal, plotScatterForArea } from "../Comparison.js";
 
-let currSelectedIVs = [];
-let currSelectedDV = null;
-let currData = null;
 
-export default function SpiderPlot({ data, nowJCSPolygonData, ifRender, selectedIVs, selectedDV, colorScheme,
-                                       onColorBlockMode, onInspectMode, inspectedIndex, setInspectedIndex }) {
+export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selectedDV, colorScheme,
+                                       onColorBlockMode, onInspectMode, inspectedIndex, setInspectedIndex,
+                                       sidePanelRenderReady, onOriginMode }) {
+
+    // TODO: Add statistical analysis to get the correlation of area
 
     const [jcsOrder, setJCSOrder] = useState(null);
     const [spiderPolygons, setSpiderPolygons] = useState(null);
@@ -20,16 +20,11 @@ export default function SpiderPlot({ data, nowJCSPolygonData, ifRender, selected
     ]
 
     useEffect(() => {
-        if ( ifRender && data !== null ) {
-            currData = data;
-            currSelectedIVs = selectedIVs;
-            currSelectedDV = selectedDV;
+        if ( sidePanelRenderReady && data !== null ) {
+            spiderRef.current = drawSpider( data, selectedIVs, selectedDV, colorScheme,
+                spiderPolygons, setSpiderPolygons, onColorBlockMode, onOriginMode, inspectedIndex );
         }
-        if ( currData !== null ) {
-            spiderRef.current = drawSpider( currData, currSelectedIVs, currSelectedDV, colorScheme,
-                spiderPolygons, setSpiderPolygons, onColorBlockMode, inspectedIndex );
-        }
-    }, [ifRender, selectedIVs, selectedDV, colorScheme])
+    }, [sidePanelRenderReady, onOriginMode, colorScheme])
 
     useEffect(() => {
         if ( nowJCSPolygonData !== null ) {

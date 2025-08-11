@@ -17,13 +17,12 @@ let currData = null;
 
 export default function JCS({ size = 400, data, setData, mode, geomMode, setGeomMode, selectedIVs, setSelectedIVs,
                                 selectedDV, setSelectedDV, ifRender, setIfRender, selectedColorScheme, setSelectedColorScheme,
-                                nowPolygonData, setPolygonData, nowOrigin, setOrigin, onShowCentroids, handleShowCentroids,
+                                nowPolygonData, setPolygonData, onOriginMode, setOriginMode, nowOrigin, setOrigin, onShowCentroids, handleShowCentroids,
                                 onInspectMode, handleChangeInspectMode, onColorBlockMode, handleChangeColorBlockMode,
-                                inspectedIndex, setInspectedIndex, setMeshRenderingReady}) {
-    const [exampleDataPath, setExampleDataPath] = useState(`${import.meta.env.BASE_URL}data/basics/basic_elements.csv`);
+                                inspectedIndex, setInspectedIndex, setSidePanelRenderReady }) {
+    const [exampleDataPath, setExampleDataPath] = useState(`${import.meta.env.BASE_URL}data/data/basics/ladder_pcp.csv`);
     const [uploadedData, setUploadedData] = useState(null);
     const [onShowPCC, setShowPCC] = useState(false);
-    const [onOriginMode, setOriginMode] = useState(false);
     const [disableControl, setDisableControl] = useState(true);
 
     /* useEffect(() => {
@@ -39,7 +38,7 @@ export default function JCS({ size = 400, data, setData, mode, geomMode, setGeom
         setOriginMode(false);
         handleChangeColorBlockMode(false);
         setDisableControl(true);
-        setMeshRenderingReady(false);
+        setSidePanelRenderReady(false);
         d3.select('#joint-coordinate-canvas').on('mousemove', null);
     }
 
@@ -62,7 +61,7 @@ export default function JCS({ size = 400, data, setData, mode, geomMode, setGeom
     useEffect(() => {
         resetJCS();
         setUploadedData(null);
-        setExampleDataPath(`${import.meta.env.BASE_URL}data/basics/basic_elements.csv`);
+        setExampleDataPath(`${import.meta.env.BASE_URL}data/basics/ladder_pcp.csv`);
     }, [mode]);
 
     useEffect(() => {
@@ -106,7 +105,7 @@ export default function JCS({ size = 400, data, setData, mode, geomMode, setGeom
             drawJCS( currData, currSelectedIVs, currSelectedDV, nowPolygonData, setPolygonData, size, selectedColorScheme,
                     onShowPCC, onShowCentroids, onOriginMode, nowOrigin, setOrigin, onColorBlockMode, onInspectMode,
                     setInspectedIndex, inspectedIndex );
-            setMeshRenderingReady(true);
+            setSidePanelRenderReady(true);
         }
     }, [ifRender, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode, inspectedIndex]);
 
@@ -124,8 +123,8 @@ export default function JCS({ size = 400, data, setData, mode, geomMode, setGeom
                          setExampleDataPath={ setExampleDataPath }
                          uploadedData={ uploadedData } setUploadedData={ setUploadedData }
                          selectedIVs={ selectedIVs } setSelectedIVs={ setSelectedIVs }
-                         selectedDV={ selectedDV } setSelectedDV={ setSelectedDV }
-                         setIfRender={ setIfRender } />
+                         selectedDV={ selectedDV } setSelectedDV={ setSelectedDV } setIfRender={ setIfRender }
+                         setSidePanelRenderReady={ setSidePanelRenderReady }/>
             </div>
         </>
     )

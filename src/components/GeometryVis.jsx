@@ -9,8 +9,7 @@ import {
 } from "./GeometryVis.js";
 import * as THREE from 'three';
 
-export default function GeometryVis({ data, nowPolygonData, geomMode, meshRenderingReady, setMeshRenderingReady,
-                                      inspectedIndex }) {
+export default function GeometryVis({ data, nowPolygonData, geomMode, meshRenderReady, inspectedIndex }) {
     let params = useRef({
         animate: { rotateXY: false, rotateXZ: false, rotateYZ: false, rotateXW: false, rotateYW: false, rotateZW: false },
         rotation: { angleXY: 0, angleXZ: 0, angleYZ: 0, angleXW: 0, angleYW: 0, angleZW: 0 }
@@ -100,10 +99,9 @@ export default function GeometryVis({ data, nowPolygonData, geomMode, meshRender
         };
     }, []);
 
-
     useEffect(() => {
         if (sceneRef.current !== null && nowPolygonData !== null
-             && meshRenderingReady) {
+             && meshRenderReady) {
             // Remove old mesh from the scene
             if (meshRef.current) {
                 sceneRef.current.remove(meshRef.current.mesh);
@@ -118,9 +116,8 @@ export default function GeometryVis({ data, nowPolygonData, geomMode, meshRender
             meshRef.current = generate4DMesh( geomMode, data, nowPolygonData );
             sceneRef.current.add(meshRef.current.mesh);
             sceneRef.current.add(meshRef.current.wireframe);
-            setMeshRenderingReady(false);
         }
-    }, [meshRenderingReady, nowPolygonData, geomMode]);
+    }, [nowPolygonData, meshRenderReady]);
 
     useEffect(() => {
         if (sceneRef !== null && indicatorRef.current !== null) {

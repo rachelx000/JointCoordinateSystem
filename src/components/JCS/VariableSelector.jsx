@@ -1,8 +1,9 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 
 // TODO: Allow user to adjust variable titles
 
-export default function VarSelector({ mode, varnames, setVarnames, selectedIVs, toggleSelectedIV, selectedDV, toggleSelectedDV, setIfRender }) {
+export default function VarSelector({ mode, varnames, setVarnames, selectedIVs, toggleSelectedIV, selectedDV,
+                                        toggleSelectedDV, setIfRender, setSidePanelRenderReady }) {
     const [draggedIndex, setDraggedIndex] = useState(null);
 
     function handleDrop(index) {
@@ -17,6 +18,7 @@ export default function VarSelector({ mode, varnames, setVarnames, selectedIVs, 
 
     function handleDragStart(e, index) {
         setDraggedIndex(index);
+        setSidePanelRenderReady(false);
         let draggedComponent = e.currentTarget.parentElement.parentElement;
         let boundingBox = draggedComponent.getBoundingClientRect();
 
@@ -24,6 +26,11 @@ export default function VarSelector({ mode, varnames, setVarnames, selectedIVs, 
         let offsetY = e.clientY - boundingBox.left;
         e.dataTransfer.setDragImage(draggedComponent, offsetX, offsetY);
     }
+
+    useEffect(() => {
+        if (selectedIVs.length < 4 || selectedDV === null )
+            setSidePanelRenderReady(false);
+    }, [selectedIVs, selectedDV])
 
     if ( varnames === null ) { return; }
     return (
@@ -59,7 +66,12 @@ export default function VarSelector({ mode, varnames, setVarnames, selectedIVs, 
                 ))}
             </div>
             <img id="start-render-icon" src={`${import.meta.env.BASE_URL}assets/start.png`} title="Run Rendering"
-                 onClick={ () => selectedIVs.length >= 4 && selectedDV !== null ? setIfRender(true) : undefined}
+                 onClick={ () => {
+                     if (selectedIVs.length >= 4 && selectedDV !== null) {
+                         setIfRender(true);
+                         setSidePanelRenderReady(true);
+                     }
+                 }}
                  style={{opacity: selectedIVs.length >= 4 && selectedDV !== null ? 0.8 : 0.4}}/>
         </div>
     )

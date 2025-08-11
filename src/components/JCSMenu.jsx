@@ -7,7 +7,7 @@ import GeomDataSelector from "./JCS/GeomDataSelector.jsx";
 
 
 export default function JCSMenu( { mode, data, geomMode, setGeomMode, setExampleDataPath, uploadedData, setUploadedData,
-                                     selectedIVs, setSelectedIVs, selectedDV, setSelectedDV, setIfRender } ) {
+                                     selectedIVs, setSelectedIVs, selectedDV, setSelectedDV, setIfRender, setSidePanelRenderReady } ) {
     const [varnames, setVarnames] = useState(null);
 
     function handleSelectData(e) {
@@ -81,7 +81,7 @@ export default function JCSMenu( { mode, data, geomMode, setGeomMode, setExample
             <VarSelector mode={ mode } varnames={ varnames } setVarnames={ setVarnames }
                          selectedIVs={ selectedIVs } toggleSelectedIV={ toggleSelectedIV }
                          selectedDV={ selectedDV } toggleSelectedDV={ toggleSelectedDV }
-                         setIfRender={ setIfRender } />
+                         setIfRender={ setIfRender } setSidePanelRenderReady={ setSidePanelRenderReady } />
         </div>
     );
 }

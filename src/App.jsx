@@ -23,12 +23,13 @@ export default function App() {
     const [mode, setMode] = useState('data');
     const [geomMode, setGeomMode] = useState("hyperSphere");
     const [nowPolygonData, setPolygonData] = useState(null);
+    const [onOriginMode, setOriginMode] = useState(false);
     const [nowOrigin, setOrigin] = useState(null);
     const [onShowCentroids, setShowCentroids] = useState(false);
     const [onInspectMode, setInspectMode] = useState(false);
     const [onColorBlockMode, setColorBlockMode] = useState(false);
     const [inspectedIndex, setInspectedIndex] = useState(null);
-    const [meshRenderingReady, setMeshRenderingReady] = useState(false);
+    const [sidePanelRenderReady, setSidePanelRenderReady] = useState(false);
     const [sidePanelMode, setSidePanelMode] = useState("shape");
     const [selectedIVs, setSelectedIVs] = useState([]);
     const [selectedDV, setSelectedDV] = useState(null);
@@ -100,19 +101,18 @@ export default function App() {
     function sidePanelSwitchMode( sidePanelMode ) {
         switch (sidePanelMode) {
             case 'shape':
-                return <AnalysisPanel nowPolygonData={ nowPolygonData }  nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
+                return <AnalysisPanel nowPolygonData={ nowPolygonData } nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
                                       onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
                                       inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />
             case 'compare':
                 return <ComparisonPanel data={ data } nowPolygonData={ nowPolygonData } ifRender={ ifRender }
                                         selectedIVs={ selectedIVs } selectedDV= { selectedDV }  colorScheme={ selectedColorScheme }
                                         onColorBlockMode = { onColorBlockMode } onInspectMode={ onInspectMode }
-                                        inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />
+                                        onOriginMode={ onOriginMode } inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }
+                                        sidePanelRenderReady={ sidePanelRenderReady }/>
             case 'render':
-                return <GeometryVis data={ data } nowPolygonData={nowPolygonData} geomMode={geomMode}
-                                    meshRenderingReady={meshRenderingReady}
-                                    setMeshRenderingReady={ setMeshRenderingReady }
-                                    inspectedIndex={ inspectedIndex } />
+                return <GeometryVis data={ data } nowPolygonData={ nowPolygonData } geomMode={ geomMode }
+                                    meshRenderReady={ sidePanelRenderReady } inspectedIndex={ inspectedIndex } />
         }
     }
 
@@ -125,12 +125,12 @@ export default function App() {
                      setSelectedDV={ setSelectedDV } ifRender={ ifRender } setIfRender={ setIfRender }
                      selectedColorScheme={ selectedColorScheme } setSelectedColorScheme={ setSelectedColorScheme }
                      nowPolygonData={ nowPolygonData } setPolygonData={ setPolygonData }
-                     nowOrigin={ nowOrigin } setOrigin={ setOrigin }
+                     onOriginMode={ onOriginMode } setOriginMode={ setOriginMode } nowOrigin={ nowOrigin } setOrigin={ setOrigin }
                      onShowCentroids={ onShowCentroids } handleShowCentroids={ handleShowCentroids }
                      onInspectMode={ onInspectMode } handleChangeInspectMode={ handleChangeInspectMode }
                      onColorBlockMode={ onColorBlockMode } handleChangeColorBlockMode={ handleChangeColorBlockMode }
                      inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }
-                     setMeshRenderingReady={ setMeshRenderingReady }/>
+                     setSidePanelRenderReady={ setSidePanelRenderReady }/>
                 <div id="side-panel-navbar" className="no-text-select">
                     <ul>
                         {sidePanelNavItems[mode].map(item => (

@@ -6,7 +6,7 @@ import { isEqual } from "lodash";
 
 const scatter_width = 280, scatter_height = 110;
 
-export function drawPCP( data, curr_IVs, curr_DV, color_scheme ) {
+export function drawPCP( data, curr_IVs, curr_DV, if_origin_mode, color_scheme ) {
     // Reference: https://plotly.com/javascript/parallel-coordinates-plot/
     function generate_colorscale( color_scheme ) {
         let interval = 1.0 / (color_scheme.length - 1);
@@ -20,7 +20,7 @@ export function drawPCP( data, curr_IVs, curr_DV, color_scheme ) {
     function get_colorscale_info() {
         let data_DV = unpack(data, curr_DV);
         let [if_log, unique_data, data_range] = get_axis_range( data, curr_DV );
-        if ( if_log === "log10" ) {
+        if ( if_log === "log10" && !if_origin_mode ) {
             data_range = [0, 1].map(i => Math.log10(data_range[i]));
             let tick_values = [];
             for (let i = 0; i < unique_data.length; i++) {
@@ -60,7 +60,7 @@ export function drawPCP( data, curr_IVs, curr_DV, color_scheme ) {
                 let curr_IV = curr_IVs[index];
                 let [if_log, unique_data, data_range] = get_axis_range( data, curr_IV );
                 let values = unpack(data, curr_IV);
-                if ( if_log === "log10" ) {
+                if ( if_log === "log10" && if_origin_mode === false ) {
                     data_range = [0, 1].map(i => Math.log10(data_range[i]));
                     let tick_values = [];
                     for (let i = 0; i < unique_data.length; i++) {
@@ -75,6 +75,12 @@ export function drawPCP( data, curr_IVs, curr_DV, color_scheme ) {
                         ticktext: ticks
                     }
                 } else {
+                    if ( if_origin_mode ) {
+                        if ( Math.abs(data_range[0]) >= data_range[1] )
+                            data_range = [data_range[0], Math.abs(data_range[0])];
+                        else
+                            data_range = [-data_range[1], data_range[1]];
+                    }
                     return {
                         range: data_range,
                         label: curr_IV,
@@ -84,20 +90,20 @@ export function drawPCP( data, curr_IVs, curr_DV, color_scheme ) {
         },
     ];
 
-    Plotly.newPlot('pcp-container', pcp_data);
+    Plotly.newPlot('pcp-container', pcp_data, {staticPlot: true});
 }
 
 export function drawSpider( data, curr_IVs, curr_DV, color_scheme, now_spider_polygons, set_spider_polygons,
-                            if_color_block_mode, inspected_index, radius=135, levels=5 ) {
-    let center = [radius+80, radius+20];
+                            if_color_block_mode, if_origin_mode, inspected_index, radius=135, levels=5 ) {
+    let center = [radius+120, radius+20];
     let spiderPolygons = [];
 
     const axis_translation = {
         "#spider-axes>#left-axis": [center[0], center[1]],
-        "#spider-axes>#top-axis": [80, center[1]],
+        "#spider-axes>#top-axis": [120, center[1]],
         "#spider-axes>#right-axis": [center[0], 20],
         "#spider-axes>#bottom-axis": [center[0], center[1]],
-        "#spider-colorscale": [500, 10]
+        "#spider-colorscale": [600, 10]
     }
 
     // Plot the rader grid
@@ -113,25 +119,34 @@ export function drawSpider( data, curr_IVs, curr_DV, color_scheme, now_spider_po
             .attr("stroke", "#ccc");
     }
 
-    function generate_scale(data, varname, id, axis_generator, axis_range, if_vertical) {
+    function generate_scale(data, varname, id, axis_generator, axis_range, if_vertical, if_reverse) {
         let [if_log, unique_data, data_range] = get_axis_range( data, varname );
         let scale, axis;
 
-        if (if_log) {
-            data_range = [0, 1].map(i => Math.log10(data_range[i]));
+        if (if_log && !if_origin_mode) {
+            if (!unique_data.includes(0)) {
+                unique_data.unshift(0);
+                data_range[0] = data_range[0]/10;
+            }
             data_range = if_vertical ? data_range.reverse() : data_range;
             scale = d3.scaleLog().base(10).clamp(true)
                 .domain(data_range)
-                .range(axis_range)
+                .range(if_reverse ? [radius, 0] : [0, radius])
                 .nice();
             axis = axis_generator(scale)
                 .tickValues(unique_data)
                 .tickFormat(d3.format(".0e"));
         } else {
+            if ( if_origin_mode ) {
+                if (Math.abs(data_range[0]) >= data_range[1])
+                    data_range = [data_range[0], Math.abs(data_range[0])];
+                else
+                    data_range = [-data_range[1], data_range[1]];
+            }
             data_range = if_vertical ? data_range.reverse() : data_range;
             scale = d3.scaleLinear()
                 .domain(data_range)
-                .range(axis_range)
+                .range(if_reverse ? [radius, 0] : [0, radius])
                 .nice();
             axis = axis_generator(scale).ticks(5);
         }
@@ -141,7 +156,7 @@ export function drawSpider( data, curr_IVs, curr_DV, color_scheme, now_spider_po
             .call(axis);
 
         // Remove the tick for the origin
-        if (if_vertical) {
+        if (if_vertical && !if_log) {
             let all_ticks = d3.select(id).selectAll("g").nodes();
             let last_tick = all_ticks[all_ticks.length - 1];
             d3.select(last_tick).remove();
@@ -153,10 +168,10 @@ export function drawSpider( data, curr_IVs, curr_DV, color_scheme, now_spider_po
     }
 
     // Plot the axes
-    let left_scale = generate_scale(data, curr_IVs[0], '#spider-axes>#left-axis', d3.axisLeft, [radius, 0], true);
-    let bottom_scale = generate_scale(data, curr_IVs[1], '#spider-axes>#bottom-axis', d3.axisBottom, [0, radius], false);
-    let right_scale = generate_scale(data, curr_IVs[2], '#spider-axes>#right-axis', d3.axisRight, [0, radius], true);
-    let top_scale = generate_scale(data, curr_IVs[3], '#spider-axes>#top-axis', d3.axisTop, [radius, 0], false);
+    let top_scale = generate_scale(data, curr_IVs[0], '#spider-axes>#top-axis', d3.axisTop, false, true);
+    let left_scale = generate_scale(data, curr_IVs[1], '#spider-axes>#left-axis', d3.axisLeft, true, false);
+    let bottom_scale = generate_scale(data, curr_IVs[2], '#spider-axes>#bottom-axis', d3.axisBottom, false, false);
+    let right_scale = generate_scale(data, curr_IVs[3], '#spider-axes>#right-axis', d3.axisRight, true, true);
 
 
     function generate_axis_title(axis_id, axis_title, if_vertical) {
@@ -175,9 +190,9 @@ export function drawSpider( data, curr_IVs, curr_DV, color_scheme, now_spider_po
 
             // Apply translation:
             if (axis_id.includes('top'))
-                axis_selector.attr('transform', "translate(" + -25 + "," + (-axis_selector.node().getBBox().height*0.5) + ")");
+                axis_selector.attr('transform', "translate(" + -30 + "," + (-axis_selector.node().getBBox().height*0.5) + ")");
             else
-                axis_selector.attr('transform', "translate(" + (radius+20) + "," + (-axis_selector.node().getBBox().height*0.5) + ")");
+                axis_selector.attr('transform', "translate(" + (radius+25) + "," + (-axis_selector.node().getBBox().height*0.5) + ")");
         }
         else {
             axis_selector.text(axis_title).attr('fill', '#000');
@@ -189,10 +204,10 @@ export function drawSpider( data, curr_IVs, curr_DV, color_scheme, now_spider_po
     }
 
     // Plot the axis title
-    generate_axis_title('#spider-axes #left-axis', curr_IVs[0], true);
-    generate_axis_title('#spider-axes #bottom-axis', curr_IVs[1], false);
-    generate_axis_title('#spider-axes #right-axis', curr_IVs[2], true);
-    generate_axis_title('#spider-axes #top-axis', curr_IVs[3], false);
+    generate_axis_title('#spider-axes #top-axis', curr_IVs[0], false);
+    generate_axis_title('#spider-axes #left-axis', curr_IVs[1], true);
+    generate_axis_title('#spider-axes #bottom-axis', curr_IVs[2], false);
+    generate_axis_title('#spider-axes #right-axis', curr_IVs[3], true);
 
 
     function build_color_scale( data, now_DV, color_scheme ) {
@@ -253,10 +268,10 @@ export function drawSpider( data, curr_IVs, curr_DV, color_scheme, now_spider_po
     // Generate polygon data
     function data_entry_to_point_list( data_entry ) {
         return [
-            [axis_translation["#spider-axes>#left-axis"][0], axis_translation["#spider-axes>#left-axis"][1] + left_scale(data_entry[curr_IVs[0]])],
-            [axis_translation["#spider-axes>#bottom-axis"][0] + bottom_scale(data_entry[curr_IVs[1]]), axis_translation["#spider-axes>#bottom-axis"][1]],
-            [axis_translation["#spider-axes>#right-axis"][0], axis_translation["#spider-axes>#right-axis"][1] + right_scale(data_entry[curr_IVs[2]])],
-            [axis_translation["#spider-axes>#top-axis"][0] + top_scale(data_entry[curr_IVs[3]]), axis_translation["#spider-axes>#top-axis"][1]]
+            [axis_translation["#spider-axes>#top-axis"][0] + top_scale(data_entry[curr_IVs[0]]), axis_translation["#spider-axes>#top-axis"][1]],
+            [axis_translation["#spider-axes>#left-axis"][0], axis_translation["#spider-axes>#left-axis"][1] + left_scale(data_entry[curr_IVs[1]])],
+            [axis_translation["#spider-axes>#bottom-axis"][0] + bottom_scale(data_entry[curr_IVs[2]]), axis_translation["#spider-axes>#bottom-axis"][1]],
+            [axis_translation["#spider-axes>#right-axis"][0], axis_translation["#spider-axes>#right-axis"][1] + right_scale(data_entry[curr_IVs[3]])],
         ];
     }
 

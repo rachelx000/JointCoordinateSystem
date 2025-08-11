@@ -1,22 +1,14 @@
 import { useEffect } from "react";
 import { drawPCP } from "../Comparison.js";
 
-let currSelectedIVs = [];
-let currSelectedDV = null;
-let currData = null;
 
-export default function PCP({ data, ifRender, selectedIVs, selectedDV, colorScheme }) {
+export default function PCP({ data, selectedIVs, selectedDV, colorScheme, sidePanelRenderReady, onOriginMode }) {
 
     useEffect(() => {
-        if ( ifRender && data !== null ) {
-            currData = data;
-            currSelectedIVs = selectedIVs;
-            currSelectedDV = selectedDV;
+        if (sidePanelRenderReady && data !== null) {
+            drawPCP(data, selectedIVs, selectedDV, onOriginMode, colorScheme);
         }
-        if ( currData !== null ) {
-            drawPCP( currData, currSelectedIVs, currSelectedDV, colorScheme );
-        }
-    }, [ifRender, selectedIVs, selectedDV, colorScheme])
+    }, [sidePanelRenderReady, colorScheme, onOriginMode])
 
     return (
         <div id="pcp">

@@ -11,7 +11,8 @@ const plots = [
 ]
 
 export default function ComparisonPanel({ data, nowPolygonData, ifRender, selectedIVs, selectedDV, colorScheme,
-                                            onColorBlockMode, onInspectMode, inspectedIndex, setInspectedIndex }) {
+                                            onColorBlockMode, onInspectMode, onOriginMode, inspectedIndex, setInspectedIndex,
+                                            sidePanelRenderReady }) {
     const [selectedPlot, setSelectedPlot] = useState("pcp");
 
     function handleChangePlot(e) {
@@ -26,15 +27,16 @@ export default function ComparisonPanel({ data, nowPolygonData, ifRender, select
         switch ( nowPlot ) {
             case 'pcp':
                 return <PCP data={ data } ifRender={ ifRender } selectedIVs={ selectedIVs } selectedDV={ selectedDV }
-                            colorScheme={ colorScheme }/>
+                            colorScheme={ colorScheme } sidePanelRenderReady={ sidePanelRenderReady } onOriginMode={ onOriginMode } />
             case 'spider':
                 return <SpiderPlot data={ data } nowJCSPolygonData={ nowPolygonData } ifRender={ ifRender }
                                    selectedIVs={ selectedIVs } selectedDV={ selectedDV } colorScheme={ colorScheme }
-                                   onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
-                                   inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />
+                                   onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode } onOriginMode={ onOriginMode }
+                                   inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }
+                                   sidePanelRenderReady={ sidePanelRenderReady } />
             case 'hypercube':
                 return <Hypercube data={ data } ifRender={ ifRender } selectedIVs={ selectedIVs } selectedDV={ selectedDV }
-                                  colorScheme={ colorScheme } />
+                                  colorScheme={ colorScheme } sidePanelRenderReady={ sidePanelRenderReady } />
         }
     }
 

@@ -7,7 +7,7 @@ import {
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 
 
-export default function Hypercube({ data, nowPolygonData, meshRenderingReady, setMeshRenderingReady, inspectedIndex }) {
+export default function Hypercube({ data, nowPolygonData, meshRenderingReady, setMeshRenderingReady, inspectedIndex, sidePanelRenderReady }) {
     let params = useRef({
         animate: { rotateXY: false, rotateXZ: false, rotateYZ: false, rotateXW: false, rotateYW: false, rotateZW: false },
         rotation: { angleXY: 0, angleXZ: 0, angleYZ: 0, angleXW: 0, angleYW: 0, angleZW: 0 }

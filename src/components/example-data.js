@@ -7,16 +7,16 @@ export const visualization_data = [
     filetype: ".csv",
     datasets: [
       {
-        title: "Dataset #1 (Default)",
-        path: "basic_elements"
+        title: "Ladder PCP",
+        path: "ladder_pcp"
       },
       {
-        title: "Dataset #2",
-        path: "basic_elements_2"
+        title: "Ladder PCP (Positive Correlation)",
+        path: "ladder_pcp_pos_corr"
       },
       {
-        title: "Dataset #3",
-        path: "basic_elements_3"
+        title: "No Spider Area",
+        path: "no_spider_area"
       }
     ]
   },
