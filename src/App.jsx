@@ -94,9 +94,9 @@ export default function App() {
         console.log("Current index: ", inspectedIndex);
     }, [inspectedIndex]); */
 
-    /* useEffect(() => {
+    useEffect(() => {
         console.log("Current Origin: ", nowOrigin);
-    }, [nowOrigin]); */
+    }, [nowOrigin]);
 
     function sidePanelSwitchMode( sidePanelMode ) {
         switch (sidePanelMode) {
@@ -105,10 +105,10 @@ export default function App() {
                                       onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
                                       inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />
             case 'compare':
-                return <ComparisonPanel data={ data } nowPolygonData={ nowPolygonData } ifRender={ ifRender }
-                                        selectedIVs={ selectedIVs } selectedDV= { selectedDV }  colorScheme={ selectedColorScheme }
-                                        onColorBlockMode = { onColorBlockMode } onInspectMode={ onInspectMode }
-                                        onOriginMode={ onOriginMode } inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }
+                return <ComparisonPanel data={ data } nowPolygonData={ nowPolygonData } selectedIVs={ selectedIVs } selectedDV= { selectedDV }
+                                        colorScheme={ selectedColorScheme } onColorBlockMode = { onColorBlockMode }
+                                        onInspectMode={ onInspectMode } nowOrigin={ nowOrigin } onOriginMode={ onOriginMode }
+                                        inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }
                                         sidePanelRenderReady={ sidePanelRenderReady }/>
             case 'render':
                 return <GeometryVis data={ data } nowPolygonData={ nowPolygonData } geomMode={ geomMode }

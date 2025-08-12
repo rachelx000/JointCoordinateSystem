@@ -13,6 +13,7 @@ export default function PCP({ data, selectedIVs, selectedDV, colorScheme, sidePa
     return (
         <div id="pcp">
             <h3>Parallel Coordinate Plot (PCP)</h3>
+            <div id="origin-container"></div>
             <div id="pcp-container"></div>
         </div>
     )

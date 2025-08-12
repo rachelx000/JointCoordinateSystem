@@ -16,6 +16,7 @@
     position: absolute;
     top: 0;
     right: 0;
+    z-index: 1;
 }
 
 #pcp, #spider, #hypercube {
@@ -27,6 +28,7 @@
     background: #fff;
     margin: 0;
     padding: 0;
+    position: relative;
 }
 
 #spider {
@@ -63,10 +65,23 @@
     width: 700px;
 }
 
-#pcp-container, #hypercube-container {
+#pcp-container, #origin-container, #hypercube-container {
     height: 90%;
     width: 98%;
     box-sizing: border-box;
+}
+
+#pcp-container, #origin-container {
+    width: 700px;
+    height: 650px;
+    position: absolute;
+    top: 5%;
+    left: 1%;
+}
+
+#origin-container {
+    pointer-events: none;
+    background: transparent;
 }
 
 #area-scatterplots {

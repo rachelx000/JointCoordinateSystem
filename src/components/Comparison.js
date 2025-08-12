@@ -35,6 +35,11 @@ export function drawPCP( data, curr_IVs, curr_DV, if_origin_mode, color_scheme )
                 cmin: data_range[0],
                 cmax: data_range[1],
                 colorbar: {
+                    orientation: 'h',
+                    x: 0.5,
+                    xanchor: 'center',
+                    y: -0.2,
+                    yanchor: 'top',
                     title: { text: curr_DV+' (log)', side: 'right' },
                     tickvals: tick_values,
                     ticktext: ticks
@@ -46,6 +51,11 @@ export function drawPCP( data, curr_IVs, curr_DV, if_origin_mode, color_scheme )
                 color: data_DV,
                 colorscale: generate_colorscale(color_scheme),
                 colorbar: {
+                    orientation: 'h',
+                    x: 0.5,
+                    xanchor: 'center',
+                    y: -0.2,
+                    yanchor: 'top',
                     title: { text: curr_DV, side: 'right' }
                 }
             }
@@ -55,6 +65,7 @@ export function drawPCP( data, curr_IVs, curr_DV, if_origin_mode, color_scheme )
     let pcp_data = [
         {
             type: 'parcoords',
+            reorderable: false,
             line: get_colorscale_info(),
             dimensions: [0, 1, 2, 3].map(index => {
                 let curr_IV = curr_IVs[index];
@@ -90,10 +101,66 @@ export function drawPCP( data, curr_IVs, curr_DV, if_origin_mode, color_scheme )
         },
     ];
 
-    Plotly.newPlot('pcp-container', pcp_data, {staticPlot: true});
+    let layout = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        margin: { l: 100, r: 100, t: 100, b: 50 }
+    };
+
+    // Add black reference line if origin mode is on
+    if (if_origin_mode) {
+        let origin_data = [
+            {
+                type: 'parcoords',
+                reorderable: false,
+                line: {
+                    color: [0, 1],
+                    colorscale: [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,0)']], // transparent
+                    showscale: true,
+                    colorbar: {
+                        orientation: 'h',
+                        x: 0.5,
+                        xanchor: 'center',
+                        y: -0.2,
+                        yanchor: 'top',
+                        title: {
+                            text: curr_DV,
+                            font: { color: 'rgba(0,0,0,0)' }
+                        },
+                        tickfont: { color: 'rgba(0,0,0,0)' },
+                        bgcolor: 'rgba(0,0,0,0)',
+                        outlinewidth: 0 }
+                },
+                dimensions: [0, 1, 2, 3].map(index => {
+                    let curr_IV = curr_IVs[index];
+                    let [, , data_range] = get_axis_range(data, curr_IV);
+                    if (Math.abs(data_range[0]) >= data_range[1])
+                        data_range = [data_range[0], Math.abs(data_range[0])];
+                    else
+                        data_range = [-data_range[1], data_range[1]];
+                    return {
+                        range: data_range,
+                        label: curr_IV,
+                        labelfont: { color: 'none' },
+                        tickvals: [],
+                        ticktext: [],
+                        values: [0, 0]
+                    };
+                })
+            }];
+
+        Plotly.purge('pcp-container');
+        Plotly.newPlot('pcp-container', pcp_data, layout, { staticPlot: true,  displayModeBar: true} );
+        Plotly.newPlot('origin-container', origin_data, layout, { displayModeBar: false, staticPlot: true });
+    } else {
+        Plotly.purge('pcp-container');
+        Plotly.purge('origin-container');
+        Plotly.newPlot('pcp-container', pcp_data, layout, { staticPlot: true } );
+    }
+
 }
 
-export function drawSpider( data, curr_IVs, curr_DV, color_scheme, now_spider_polygons, set_spider_polygons,
+export function drawSpider( data, curr_IVs, curr_DV, color_scheme, now_spider_polygons, set_spider_polygons, set_origin_polygon,
                             if_color_block_mode, if_origin_mode, inspected_index, radius=135, levels=5 ) {
     let center = [radius+120, radius+20];
     let spiderPolygons = [];
@@ -299,6 +366,31 @@ export function drawSpider( data, curr_IVs, curr_DV, color_scheme, now_spider_po
         plotPolygonData();
     }
 
+    // Generate and plot origin polygon if needed
+    function plotOriginPolygon() {
+        if (if_origin_mode) {
+            let origin_data = Object.fromEntries( curr_IVs.map(varname => [varname, 0]) );
+            let origin_point_list = data_entry_to_point_list(origin_data, curr_IVs);
+            let origin_polygon = {
+                points: point_list_to_path_str(origin_point_list),
+                area: compute_area(origin_point_list)
+            };
+            set_origin_polygon(origin_polygon);
+
+            d3.select("#spider-origin")
+                .attr('points', origin_polygon.points)
+                .attr('fill', 'none')
+                .attr('stroke-dasharray', 4)
+                .style('stroke', 'black')
+                .style('stroke-width', 2)
+                .style('opacity', 1.0);
+        } else {
+            set_origin_polygon(null);
+            d3.select("#spider-origin").style('opacity', 0.0);
+        }
+    }
+    plotOriginPolygon();
+
     return {
         updateInspectedIndex: (new_index) => {
             inspected_index = new_index;
@@ -307,6 +399,10 @@ export function drawSpider( data, curr_IVs, curr_DV, color_scheme, now_spider_po
         updateColorBlockMode: (now_if_color_block) => {
             if_color_block_mode = now_if_color_block;
             updateView();
+        },
+        updateOriginMode: (now_if_origin_mode) => {
+            if_origin_mode = now_if_origin_mode;
+            plotOriginPolygon();
         }
     };
 }
@@ -317,7 +413,8 @@ export function sortPolygonsByDepVarVal( polygon_data ) {
     return depVal_list.map(item => item[1]);
 }
 
-export function plotScatterForArea( scatter_id, polygons, sorted_polygon_order, if_inspect_mode, inspected_index, set_inspected_index ) {
+export function plotScatterForArea( scatter_id, polygons, sorted_polygon_order, if_inspect_mode,
+                                    inspected_index, set_inspected_index, origin ) {
     let zoom_k = 1;
     // Obtain the array of metric data
     let metric_data = polygons.map(polygon => polygon.area);
@@ -391,6 +488,25 @@ export function plotScatterForArea( scatter_id, polygons, sorted_polygon_order, 
     }
     setInspect();
 
+    function plotOrigin() {
+        console.log(origin);
+        if (origin) {
+            d3.select('#'+scatter_id+'-origin')
+                .attr('x1', x_scale(0))
+                .attr('y1', y_scale(origin.area))
+                .attr('x2', x_scale(metric_data.length))
+                .attr('y2', y_scale(origin.area))
+                .attr('stroke', 'black')
+                .attr('stroke-width', 2)
+                .attr('stroke-dasharray', 4)
+                .style('opacity', 1);
+        } else {
+            d3.select('#'+scatter_id+'-origin')
+                .style('opacity', 0)
+        }
+    }
+    plotOrigin();
+
     let scatter_zoom = d3.zoom()
         .scaleExtent([1, 10])
         .translateExtent([[-50, -50], [350, 200]])
@@ -412,6 +528,11 @@ export function plotScatterForArea( scatter_id, polygons, sorted_polygon_order, 
         updateInspectMode: (now_inspect_mode) => {
             if_inspect_mode = now_inspect_mode;
             setInspect();
+        },
+        updateOrigin: (now_origin) => {
+            origin = now_origin;
+            plotOrigin();
+            updateView();
         },
         resetZoomPan: () => {
             d3.select("#" + scatter_id + " svg")

@@ -3,14 +3,15 @@ import { drawSpider, sortPolygonsByDepVarVal, plotScatterForArea } from "../Comp
 
 
 export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selectedDV, colorScheme,
-                                       onColorBlockMode, onInspectMode, inspectedIndex, setInspectedIndex,
-                                       sidePanelRenderReady, onOriginMode }) {
+                                       onColorBlockMode, onOriginMode, nowOrigin, onInspectMode, inspectedIndex, setInspectedIndex,
+                                       sidePanelRenderReady }) {
 
     // TODO: Add statistical analysis to get the correlation of area
 
     const [jcsOrder, setJCSOrder] = useState(null);
     const [spiderPolygons, setSpiderPolygons] = useState(null);
     const [spiderOrder, setSpiderOrder] = useState(null);
+    const [spiderOrigin, setSpiderOrigin] = useState(null);
     const spiderRef = useRef(null);
     const scatterplotRefs = useRef({});
 
@@ -22,7 +23,7 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
     useEffect(() => {
         if ( sidePanelRenderReady && data !== null ) {
             spiderRef.current = drawSpider( data, selectedIVs, selectedDV, colorScheme,
-                spiderPolygons, setSpiderPolygons, onColorBlockMode, onOriginMode, inspectedIndex );
+                spiderPolygons, setSpiderPolygons, setSpiderOrigin, onColorBlockMode, onOriginMode, inspectedIndex );
         }
     }, [sidePanelRenderReady, onOriginMode, colorScheme])
 
@@ -45,12 +46,22 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                 jcsOrder.length === nowJCSPolygonData.length &&
                 jcsOrder.length === spiderOrder.length) {
             scatterPlots.forEach( (scatter) => {
-                let plot = plotScatterForArea( scatter.id, scatter.polygons, scatter.polygonOrder, onInspectMode, null, setInspectedIndex );
+                let origin = scatter.id.includes('jcs') ? nowOrigin : spiderOrigin;
+                let plot = plotScatterForArea( scatter.id, scatter.polygons, scatter.polygonOrder, onInspectMode, null, setInspectedIndex, origin );
                 plot.resetZoomPan();
                 scatterplotRefs.current[scatter.id] = plot;
             });
         }
     }, [jcsOrder, spiderOrder]);
+
+    useEffect(() => {
+        if ( scatterplotRefs.current ) {
+            let plot = Object.values(scatterplotRefs.current)[0];
+            if (plot?.updateOrigin) {
+                plot.updateOrigin(nowOrigin);
+            };
+        }
+    }, [nowOrigin]);
 
     useEffect(() => {
         if ( scatterplotRefs.current ) {
@@ -72,6 +83,14 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
 
     useEffect(() => {
         if ( spiderRef.current ) {
+            if (spiderRef.current?.updateOriginMode) {
+                spiderRef.current.updateOriginMode(onOriginMode);
+            }
+        }
+    }, [onOriginMode]);
+
+    useEffect(() => {
+        if ( spiderRef.current ) {
             if (spiderRef.current?.updateInspectedIndex) {
                 spiderRef.current.updateInspectedIndex(inspectedIndex);
             }
@@ -84,6 +103,10 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
             });
         }
     }, [inspectedIndex]);
+
+    useEffect(()=> {
+        console.log(nowOrigin);
+    }, [nowOrigin]);
 
     return (
         <div id="spider">
@@ -112,6 +135,7 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                         </g>
                     </g>
                     <g id="spider-polygons"></g>
+                    <polygon id="spider-origin"></polygon>
                 </svg>
             </div>
             <div id="area-comparison">

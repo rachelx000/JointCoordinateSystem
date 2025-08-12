@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import { useEffect, useState } from "react";
 import "../css/Comparison.css"
 import PCP from "./Comparison/PCP.jsx"
 import Hypercube from "./Comparison/Hypercube.jsx";
@@ -10,8 +10,8 @@ const plots = [
     {   name: 'Hypercube Plot', id: 'hypercube'   },
 ]
 
-export default function ComparisonPanel({ data, nowPolygonData, ifRender, selectedIVs, selectedDV, colorScheme,
-                                            onColorBlockMode, onInspectMode, onOriginMode, inspectedIndex, setInspectedIndex,
+export default function ComparisonPanel({ data, nowPolygonData, selectedIVs, selectedDV, colorScheme,
+                                            onColorBlockMode, onInspectMode, onOriginMode, nowOrigin, inspectedIndex, setInspectedIndex,
                                             sidePanelRenderReady }) {
     const [selectedPlot, setSelectedPlot] = useState("pcp");
 
@@ -26,16 +26,16 @@ export default function ComparisonPanel({ data, nowPolygonData, ifRender, select
     function switchPlots( nowPlot ) {
         switch ( nowPlot ) {
             case 'pcp':
-                return <PCP data={ data } ifRender={ ifRender } selectedIVs={ selectedIVs } selectedDV={ selectedDV }
+                return <PCP data={ data } selectedIVs={ selectedIVs } selectedDV={ selectedDV }
                             colorScheme={ colorScheme } sidePanelRenderReady={ sidePanelRenderReady } onOriginMode={ onOriginMode } />
             case 'spider':
-                return <SpiderPlot data={ data } nowJCSPolygonData={ nowPolygonData } ifRender={ ifRender }
+                return <SpiderPlot data={ data } nowJCSPolygonData={ nowPolygonData }
                                    selectedIVs={ selectedIVs } selectedDV={ selectedDV } colorScheme={ colorScheme }
-                                   onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode } onOriginMode={ onOriginMode }
-                                   inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }
-                                   sidePanelRenderReady={ sidePanelRenderReady } />
+                                   onColorBlockMode={ onColorBlockMode } onOriginMode={ onOriginMode } nowOrigin={ nowOrigin }
+                                   onInspectMode={ onInspectMode }  inspectedIndex={ inspectedIndex }
+                                   setInspectedIndex={ setInspectedIndex } sidePanelRenderReady={ sidePanelRenderReady } />
             case 'hypercube':
-                return <Hypercube data={ data } ifRender={ ifRender } selectedIVs={ selectedIVs } selectedDV={ selectedDV }
+                return <Hypercube data={ data } selectedIVs={ selectedIVs } selectedDV={ selectedDV }
                                   colorScheme={ colorScheme } sidePanelRenderReady={ sidePanelRenderReady } />
         }
     }
