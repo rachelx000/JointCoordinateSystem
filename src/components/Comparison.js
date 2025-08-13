@@ -1,8 +1,11 @@
-import { get_axis_range, plot_polygons, point_list_to_path_str, unpack } from "./JCS.js";
 import Plotly from 'plotly.js-dist';
+import * as THREE from 'three';
 import * as d3 from 'd3';
-import { compute_area } from "./AnalysisPanel/PolygonAlignment.js";
-import { isEqual } from "lodash";
+import {get_axis_range, plot_polygons, point_list_to_path_str, unpack} from "./JCS.js";
+import {compute_area} from "./AnalysisPanel/PolygonAlignment.js";
+import {isEqual} from "lodash";
+import {project_4D_to_3D} from "./GeometryVis.js";
+
 
 const scatter_width = 280, scatter_height = 110;
 
@@ -489,7 +492,6 @@ export function plotScatterForArea( scatter_id, polygons, sorted_polygon_order, 
     setInspect();
 
     function plotOrigin() {
-        console.log(origin);
         if (origin) {
             d3.select('#'+scatter_id+'-origin')
                 .attr('x1', x_scale(0))
@@ -542,4 +544,261 @@ export function plotScatterForArea( scatter_id, polygons, sorted_polygon_order, 
         },
     };
 
+}
+
+const axis_points = [
+    // inner cube bottom layer
+    [-1, -1, -1, -1],
+    [1, -1, -1, -1],
+    [-1, 1, -1, -1],
+    [1, 1, -1, -1],
+    // inner cube upper layer
+    [-1, -1, 1, -1],
+    [1, -1, 1, -1],
+    [-1, 1, 1, -1],
+    [1, 1, 1, -1],
+    // outer cube bottom layer
+    [-1, -1, -1, 1],
+    [1, -1, -1, 1],
+    [-1, 1, -1, 1],
+    [1, 1, -1, 1],
+    // outer cube upper layer
+    [-1, -1, 1, 1],
+    [1, -1, 1, 1],
+    [-1, 1, 1, 1],
+    [1, 1, 1, 1],
+];
+
+export function generateHypercubeScales( data, curr_IVs, curr_DV, color_scheme, if_origin_mode ) {
+    let hypercube_scales = {};
+    let hypercube_axis_ticks = {};
+
+    // Generate scales for independent variablea
+    curr_IVs.forEach( curr_IV => {
+        let [if_log, unique_data, data_range] = get_axis_range( data, curr_IV );
+        let scale, ticks;
+
+        if ( if_origin_mode ) {
+            if ( Math.abs(data_range[0]) >= data_range[1] )
+                data_range = [data_range[0], Math.abs(data_range[0])];
+            else
+                data_range = [-data_range[1], data_range[1]];
+        }
+
+        if ( if_log === "log10" && if_origin_mode === false ) {
+            scale = d3.scaleLog().base(10).clamp(true).domain(data_range).range([-0.9, 0.9]).nice();
+            ticks = unique_data;
+        }
+        else {
+            scale = d3.scaleLinear().domain(data_range).range([-0.9, 0.9]).nice();
+            ticks = scale.ticks(5);
+        }
+
+        hypercube_scales[curr_IV] = scale;
+        hypercube_axis_ticks[curr_IV] = ticks;
+    })
+
+    return [hypercube_scales, hypercube_axis_ticks];
+}
+
+function create_line_between_points( v1, v2, axis_group, color="white" ) {
+    const vector1 = new THREE.Vector3(v1[0], v1[1], v1[2]);
+    const vector2 = new THREE.Vector3(v2[0], v2[1], v2[2]);
+
+    // Compute the direction and length between two points
+    const direction = new THREE.Vector3().subVectors(vector2, vector1);
+    const length = direction.length();
+    direction.normalize();
+
+    // Create a rod for the line
+    const line_geometry = new THREE.CylinderGeometry(0.03, 0.03, length, 16);
+    const line_material = new THREE.MeshPhongMaterial({ color: color });
+    const line = new THREE.Mesh(line_geometry, line_material);
+
+    // Set the position of rod as the midpoint between v1 and v2
+    const midpoint = new THREE.Vector3().addVectors(vector1, vector2).multiplyScalar(0.5);
+    line.position.copy(midpoint);
+
+    // Align the line along the direction of (v2 - v1)
+    const line_axis = new THREE.Vector3(0, 1, 0);
+    const quaternion = new THREE.Quaternion().setFromUnitVectors(line_axis, direction);
+    line.quaternion.copy(quaternion);
+    axis_group.add(line);
+}
+
+function clean_group( group ) {
+    group.children.forEach(child => {
+        child.traverse(obj => {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+                if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+                else obj.material.dispose();
+            }
+        });
+    });
+    group.clear();
+}
+
+export function generateHypercubeAxes( axis_group, rotation_matrix=null ) {
+    // Clean previously generated axes
+    if (axis_group.children.length > 0) { clean_group(axis_group) };
+    let projected_axis_points = [];
+    for (let i = 0; i < 16; i++) {
+        let projected_point = project_4D_to_3D(axis_points[i], rotation_matrix);
+        projected_axis_points.push(projected_point);
+    }
+
+    // Add axis lines with ticks by connecting these projected_points
+    // Axis 0 (x-axis)
+    for (let i = 0, j = 0; i < 8; i++){
+        create_line_between_points( projected_axis_points[j], projected_axis_points[j+1], axis_group );
+        j += 2;
+    }
+
+    // Axis 1 (y-axis: vertical lines between upper and lower layers for a cube)
+    for (let i = 0, j = 0; i < 8; i++){
+        create_line_between_points( projected_axis_points[j], projected_axis_points[j+2], axis_group );
+        if ((j % 4) === 1) { j += 3; }
+        else { j++; }
+    }
+
+    // Axis 2 (z-axis)
+    for (let i = 0; i < 12; i++){
+        create_line_between_points( projected_axis_points[i], projected_axis_points[i+4], axis_group );;
+        if (i === 3) { i += 4; }
+    }
+
+    // Axis 3 (w-axis: connecting lines between outer and inner cubes)
+    for (let i = 0; i < 8; i++){
+        create_line_between_points( projected_axis_points[i], projected_axis_points[i+8], axis_group );
+    }
+}
+
+function get_scale_domain_and_type( scale ) {
+    let range = scale.domain();
+    let type;
+    if (typeof scale.base === "function") {
+        type = "log";
+    }
+    if (typeof scale.ticks === "function") {
+        type = "linear";
+    }
+    return [range, type];
+}
+
+function create_ticks_for_axis( v1, axis_id, axis_ticks, axis_ticks_group, scale, color = "white" ) {
+    const [data_range, scale_type] = get_scale_domain_and_type(scale);
+    const tick_geometry = new THREE.SphereGeometry(0.05, 8, 8);
+    const tick_material = new THREE.MeshStandardMaterial( { color: color } );
+
+    for (let i = 0; i < axis_ticks.length; i++) {
+        let tick_pos = JSON.parse(JSON.stringify(v1));
+        let curr_tick = axis_ticks[i];
+        if (scale_type === "log") {
+            tick_pos[axis_id] = curr_tick === 0 ? scale(data_range[0]) : scale(curr_tick);
+        } else {
+            tick_pos[axis_id] = scale(curr_tick);
+        }
+        let projected_tick = project_4D_to_3D(tick_pos);
+        let tick_mesh = new THREE.Mesh(tick_geometry, tick_material);
+        tick_mesh.position.set(...projected_tick);
+        tick_mesh.userData.originPos = tick_pos;
+        axis_ticks_group.add(tick_mesh);
+    }
+}
+
+export function generateHypercubeAxesTicks( axis_ticks, axis_ticks_group, curr_IVs, scales ) {
+    if (axis_ticks_group.children.length > 0) { clean_group(axis_ticks_group) };
+
+    // Axis 0 (x-axis)
+    for (let i = 0, j = 0; i < 8; i++){
+        create_ticks_for_axis( axis_points[j], 0, axis_ticks[curr_IVs[0]], axis_ticks_group, scales[curr_IVs[0]] );
+        j += 2;
+    }
+
+    // Axis 1 (y-axis: vertical lines between upper and lower layers for a cube)
+    for (let i = 0, j = 0; i < 8; i++){
+        create_ticks_for_axis( axis_points[j], 1, axis_ticks[curr_IVs[1]], axis_ticks_group, scales[curr_IVs[1]] );
+        if ((j % 4) === 1) { j += 3; }
+        else { j++; }
+    }
+
+    // Axis 2 (z-axis)
+    for (let i = 0; i < 12; i++){
+        create_ticks_for_axis( axis_points[i], 2, axis_ticks[curr_IVs[2]], axis_ticks_group, scales[curr_IVs[2]] );
+        if (i === 3) { i += 4; }
+    }
+
+    // Axis 3 (w-axis: connecting lines between outer and inner cubes)
+    for (let i = 0; i < 8; i++) {
+        create_ticks_for_axis(axis_points[i], 3, axis_ticks[curr_IVs[3]], axis_ticks_group, scales[curr_IVs[3]] );
+    }
+}
+
+export function update4DRotationHypercube( mesh, indicator, inspected_index, rotation_matrix ) {
+    // Update hypercube axis:
+    if (mesh.axisGroup.children.length > 0) {
+        generateHypercubeAxes(mesh.axisGroup, rotation_matrix);
+    }
+
+    // Update hypercube axis ticks:
+    if (mesh.axisTicksGroup.children.length > 0) {
+        let tick_meshes = mesh.axisTicksGroup.children;
+        for (let i = 0; i < tick_meshes.length; i++) {
+            let tick_mesh = tick_meshes[i];
+            let pos_4D = tick_mesh.userData.originPos;
+            let pos_3D = project_4D_to_3D(pos_4D, rotation_matrix);
+            tick_mesh.position.set(...pos_3D);
+        }
+    }
+
+    // Update hypercube datapoints:
+    if (mesh.dataGroup.children.length > 0) {
+        let data_meshes = mesh.dataGroup.children;
+        for (let i = 0; i < data_meshes.length; i++) {
+            let data_mesh = data_meshes[i];
+            let pos_4D = data_mesh.userData.originPos;
+            let pos_3D = project_4D_to_3D(pos_4D, rotation_matrix);
+            data_mesh.position.set(...pos_3D);
+        }
+    }
+
+    // Update indicator position if exists
+    if (indicator !== null && inspected_index !== null) {
+        const vertex_4D = mesh.dataGroup.children[inspected_index].userData.originPos;
+        const vertex_3D = project_4D_to_3D(vertex_4D, rotation_matrix);
+        indicator.position.set(...vertex_3D);
+    }
+}
+
+export function generateHypercubeData( data, now_polygon_data, data_group, curr_IVs, curr_DV, scales ) {
+    console.log(now_polygon_data);
+    if (data_group.children.length > 0) { clean_group(data_group); }
+    const point_geometry = new THREE.SphereGeometry(0.08, 8, 8);
+
+    function get_value_from_scale( input_val, scale ) {
+        let [data_range, scale_type] = get_scale_domain_and_type(scale);
+        if (scale_type === "log") {
+            return input_val === 0 ? scale(data_range[0]) : scale(input_val);
+        } else {
+            return scale(input_val);
+        }
+    }
+    // Iteratively project the data into the hypercube coordinate
+    for (let i = 0; i < data.length; i++) {
+        let datapoint = [];
+        let curr_data = data[i];
+        for (let j = 0; j < 4; j++) {
+            let curr_IV = curr_IVs[j];
+            let curr_scale = scales[curr_IV];
+            let curr_val = get_value_from_scale(curr_data[curr_IV], curr_scale)
+            datapoint.push(curr_val);
+        }
+        let projected_datapoint = project_4D_to_3D(datapoint);
+        let point_material = new THREE.MeshStandardMaterial( { color: now_polygon_data[i].color } );
+        let point = new THREE.Mesh(point_geometry, point_material);
+        point.userData.originPos = datapoint;
+        point.position.set( projected_datapoint[0],  projected_datapoint[1],  projected_datapoint[2] );
+        data_group.add(point);
+    }
 }

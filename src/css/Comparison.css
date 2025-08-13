@@ -124,3 +124,13 @@
     height: 30px;
     opacity: 80%;
 }
+
+#hypercube-gui-container {
+    position: absolute;
+    top: 60px;
+    right: 3px;
+}
+
+#hypercube-gui-container div{
+    border-radius: 0;
+}

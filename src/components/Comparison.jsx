@@ -35,8 +35,10 @@ export default function ComparisonPanel({ data, nowPolygonData, selectedIVs, sel
                                    onInspectMode={ onInspectMode }  inspectedIndex={ inspectedIndex }
                                    setInspectedIndex={ setInspectedIndex } sidePanelRenderReady={ sidePanelRenderReady } />
             case 'hypercube':
-                return <Hypercube data={ data } selectedIVs={ selectedIVs } selectedDV={ selectedDV }
-                                  colorScheme={ colorScheme } sidePanelRenderReady={ sidePanelRenderReady } />
+                return <Hypercube data={ data } nowPolygonData={ nowPolygonData } selectedIVs={ selectedIVs } selectedDV={ selectedDV }
+                                  colorScheme={ colorScheme }  onOriginMode={ onOriginMode }
+                                  sidePanelRenderReady={ sidePanelRenderReady }
+                                  inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />
         }
     }
 

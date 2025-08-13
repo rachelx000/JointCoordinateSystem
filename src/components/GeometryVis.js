@@ -1,10 +1,11 @@
 import * as THREE from 'three';
+import * as math from "mathjs";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineSegmentsGeometry } from "three/addons";
-import * as math from "mathjs";
+
 
 // TODO: Make resolution & projection params adjustable by the user
 
@@ -61,7 +62,7 @@ function matrix_to_array( matrix ) {
     return math.flatten( matrix ).toArray();
 }
 
-function project_4D_to_3D( vertex, rotation_matrix=null, distance=2.5, scale=5.0 ) {
+export function project_4D_to_3D( vertex, rotation_matrix=null, distance=2.5, scale=5.0 ) {
     let v_vector = math.matrix(vertex);
 
     // Perspective Project (treat w = 1 as depth)
@@ -430,7 +431,7 @@ export function update4DRotation( mesh, indicatorRef, inspected_index, rotation_
     }
 }
 
-export function initializeRender( container ) {
+export function initializeRender( container, camera_pos=[3, 4.5, 3], axis_length = 3.5 ) {
     // Remove previous generated canvas if exists
     container.querySelectorAll('canvas').forEach(canvas => {
         container.removeChild(canvas);
@@ -448,7 +449,7 @@ export function initializeRender( container ) {
         0.1,
         1000
     );
-    camera.position.set(3, 4.5, 3);
+    camera.position.set(...camera_pos);
     camera.up.set(0, 1, 0);
     camera.lookAt(0, 0, 0);
 
@@ -471,12 +472,12 @@ export function initializeRender( container ) {
     controls.maxDistance = 20;
 
     // Add axes
-    const axes = new THREE.AxesHelper(3.5); // 2 = axis length
+    const axes = new THREE.AxesHelper(axis_length); // 2 = axis length
     scene.add(axes);
 
     // Add axis labels
     const loader = new FontLoader();
-    let label_meshes = [];
+    let label_meshes = new THREE.Group();
     loader.load(`${import.meta.env.BASE_URL}fonts/Roboto_Regular.typeface.json`, function (font) {
         function generate_axis_label(text, color, pos) {
             const shapes = font.generateShapes(text, 0.2);
@@ -485,14 +486,14 @@ export function initializeRender( container ) {
             const label_mesh = new THREE.Mesh(geometry, material);
             label_mesh.position.set(...pos);
             label_mesh.lookAt(camera.position);
-            label_meshes.push(label_mesh);
-            scene.add(label_mesh);
+            label_meshes.add(label_mesh);
         }
 
-        generate_axis_label('X', "red", [3.6, 0, 0]);
-        generate_axis_label('Y', "green", [0, 3.6, 0]);
-        generate_axis_label('Z', "blue", [0, 0, 3.6]);
+        generate_axis_label('X', "red", [axis_length+0.1, 0, 0]);
+        generate_axis_label('Y', "green", [0, axis_length+0.1, 0]);
+        generate_axis_label('Z', "blue", [0, 0, axis_length+0.1]);
     });
+    scene.add(label_meshes);
 
     window.addEventListener('resize', () => {
         camera.aspect = container.clientWidth / container.clientHeight;
@@ -500,5 +501,5 @@ export function initializeRender( container ) {
         renderer.setSize(container.clientWidth, container.clientHeight);
     });
 
-    return [ scene, camera, renderer, controls, label_meshes ];
+    return [ scene, camera, renderer, controls, label_meshes, axes ];
 }

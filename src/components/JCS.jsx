@@ -20,7 +20,7 @@ export default function JCS({ size = 400, data, setData, mode, geomMode, setGeom
                                 nowPolygonData, setPolygonData, onOriginMode, setOriginMode, nowOrigin, setOrigin, onShowCentroids, handleShowCentroids,
                                 onInspectMode, handleChangeInspectMode, onColorBlockMode, handleChangeColorBlockMode,
                                 inspectedIndex, setInspectedIndex, setSidePanelRenderReady }) {
-    const [exampleDataPath, setExampleDataPath] = useState(`${import.meta.env.BASE_URL}data/data/basics/ladder_pcp.csv`);
+    const [exampleDataPath, setExampleDataPath] = useState(`${import.meta.env.BASE_URL}data/basics/ladder_pcp.csv`);
     const [uploadedData, setUploadedData] = useState(null);
     const [onShowPCC, setShowPCC] = useState(false);
     const [disableControl, setDisableControl] = useState(true);

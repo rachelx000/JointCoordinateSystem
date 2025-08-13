@@ -12,7 +12,8 @@ import * as THREE from 'three';
 export default function GeometryVis({ data, nowPolygonData, geomMode, meshRenderReady, inspectedIndex }) {
     let params = useRef({
         animate: { rotateXY: false, rotateXZ: false, rotateYZ: false, rotateXW: false, rotateYW: false, rotateZW: false },
-        rotation: { angleXY: 0, angleXZ: 0, angleYZ: 0, angleXW: 0, angleYW: 0, angleZW: 0 }
+        rotation: { angleXY: 0, angleXZ: 0, angleYZ: 0, angleXW: 0, angleYW: 0, angleZW: 0 },
+        show3DAxis: true
     });
     const renderRef = useRef(null);
     const sceneRef = useRef(null);
@@ -21,10 +22,12 @@ export default function GeometryVis({ data, nowPolygonData, geomMode, meshRender
     const guiContainerRef = useRef(null);
     const indicatorRef = useRef(null);
     const inspectedIndexRef = useRef(null);
+    const axesRef = useRef(null);
+    const axesLabelRef = useRef(null);
 
     // Initialize the rendering engine once
     useEffect(() => {
-        const [ scene, camera, renderer, controls, labels ] = initializeRender(renderRef.current);
+        const [ scene, camera, renderer, controls, labels, axes ] = initializeRender(renderRef.current);
 
         let gui = new GUI({ autoPlace: false });
         let angleXYControl = gui.add( params.current.rotation, 'angleXY', 0, 2*Math.PI).name("RotateXY (Rotate Z)");
@@ -39,7 +42,15 @@ export default function GeometryVis({ data, nowPolygonData, geomMode, meshRender
         gui.add( params.current.animate, 'rotateYW').name("OnRotateYW");
         let angleZWControl = gui.add( params.current.rotation, 'angleZW', 0, 2*Math.PI).name("RotateZW");
         gui.add( params.current.animate, 'rotateZW').name("OnRotateZW");
-
+        gui.add( params.current, "show3DAxis").name("Show 3D Axes")
+            .onChange((value) => {
+                if (axesRef.current) {
+                    axesRef.current.visible = value;
+                }
+                if (axesLabelRef.current) {
+                    axesLabelRef.current.visible = value;
+                }
+            });
 
         function animate() {
             requestAnimationFrame(animate);
@@ -82,10 +93,12 @@ export default function GeometryVis({ data, nowPolygonData, geomMode, meshRender
 
             controls.update();
             renderer.render(scene, camera);
-            labels.forEach(label_mesh => label_mesh.lookAt(camera.position));
+            labels.children.forEach(label_mesh => label_mesh.lookAt(camera.position));
         }
 
         sceneRef.current = scene;
+        axesRef.current = axes;
+        axesLabelRef.current = labels;
         guiRef.current = gui;
         guiContainerRef.current.appendChild(guiRef.current.domElement);
         animate();
