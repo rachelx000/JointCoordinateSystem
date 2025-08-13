@@ -405,6 +405,12 @@ export function plotPolygonAlignment( aligned_polygons, origin_data, if_centroid
     setInspect();
 
     function updateView() {
+        if (!if_color_block_mode) {
+            d3.select('#aligned-polygons')
+                .selectAll('polygon')
+                .attr('stroke-width', 1.5 / zoom_k);
+        }
+
         if (if_centroids) {
             d3.select('#aligned-centroids')
                 .selectAll('circle')
