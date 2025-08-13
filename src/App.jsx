@@ -101,7 +101,8 @@ export default function App() {
     function sidePanelSwitchMode( sidePanelMode ) {
         switch (sidePanelMode) {
             case 'shape':
-                return <AnalysisPanel nowPolygonData={ nowPolygonData } nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
+                return <AnalysisPanel data={ data } selectedIVs={ selectedIVs } nowPolygonData={ nowPolygonData }
+                                      nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
                                       onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
                                       inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />
             case 'compare':

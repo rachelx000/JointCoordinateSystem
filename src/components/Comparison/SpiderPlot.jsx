@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { drawSpider, sortPolygonsByDepVarVal, plotScatterForArea } from "../Comparison.js";
-
+import { fitEquationForArea } from "../Comparison.js";
 
 export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selectedDV, colorScheme,
                                        onColorBlockMode, onOriginMode, nowOrigin, onInspectMode, inspectedIndex, setInspectedIndex,
@@ -14,6 +14,7 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
     const [spiderOrigin, setSpiderOrigin] = useState(null);
     const spiderRef = useRef(null);
     const scatterplotRefs = useRef({});
+    const [fittedEquationsForArea, setFittedEquationsForArea] = useState({});
 
     const scatterPlots = [
         {   id: "jcs-area", title: "JCS Polygon Area", polygons: nowJCSPolygonData, polygonOrder: jcsOrder  },
@@ -49,6 +50,10 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                 let origin = scatter.id.includes('jcs') ? nowOrigin : spiderOrigin;
                 let plot = plotScatterForArea( scatter.id, scatter.polygons, scatter.polygonOrder, onInspectMode, null, setInspectedIndex, origin );
                 plot.resetZoomPan();
+                setFittedEquationsForArea(prev => ({
+                    ...prev,
+                    [scatter.id]: fitEquationForArea( selectedIVs, data, scatter.polygons, scatter.polygonOrder)
+                }));
                 scatterplotRefs.current[scatter.id] = plot;
             });
         }
@@ -146,6 +151,10 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                             <h4 className="scatter-title">{ inspectedIndex === null ? scatter.title : scatter.title+" = "+scatter.polygons[inspectedIndex].area}</h4>
                             <div id={scatter.id} className="scatter-container">
                                 <img className="scatter-reset-button" src={`${import.meta.env.BASE_URL}assets/reset.png`} onClick={() => { scatterplotRefs.current[scatter.id]?.resetZoomPan(); }} />
+                                <img className="show-equation-icon" src={`${import.meta.env.BASE_URL}assets/equation.png`} />
+                                <div id={scatter.id+"-equation" } className={ "fitted-equations"+ (fittedEquationsForArea[scatter.id] ? "" : " no-hover" )}>
+                                    { fittedEquationsForArea[scatter.id] }
+                                </div>
                                 <svg>
                                     <rect className={"scatterplot-canvas "+scatter.id+"-scatterplot"}></rect>
                                     <g>

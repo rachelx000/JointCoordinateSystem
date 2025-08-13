@@ -6,7 +6,7 @@ export const shape_metrics = [
     { id: "angular-regularity", title: "Angular Regularity" }
 ];
 
-export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scatterplotRefs }) {
+export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scatterplotRefs, fittedEquations }) {
     return (
         <div id="shape-analysis">
             { shape_metrics.map(shape_metric => (
@@ -14,6 +14,12 @@ export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scat
                     <h4 className="scatter-title">{ inspectedIndex === null ? shape_metric.title : shape_metric.title+" = "+alignedPolygonData[inspectedIndex].metrics[shape_metric.id]}</h4>
                     <div id={shape_metric.id} className="scatter-container">
                         <img className="scatter-reset-button" src={`${import.meta.env.BASE_URL}assets/reset.png`} onClick={() => { scatterplotRefs.current[shape_metric.id]?.resetZoomPan(); }} />
+                        <div className="equation-container">
+                            <img className="show-equation-icon" src={`${import.meta.env.BASE_URL}assets/equation.png`} />
+                            <div id={shape_metric.id+"-equation" } className={ "fitted-equations"+ (fittedEquations[shape_metric.id] ? "" : " no-hover" )}>
+                                { fittedEquations[shape_metric.id] }
+                            </div>
+                        </div>
                         <svg>
                             <rect className={"scatterplot-canvas "+shape_metric.id+"-scatterplot"}></rect>
                             <g>

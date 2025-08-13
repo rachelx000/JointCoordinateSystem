@@ -36,7 +36,7 @@
 }
 
 #spider h4 {
-    margin: 0.8em;
+    margin: 0.4em;
     padding: 0;
     text-align: center;
 }
@@ -91,8 +91,10 @@
     flex-wrap: wrap;
     overflow-y: auto;
     margin: 0;
+    padding: 0;
+    box-sizing: border-box;
     justify-content: center;
-    align-content: flex-start;
+    align-content: center;
 }
 
 #area-scatterplots svg {
@@ -101,28 +103,6 @@
     height: 140px;
     border: 1px dashed #000;
     box-sizing: border-box;
-}
-
-.scatterplot-canvas {
-    width: 330px;
-    height: 140px;
-    transform: translate(0px, -5px);
-    fill: #FFF;
-}
-
-.scatter-container {
-    position: relative;
-    width: 330px;
-    height: 140px;
-}
-
-.scatter-reset-button {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 30px;
-    height: 30px;
-    opacity: 80%;
 }
 
 #hypercube-gui-container {

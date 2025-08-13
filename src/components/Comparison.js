@@ -5,6 +5,8 @@ import {get_axis_range, plot_polygons, point_list_to_path_str, unpack} from "./J
 import {compute_area} from "./AnalysisPanel/PolygonAlignment.js";
 import {isEqual} from "lodash";
 import {project_4D_to_3D} from "./GeometryVis.js";
+import MLR from "ml-regression-multivariate-linear";
+import {formatMLREquation} from "./AnalysisPanel/ShapeAnalysis.js";
 
 
 const scatter_width = 280, scatter_height = 110;
@@ -546,6 +548,26 @@ export function plotScatterForArea( scatter_id, polygons, sorted_polygon_order, 
 
 }
 
+export function fitEquationForArea( curr_IVs, data, aligned_polygons, aligned_polygon_order ) {
+    let indep_data = [];
+    for (let i = 0; i < aligned_polygon_order.length; i++) {
+        let curr_index = aligned_polygon_order[i];
+        let curr_data = data[curr_index];
+        let curr_data_list = [0, 1, 2, 3].map(i => curr_data[curr_IVs[i]]);
+        indep_data.push(curr_data_list);
+    }
+
+    let dep_data = [];
+    for (let i = 0; i < aligned_polygon_order.length; i++) {
+        let curr_index = aligned_polygon_order[i];
+        let curr_polygon = aligned_polygons[curr_index];
+        dep_data.push([curr_polygon.area]);
+    }
+
+    let mlr = new MLR(indep_data, dep_data);
+    return formatMLREquation(mlr, curr_IVs, 'area');
+}
+
 const axis_points = [
     // inner cube bottom layer
     [-1, -1, -1, -1],
@@ -772,7 +794,6 @@ export function update4DRotationHypercube( mesh, indicator, inspected_index, rot
 }
 
 export function generateHypercubeData( data, now_polygon_data, data_group, curr_IVs, curr_DV, scales ) {
-    console.log(now_polygon_data);
     if (data_group.children.length > 0) { clean_group(data_group); }
     const point_geometry = new THREE.SphereGeometry(0.08, 8, 8);
 

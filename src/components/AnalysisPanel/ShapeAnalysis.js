@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import MLR from "ml-regression-multivariate-linear";
 
 const scatter_width = 280, scatter_height = 110;
 
@@ -134,4 +135,44 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
                 .call(scatter_zoom.transform, d3.zoomIdentity);
         },
     };
+}
+
+export function formatMLREquation(model, curr_IVs, curr_DV, precision = 4) {
+    const intercept = model.weights[0][0];
+    const weights = model.weights.slice(-4);
+
+    const indep_vars = curr_IVs;
+    let equation = curr_DV + " = " + intercept.toFixed(precision);
+
+    weights.forEach((weight, index) => {
+        let featureName = indep_vars[index];
+        let coefficient = parseFloat(weight);
+
+        if (coefficient >= 0) {
+            equation += ` + ${coefficient.toFixed(precision)} * ${featureName}`;
+        } else {
+            equation += ` - ${Math.abs(coefficient).toFixed(precision)} * ${featureName}`;
+        }
+    });
+    return equation;
+}
+
+export function fitEquationForMetric( metric_id, curr_IVs, data, aligned_polygons, aligned_polygon_order ) {
+    let indep_data = [];
+    for (let i = 0; i < aligned_polygon_order.length; i++) {
+        let curr_index = aligned_polygon_order[i];
+        let curr_data = data[curr_index];
+        let curr_data_list = [0, 1, 2, 3].map(i => curr_data[curr_IVs[i]]);
+        indep_data.push(curr_data_list);
+    }
+
+    let dep_data = [];
+    for (let i = 0; i < aligned_polygon_order.length; i++) {
+        let curr_index = aligned_polygon_order[i];
+        let curr_polygon = aligned_polygons[curr_index];
+        dep_data.push([curr_polygon.metrics[metric_id]]);
+    }
+
+    let mlr = new MLR(indep_data, dep_data);
+    return formatMLREquation(mlr, curr_IVs, metric_id);
 }

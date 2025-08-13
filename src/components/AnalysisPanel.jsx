@@ -3,17 +3,18 @@ import "../css/AnalysisPanel.css";
 import PolygonAlignment from "./AnalysisPanel/PolygonAlignment.jsx";
 import ShapeAnalysis from "./AnalysisPanel/ShapeAnalysis.jsx";
 import { alignPolygons, plotPolygonAlignment, computeAlignedPolygonOrder } from "./AnalysisPanel/PolygonAlignment.js";
-import { plotShapeMetric } from "./AnalysisPanel/ShapeAnalysis.js";
+import { plotShapeMetric, fitEquationForMetric } from "./AnalysisPanel/ShapeAnalysis.js";
 import { shape_metrics } from "./AnalysisPanel/ShapeAnalysis.jsx";
 import { isEqual } from "lodash";
 
-export default function AnalysisPanel( { nowPolygonData, nowOrigin, onShowCentroids, onColorBlockMode, onInspectMode, inspectedIndex, setInspectedIndex }) {
+export default function AnalysisPanel( { data, selectedIVs, nowPolygonData, nowOrigin, onShowCentroids, onColorBlockMode, onInspectMode, inspectedIndex, setInspectedIndex }) {
     const [alignMode, setAlignMode] = useState({mode: 'point', index: 0});
     const [alignedPolygonData, setAlignedPolygonData] = useState(null);
     const [alignedPolygonOrder, setAlignedPolygonOrder] = useState(null);
     const [alignedOriginData, setAlignedOriginData] = useState(null);
     const scatterplotRefs = useRef({});
     const alignmentRef = useRef({});
+    const [fittedEquations, setFittedEquations] = useState({});
 
     function handleAlignModeChange(e) {
         let curr_align_mode = e.target.getAttribute('class');
@@ -55,7 +56,6 @@ export default function AnalysisPanel( { nowPolygonData, nowOrigin, onShowCentro
     }, [inspectedIndex]);
 
     useEffect(() => {
-
         if (alignmentRef.current?.updateInspectMode) {
             alignmentRef.current.updateInspectMode(onInspectMode);
         }
@@ -89,6 +89,10 @@ export default function AnalysisPanel( { nowPolygonData, nowOrigin, onShowCentro
             shape_metrics.forEach( (metric) => {
                 let plot = plotShapeMetric( metric.id, alignedPolygonData, alignedPolygonOrder, onInspectMode, null, setInspectedIndex, alignedOriginData );
                 plot.resetZoomPan();
+                setFittedEquations(prev => ({
+                    ...prev,
+                    [metric.id]: fitEquationForMetric( metric.id, selectedIVs, data, alignedPolygonData, alignedPolygonOrder)
+                }));
                 scatterplotRefs.current[metric.id] = plot;
             });
         }
@@ -109,7 +113,7 @@ export default function AnalysisPanel( { nowPolygonData, nowOrigin, onShowCentro
                 <PolygonAlignment alignMode={ alignMode } handleAlignModeChange={ handleAlignModeChange }
                                   alignmentRef={ alignmentRef } />
                 <ShapeAnalysis inspectedIndex={ inspectedIndex } alignedPolygonData={ alignedPolygonData }
-                               scatterplotRefs={ scatterplotRefs }/>
+                               scatterplotRefs={ scatterplotRefs } fittedEquations={ fittedEquations }/>
             </div>
         </>
     );
