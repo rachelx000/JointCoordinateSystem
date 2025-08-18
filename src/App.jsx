@@ -90,18 +90,18 @@ export default function App() {
         console.log("Current Polygon Data: ", nowPolygonData);
     }, [nowPolygonData]);
 
-    /* useEffect(() => {
+    useEffect(() => {
         console.log("Current index: ", inspectedIndex);
-    }, [inspectedIndex]); */
+    }, [inspectedIndex]);
 
     useEffect(() => {
         console.log("Current Origin: ", nowOrigin);
-    }, [nowOrigin]);
+    }, [nowOrigin]); */
 
     function sidePanelSwitchMode( sidePanelMode ) {
         switch (sidePanelMode) {
             case 'shape':
-                return <AnalysisPanel data={ data } selectedIVs={ selectedIVs } nowPolygonData={ nowPolygonData }
+                return <AnalysisPanel data={ data } selectedIVs={ selectedIVs } selectedDV={ selectedDV } nowPolygonData={ nowPolygonData }
                                       nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
                                       onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
                                       inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />

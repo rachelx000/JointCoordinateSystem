@@ -36,24 +36,25 @@
 }
 
 #spider h4 {
+    font-size: small;
     margin: 0.4em;
     padding: 0;
     text-align: center;
 }
 
-#spider-main, #area-comparison {
+#spider-main, #area-scatterplots {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
     padding: 0;
-    height: 50%;
     width: 100%;
     background: #fff;
 }
 
 #spider-main {
+    height: 360px;
+    flex-direction: column;
     margin: 0 0 10px;
+    justify-content: space-between;
 }
 
 #area-comparison {
@@ -85,16 +86,20 @@
 }
 
 #area-scatterplots {
+    position: relative;
+    background-color: #ffffff;
     width: 100%;
-    height: 90%;
-    display: flex;
+    height: calc(100vh - 412.5px);
     flex-wrap: wrap;
     overflow-y: auto;
     margin: 0;
-    padding: 0;
-    box-sizing: border-box;
     justify-content: center;
-    align-content: center;
+    align-content: flex-start;
+}
+
+#area-scatterplots>div {
+    margin: 5px 5px 0;
+    padding: 0;
 }
 
 #area-scatterplots svg {

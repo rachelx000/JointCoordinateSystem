@@ -31,11 +31,13 @@ export default function JCS({ size = 400, data, setData, mode, geomMode, setGeom
 
     function reset() {
         currData = null;
+        setPolygonData(null);
         setShowPCC(false);
         handleShowCentroids(false);
         handleChangeInspectMode(false);
         setInspectedIndex(null);
         setOriginMode(false);
+        setOrigin(null);
         handleChangeColorBlockMode(false);
         setDisableControl(true);
         setSidePanelRenderReady(false);

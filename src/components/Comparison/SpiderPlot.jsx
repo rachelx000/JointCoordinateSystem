@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { drawSpider, sortPolygonsByDepVarVal, plotScatterForArea } from "../Comparison.js";
+import { drawSpider, sortPolygonsByDepVarVal, plotScatterForArea, plotScatterForAreaCorr } from "../Comparison.js";
 import { fitEquationForArea } from "../Comparison.js";
+
+function ScatterPlot() {
+
+}
 
 export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selectedDV, colorScheme,
                                        onColorBlockMode, onOriginMode, nowOrigin, onInspectMode, inspectedIndex, setInspectedIndex,
@@ -17,8 +21,10 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
     const [fittedEquationsForArea, setFittedEquationsForArea] = useState({});
 
     const scatterPlots = [
-        {   id: "jcs-area", title: "JCS Polygon Area", polygons: nowJCSPolygonData, polygonOrder: jcsOrder  },
-        {   id: "spider-area", title: "Spider Polygon Area", polygons: spiderPolygons, polygonOrder: spiderOrder }
+        {   id: "jcs-area", class: "jcs", title: "(JCS) Area", polygons: nowJCSPolygonData, polygonOrder: jcsOrder  },
+        {   id: "spider-area", class: "spider", title: "(Spider) Area", polygons: spiderPolygons, polygonOrder: spiderOrder },
+        {   id: "jcs-area-corr", class: "jcs", title: "(JCS) Area vs. "+selectedDV, polygons: nowJCSPolygonData, polygonOrder: jcsOrder  },
+        {   id: "spider-area-corr", class: "spider", title: "(Spider) Area vs. "+selectedDV, polygons: spiderPolygons, polygonOrder: spiderOrder }
     ]
 
     useEffect(() => {
@@ -31,29 +37,39 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
     useEffect(() => {
         if ( nowJCSPolygonData !== null ) {
             let currJCSOrder = sortPolygonsByDepVarVal(nowJCSPolygonData);
+            setFittedEquationsForArea(prev => ({
+                ...prev,
+                ["jcs"]: fitEquationForArea( selectedIVs, data, nowJCSPolygonData )
+            }));
             setJCSOrder(currJCSOrder);
         }
-    }, [nowJCSPolygonData])
+    }, [nowJCSPolygonData]);
 
     useEffect(() => {
         if ( spiderPolygons !== null ) {
             let currSpiderOrder = sortPolygonsByDepVarVal(spiderPolygons);
             setSpiderOrder(currSpiderOrder);
+            setFittedEquationsForArea(prev => ({
+                ...prev,
+                ["spider"]: fitEquationForArea( selectedIVs, data, spiderPolygons )
+            }));
         }
-    }, [spiderPolygons])
+    }, [spiderPolygons]);
 
     useEffect(() => {
         if (jcsOrder !== null && spiderOrder !== null &&
                 jcsOrder.length === nowJCSPolygonData.length &&
                 jcsOrder.length === spiderOrder.length) {
             scatterPlots.forEach( (scatter) => {
-                let origin = scatter.id.includes('jcs') ? nowOrigin : spiderOrigin;
-                let plot = plotScatterForArea( scatter.id, scatter.polygons, scatter.polygonOrder, onInspectMode, null, setInspectedIndex, origin );
+                let plot;
+                if (scatter.id.includes('corr')) {
+                    plot = plotScatterForAreaCorr( scatter.id, selectedDV, data, scatter.polygons, scatter.polygonOrder, onInspectMode, null, setInspectedIndex );
+                }
+                else {
+                    let origin = scatter.id.includes('jcs') ? nowOrigin : spiderOrigin;
+                    plot = plotScatterForArea( scatter.id, scatter.polygons, scatter.polygonOrder, onInspectMode, null, setInspectedIndex, onOriginMode, origin );
+                }
                 plot.resetZoomPan();
-                setFittedEquationsForArea(prev => ({
-                    ...prev,
-                    [scatter.id]: fitEquationForArea( selectedIVs, data, scatter.polygons, scatter.polygonOrder)
-                }));
                 scatterplotRefs.current[scatter.id] = plot;
             });
         }
@@ -67,6 +83,15 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
             };
         }
     }, [nowOrigin]);
+
+    useEffect(() => {
+        if ( scatterplotRefs.current ) {
+            let plot = Object.values(scatterplotRefs.current)[1];
+            if (plot?.updateOrigin) {
+                plot.updateOrigin(spiderOrigin);
+            };
+        }
+    }, [spiderOrigin]);
 
     useEffect(() => {
         if ( scatterplotRefs.current ) {
@@ -92,6 +117,14 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                 spiderRef.current.updateOriginMode(onOriginMode);
             }
         }
+
+        if ( scatterplotRefs.current ) {
+            Object.values(scatterplotRefs.current).forEach(plot => {
+                if (plot?.updateOriginMode) {
+                    plot.updateOriginMode(onOriginMode);
+                }
+            });
+        }
     }, [onOriginMode]);
 
     useEffect(() => {
@@ -108,10 +141,6 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
             });
         }
     }, [inspectedIndex]);
-
-    useEffect(()=> {
-        console.log(nowOrigin);
-    }, [nowOrigin]);
 
     return (
         <div id="spider">
@@ -143,17 +172,16 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                     <polygon id="spider-origin"></polygon>
                 </svg>
             </div>
-            <div id="area-comparison">
-                <h4>Polygon Area Comparison</h4>
-                <div id="area-scatterplots">
+            <div id="area-scatterplots">
                     { scatterPlots.map(scatter => (
                         <div key={scatter.id}>
-                            <h4 className="scatter-title">{ inspectedIndex === null ? scatter.title : scatter.title+" = "+scatter.polygons[inspectedIndex].area}</h4>
+                            <h4 className="scatter-title">{ scatter.id.includes("corr") ? scatter.title
+                                : ( inspectedIndex === null ? scatter.title : scatter.title+" = "+scatter.polygons[inspectedIndex].area )}</h4>
                             <div id={scatter.id} className="scatter-container">
                                 <img className="scatter-reset-button" src={`${import.meta.env.BASE_URL}assets/reset.png`} onClick={() => { scatterplotRefs.current[scatter.id]?.resetZoomPan(); }} />
                                 <img className="show-equation-icon" src={`${import.meta.env.BASE_URL}assets/equation.png`} />
-                                <div id={scatter.id+"-equation" } className={ "fitted-equations"+ (fittedEquationsForArea[scatter.id] ? "" : " no-hover" )}>
-                                    { fittedEquationsForArea[scatter.id] }
+                                <div id={scatter.id+"-equation" } className={ "fitted-equations"+ (fittedEquationsForArea[scatter.class] ? "" : " no-hover" )}>
+                                    { fittedEquationsForArea[scatter.class] }
                                 </div>
                                 <svg>
                                     <rect className={"scatterplot-canvas "+scatter.id+"-scatterplot"}></rect>
@@ -167,7 +195,6 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                             </div>
                         </div>
                     ))}
-                </div>
             </div>
         </div>
     )
