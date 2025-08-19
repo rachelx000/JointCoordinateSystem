@@ -21,7 +21,7 @@ const sidePanelNavItems = {
 export default function App() {
     const [data, setData] = useState(null);
     const [mode, setMode] = useState('data');
-    const [geomMode, setGeomMode] = useState("hyperSphere");
+    const [geomMode, setGeomMode] = useState({id: "hyperSphere", mode: "4D"});
     const [nowPolygonData, setPolygonData] = useState(null);
     const [onOriginMode, setOriginMode] = useState(false);
     const [nowOrigin, setOrigin] = useState(null);
@@ -78,11 +78,11 @@ export default function App() {
         }
     }
 
-    /* useEffect(() => {
+    useEffect(() => {
         console.log("Current geom mode changed to: ", geomMode);
     }, [geomMode]);
 
-    useEffect(() => {
+    /* useEffect(() => {
         console.log("Rendering mode changed to", mode);
     }, [mode]);
 

@@ -1,13 +1,205 @@
 import * as THREE from 'three';
 import * as math from "mathjs";
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineSegmentsGeometry } from "three/addons";
-
+import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
 
 // TODO: Make resolution & projection params adjustable by the user
+
+/* 3D Parametric Functions */
+export function cylinderParamFunction( u, v, target ) {
+    let v_prime = v * 2 * Math.PI;              // range(v) = [0, 2PI]
+    let u_prime = u * 2;                        // range(u) = [0, 2]
+
+    let x = Math.cos(v_prime);
+    let y = u_prime;
+    let z = Math.sin(v_prime);
+
+    target.set(x, y, z);
+}
+
+export function coneParamFunction( u, v, target ) {
+    let v_prime = v * 2 * Math.PI;            // range(v) = [0, 2PI]
+    let u_prime = u * 2;                      // range(u) = [0, 2]
+
+    let x = u_prime * Math.cos(v_prime);
+    let y = u_prime;
+    let z = u_prime * Math.sin(v_prime);
+
+    target.set(x, y, z);
+}
+
+export function helixParamFunction( u, v, target ) {
+    let v_prime = v * 2 * Math.PI;            // range(v) = [0, 2PI]
+    let u_prime = u * 2;                      // range(u) = [0, 2]
+
+    let x = u_prime * Math.cos(v_prime);
+    let y = 0.5*v_prime;
+    let z = u_prime * Math.sin(v_prime);
+
+    target.set(x, y, z);
+}
+
+export function torusParamFunction( u, v, target ) {
+    let R = 1.5, r = 0.5;
+
+    let v_prime = v * 2 * Math.PI;              // range(v) = [0, 2PI]
+    let u_prime = u * 2 * Math.PI;              // range(u) = [0, 2PI]
+
+    let x = (R + r * Math.cos(v_prime)) * Math.cos(u_prime);
+    let y = r * Math.sin(v_prime);
+    let z = (R + r * Math.cos(v_prime)) * Math.sin(u_prime);
+
+    target.set(x, y, z);
+}
+
+export function ellipticParaParamFunction( u, v, target ) {
+    let v_prime = v * 2 * Math.PI;              // range(v) = [0, 2PI]
+    let u_prime = u * 1.5;                      // range(u) = [0, 1.5]
+
+    let x = u_prime * Math.cos(v_prime);
+    let y = u_prime * u_prime;
+    let z = u_prime * Math.sin(v_prime);
+
+    target.set(x, y, z);
+}
+
+export function hyperbolicParaParamFunction( u, v, target ) {
+    let v_prime = v * 2 * Math.PI;              // range(v) = [0, 2PI]
+    let u_prime = u * 0.8;                      // range(u) = [0, 1.5]
+
+    let x = u_prime * (1 / Math.cos(v_prime));
+    let y = u_prime * u_prime;
+    let z = u_prime * Math.tan(v_prime);
+
+    target.set(x, y, z);
+}
+
+function generate_3D_mesh_data( paramFunc, resolution=10 ) {
+    let data = [];
+    let vertex_3D = new THREE.Vector3();
+
+    for (let i = 0; i <= resolution; i++) {
+        for (let j = 0; j <= resolution; j++) {
+            const u = i / (resolution - 1);
+            const v = j / (resolution - 1);
+
+            paramFunc(u, v, vertex_3D);
+            data.push({
+                "u": u,
+                "v": v,
+                "x": vertex_3D.x,
+                "y": vertex_3D.y,
+                "z": vertex_3D.z
+            });
+        }
+    }
+
+    return data;
+}
+
+function generate_3D_mesh( paramFunc, data, polygon_data, resolution=10 ){
+    let positions = [];
+    let colors = [];
+    let indices = [];
+    let vertexGrid = [];
+    let index = 0;
+
+    // Build index reference for all unique vertices of the surface
+     for (let i = 0; i <= resolution; i++) {
+        vertexGrid[i] = [];
+        for (let j = 0; j <= resolution; j++) {
+            let vertex_3D = ["x", "y", "z"].map(key => data[index][key]);
+            positions.push(...vertex_3D);
+
+            let color = new THREE.Color(polygon_data[index].color);
+            colors.push(color.r, color.g, color.b);
+
+            vertexGrid[i][j] = index++;
+        }
+    }
+
+    function get_pos_at_index( index ) {
+        return [
+            positions[3 * index],
+            positions[3 * index + 1],
+            positions[3 * index + 2],
+        ];
+    }
+
+    // Create triangle surfaces based on index reference while generating wireframe data
+    let wireframe_positions = [];
+    let wireframe_edges = [];
+    for (let i = 0; i < resolution; i++) {
+        for (let j = 0; j < resolution; j++) {
+            let p00 = vertexGrid[i][j];
+            let p10 = vertexGrid[i + 1][j];
+            let p01 = vertexGrid[i][j + 1];
+            let p11 = vertexGrid[i + 1][j + 1];
+
+
+            // Create a quad:
+            indices.push(p00, p10, p11);
+            indices.push(p00, p11, p01);
+
+            // For wireframe mesh: generate lines only for the parametric grid
+            wireframe_positions.push(...get_pos_at_index(p00), ...get_pos_at_index(p10));
+            wireframe_edges.push([p00, p10]);
+            wireframe_positions.push(...get_pos_at_index(p00), ...get_pos_at_index(p01));
+            wireframe_edges.push([p00, p01]);
+        }
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setIndex(indices);
+
+    const material = new THREE.MeshLambertMaterial({
+        vertexColors: true,
+        side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+
+    const wireframe_line_geometry = new LineSegmentsGeometry();
+    wireframe_line_geometry.setPositions(wireframe_positions);
+    wireframe_line_geometry.userData.wireframeEdges = wireframe_edges;
+    const wireframe_material = new LineMaterial({
+        color: 0xffffff,
+        linewidth: 1.5,
+        transparent: true,
+        opacity: 0.6,
+        depthTest: false,
+    });
+    wireframe_material.resolution.set(window.innerWidth, window.innerHeight);
+    let wireframe_mesh = new LineSegments2(wireframe_line_geometry, wireframe_material);
+
+    return { mesh: mesh, wireframe: wireframe_mesh };
+}
+
+export function update3DRotation( {angleX, angleY, angleZ}, mesh, indicatorRef, inspected_index ) {
+    let mesh_mesh = mesh.mesh;
+    mesh_mesh.rotation.set(angleX, angleY, angleZ);
+
+    let mesh_wireframe = mesh.wireframe;
+    mesh_wireframe.rotation.set(angleX, angleY, angleZ);
+
+    // Update indicator position if exists
+    if (indicatorRef.current && inspected_index != null) {
+        let positions = mesh_mesh.geometry.attributes.position;
+        let indicator_pos = new THREE.Vector3(
+            positions.getX(inspected_index),
+            positions.getY(inspected_index),
+            positions.getZ(inspected_index)
+        );
+        indicator_pos.applyEuler(new THREE.Euler(angleX, angleY, angleZ));
+        indicatorRef.current.position.copy(indicator_pos);
+    }
+}
+
 
 /* 4D Parametric Functions */
 function kleinSurfaceParamFunction( u, v, target ) {
@@ -37,6 +229,22 @@ function kleinBottleParamFunction( u, v, target ) {
     let y = r * (Math.sin(u_prime / 2) * Math.cos(v_prime) + Math.cos(u_prime / 2) * Math.sin(2 * v_prime));
     let z = p * Math.cos(u_prime) * (1 + e * Math.sin(v_prime));
     let w = p * Math.sin(u_prime) * (1 + e * Math.sin(v_prime));
+
+    target.set(x, y, z, w);
+}
+
+function torus4DParamFunction( u, v, target ) {
+    // range(u') = [0, 2PI]
+    // range(v') = [0, 2PI]
+    let r = 0.8;
+
+    let u_prime = u * 2 * Math.PI;
+    let v_prime = v * 2 * Math.PI;
+
+    let x = r * Math.cos(u_prime);
+    let y = r * Math.sin(u_prime)
+    let z = r * Math.cos(v_prime)
+    let w = r * Math.sin(v_prime)
 
     target.set(x, y, z, w);
 }
@@ -131,18 +339,32 @@ function generate_4D_mesh_data_three_params( paramFunc, resolution=6 ) {
 
 export function generateGeomData( mode ) {
     switch (mode) {
+        case "cylinder":
+            return generate_3D_mesh_data( cylinderParamFunction );
+        case "cone":
+            return generate_3D_mesh_data( coneParamFunction );
+        case "helix":
+            return generate_3D_mesh_data( helixParamFunction );
+        case "torus":
+            return generate_3D_mesh_data( torusParamFunction );
+        case "ellipticPara":
+            return generate_3D_mesh_data( ellipticParaParamFunction );
+        case "hyperbolicPara":
+            return generate_3D_mesh_data( hyperbolicParaParamFunction );
         case "hyperSphere":
             return generate_4D_mesh_data_three_params( hypersphereParamFunction );
         case "kleinSurface":
             return generate_4D_mesh_data_two_params( kleinSurfaceParamFunction );
         case "kleinBottle":
             return generate_4D_mesh_data_two_params( kleinBottleParamFunction );
+        case "torus4D":
+            return generate_4D_mesh_data_two_params( torus4DParamFunction );
         default:
             return;
     }
 }
 
-function generate4DMeshTwoParams( paramFunc, data, polygon_data, resolution=10 ){
+function generate_4D_mesh_two_params( paramFunc, data, polygon_data, resolution=10 ){
     let positions = [];
     let colors = [];
     let indices = [];
@@ -179,23 +401,22 @@ function generate4DMeshTwoParams( paramFunc, data, polygon_data, resolution=10 )
     let wireframe_edges = [];
     for (let i = 0; i < resolution-1; i++) {
         for (let j = 0; j < resolution-1; j++) {
-            for (let k = 0; k < resolution-1; k++) {
-                let p00 = vertexGrid[i][j];
-                let p10 = vertexGrid[i + 1][j];
-                let p01 = vertexGrid[i][j + 1];
-                let p11 = vertexGrid[i + 1][j + 1];
+            let p00 = vertexGrid[i][j];
+            let p10 = vertexGrid[i + 1][j];
+            let p01 = vertexGrid[i][j + 1];
+            let p11 = vertexGrid[i + 1][j + 1];
 
 
-                // Create a quad:
-                indices.push(p00, p10, p11);
-                indices.push(p00, p11, p01);
+            // Create a quad:
+            indices.push(p00, p10, p11);
+            indices.push(p00, p11, p01);
 
-                // For wireframe mesh: generate lines only for the parametric grid
-                wireframe_positions.push(...get_pos_at_index(p00), ...get_pos_at_index(p10));
-                wireframe_edges.push([p00, p10]);
-                wireframe_positions.push(...get_pos_at_index(p00), ...get_pos_at_index(p01));
-                wireframe_edges.push([p00, p01]);
-            }
+            // For wireframe mesh: generate lines only for the parametric grid
+            wireframe_positions.push(...get_pos_at_index(p00), ...get_pos_at_index(p10));
+            wireframe_edges.push([p00, p10]);
+            wireframe_positions.push(...get_pos_at_index(p00), ...get_pos_at_index(p01));
+            wireframe_edges.push([p00, p01]);
+
         }
     }
 
@@ -227,7 +448,7 @@ function generate4DMeshTwoParams( paramFunc, data, polygon_data, resolution=10 )
     return { mesh: mesh, wireframe: wireframe_mesh };
 }
 
-function generate4DMeshThreeParams( paramFunc, data, polygon_data, resolution=6 ){
+function generate_4D_mesh_three_params( paramFunc, data, polygon_data, resolution=6 ){
     let positions = [];
     let colors = [];
     let indices = [];
@@ -342,15 +563,28 @@ function generate4DMeshThreeParams( paramFunc, data, polygon_data, resolution=6 
     return { mesh: mesh, wireframe: wireframe_mesh };
 }
 
-export function generate4DMesh( mode, data, polygon_data ) {
+export function generateMesh( mode, data, polygon_data ) {
     switch (mode) {
+        case "cylinder":
+            return generate_3D_mesh( cylinderParamFunction, data, polygon_data );
+        case "cone":
+            return generate_3D_mesh( coneParamFunction, data, polygon_data );
+        case "helix":
+            return generate_3D_mesh( helixParamFunction, data, polygon_data );
+        case "torus":
+            return generate_3D_mesh( torusParamFunction, data, polygon_data );
+        case "ellipticPara":
+            return generate_3D_mesh( ellipticParaParamFunction, data, polygon_data );
+        case "hyperbolicPara":
+            return generate_3D_mesh( hyperbolicParaParamFunction, data, polygon_data );
         case "hyperSphere":
-            return generate4DMeshThreeParams( hypersphereParamFunction, data, polygon_data );
+            return generate_4D_mesh_three_params( hypersphereParamFunction, data, polygon_data );
         case "kleinSurface":
-            return generate4DMeshTwoParams( kleinSurfaceParamFunction, data, polygon_data );
+            return generate_4D_mesh_two_params( kleinSurfaceParamFunction, data, polygon_data );
         case "kleinBottle":
-            return generate4DMeshTwoParams( kleinBottleParamFunction, data,  polygon_data);
-
+            return generate_4D_mesh_two_params( kleinBottleParamFunction, data,  polygon_data);
+        case "torus4D":
+            return generate_4D_mesh_two_params( torus4DParamFunction, data, polygon_data );
         default:
             return;
     }

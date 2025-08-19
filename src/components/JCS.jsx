@@ -90,7 +90,7 @@ export default function JCS({ size = 400, data, setData, mode, geomMode, setGeom
             }
         }
         if (mode === "geom") {
-            setData(generateGeomData(geomMode));
+            setData(generateGeomData(geomMode.id));
         }
     }, [mode, geomMode, exampleDataPath, uploadedData]);
 
