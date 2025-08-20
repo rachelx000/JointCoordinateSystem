@@ -68,7 +68,7 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
                 }
             });
 
-        d3.select("#"+metric_id+" #scatter-trend-line")
+        d3.select("#"+metric_id+"-trend-info #line")
             .style('stroke-width', 1.0 / zoom_k );
 
         if (aligned_origin_data) {
@@ -217,7 +217,7 @@ export function plotCorrelation( metric_id, now_DV, data, aligned_polygons, alig
                 }
             });
 
-        d3.select("#"+metric_id+" #scatter-trend-line")
+        d3.select("#"+metric_id+"-trend-info #line")
             .style('stroke-width', 1.0 / zoom_k );
     }
 

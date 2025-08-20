@@ -14,8 +14,6 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                                        onColorBlockMode, onOriginMode, nowOrigin, onInspectMode, inspectedIndex, setInspectedIndex,
                                        sidePanelRenderReady }) {
 
-    // TODO: Add statistical analysis to get the correlation of area
-
     const [jcsOrder, setJCSOrder] = useState(null);
     const [spiderPolygons, setSpiderPolygons] = useState(null);
     const [spiderOrder, setSpiderOrder] = useState(null);

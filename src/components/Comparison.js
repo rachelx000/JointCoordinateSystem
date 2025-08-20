@@ -472,6 +472,9 @@ export function plotScatterForArea( scatter_id, polygons, sorted_polygon_order, 
                     this.parentNode.appendChild(this);
                 }
             });
+
+        d3.select("#"+scatter_id+"-trend-info #line")
+            .style('stroke-width', 1.0 / zoom_k );
     }
 
     function setInspect() {
@@ -635,6 +638,9 @@ export function plotScatterForAreaCorr( scatter_id, now_DV, data, polygons, sort
                     this.parentNode.appendChild(this);
                 }
             });
+
+        d3.select("#"+scatter_id+"-trend-info #line")
+            .style('stroke-width', 1.0 / zoom_k );
     }
 
     function setInspect() {
