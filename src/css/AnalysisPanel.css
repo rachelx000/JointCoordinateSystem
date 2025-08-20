@@ -152,7 +152,7 @@
     font-size: 14px;
 }
 
-#scatter-trend-info text{
+.scatter-trend-info text{
     text-anchor: start;
     font-size: 10px;
 }

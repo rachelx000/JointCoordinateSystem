@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { drawSpider, sortPolygonsByDepVarVal, plotScatterForArea, plotScatterForAreaCorr } from "../Comparison.js";
+import {
+    drawSpider,
+    sortPolygonsByDepVarVal,
+    plotScatterForArea,
+    plotScatterForAreaCorr,
+    computeTrendForArea,
+    computeTrendForAreaCorr
+} from "../Comparison.js";
+import { generatePathFromQuadReg } from "../AnalysisPanel/ShapeAnalysis.js";
 import { fitEquationForArea } from "../Comparison.js";
-
-function ScatterPlot() {
-
-}
 
 export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selectedDV, colorScheme,
                                        onColorBlockMode, onOriginMode, nowOrigin, onInspectMode, inspectedIndex, setInspectedIndex,
@@ -18,7 +22,9 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
     const [spiderOrigin, setSpiderOrigin] = useState(null);
     const spiderRef = useRef(null);
     const scatterplotRefs = useRef({});
+    const [fitComplete, setFitComplete] = useState({"jcs": false, "spider": false});
     const [fittedEquationsForArea, setFittedEquationsForArea] = useState({});
+    const [scatterTrends, setScatterTrends] = useState({});
 
     const scatterPlots = [
         {   id: "jcs-area", class: "jcs", title: "(JCS) Area", polygons: nowJCSPolygonData, polygonOrder: jcsOrder  },
@@ -26,9 +32,20 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
         {   id: "jcs-area-corr", class: "jcs", title: "(JCS) Area vs. "+selectedDV, polygons: nowJCSPolygonData, polygonOrder: jcsOrder  },
         {   id: "spider-area-corr", class: "spider", title: "(Spider) Area vs. "+selectedDV, polygons: spiderPolygons, polygonOrder: spiderOrder }
     ]
+    const [showTrend, setShowTrend] = useState({
+        "jcs-area": false, "spider-area": false, "jcs-area-corr": false, "spider-area-corr": false
+    });
+
+    function handleClickShowTrend(metric_id) {
+        setShowTrend(prev => ({
+            ...prev,
+            [metric_id]: !showTrend[metric_id]
+        }));
+    }
 
     useEffect(() => {
         if ( sidePanelRenderReady && data !== null ) {
+            setFitComplete({"jcs": false, "spider": false});
             spiderRef.current = drawSpider( data, selectedIVs, selectedDV, colorScheme,
                 spiderPolygons, setSpiderPolygons, setSpiderOrigin, onColorBlockMode, onOriginMode, inspectedIndex );
         }
@@ -41,7 +58,16 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                 ...prev,
                 ["jcs"]: fitEquationForArea( selectedIVs, data, nowJCSPolygonData )
             }));
+            setScatterTrends(prev => ({
+                ...prev,
+                ["jcs-area"]: computeTrendForArea( nowJCSPolygonData ),
+                ["jcs-area-corr"]: computeTrendForAreaCorr( nowJCSPolygonData )
+            }));
             setJCSOrder(currJCSOrder);
+            setFitComplete(prev => ({
+                ...prev,
+                ["jcs"]: true
+            }));
         }
     }, [nowJCSPolygonData]);
 
@@ -52,6 +78,15 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
             setFittedEquationsForArea(prev => ({
                 ...prev,
                 ["spider"]: fitEquationForArea( selectedIVs, data, spiderPolygons )
+            }));
+            setScatterTrends(prev => ({
+                ...prev,
+                ["spider-area"]: computeTrendForArea( spiderPolygons ),
+                ["spider-area-corr"]: computeTrendForAreaCorr( spiderPolygons )
+            }));
+            setFitComplete(prev => ({
+                ...prev,
+                ["spider"]: true
             }));
         }
     }, [spiderPolygons]);
@@ -74,6 +109,17 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
             });
         }
     }, [jcsOrder, spiderOrder]);
+
+    useEffect(() => {
+        if ( fitComplete.spider && fitComplete.jcs ) {
+            scatterPlots.forEach(scatter => {
+                let curr_scatter = scatterplotRefs.current[scatter.id];
+                let curr_trend = scatterTrends[scatter.id];
+                generatePathFromQuadReg(scatter.id, curr_trend.points, curr_scatter.xScale, curr_scatter.yScale);
+            })
+        }
+
+    }, [fitComplete])
 
     useEffect(() => {
         if ( scatterplotRefs.current ) {
@@ -183,6 +229,8 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                                 <div id={scatter.id+"-equation" } className={ "fitted-equations"+ (fittedEquationsForArea[scatter.class] ? "" : " no-hover" )}>
                                     { fittedEquationsForArea[scatter.class] }
                                 </div>
+                                <img className="show-trend-icon" src={`${import.meta.env.BASE_URL}assets/trend.png`}
+                                     style={{opacity: showTrend[scatter.id] ? "0.8": "0.4"}} onClick={ () => handleClickShowTrend(scatter.id) } />
                                 <svg>
                                     <rect className={"scatterplot-canvas "+scatter.id+"-scatterplot"}></rect>
                                     <g>
@@ -191,6 +239,11 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                                     </g>
                                     <g id={scatter.id+"-data"} className={scatter.id+"-scatterplot"}/>
                                     <line id={scatter.id+"-origin"} className={scatter.id+"-scatterplot"}/>
+                                    <g id={scatter.id+"-trend-info"} className="scatter-trend-info" style={{opacity: showTrend[scatter.id] ? "1.0" : "0"}}>
+                                        <text id="equation" transform="translate(51, 8)">{scatterTrends[scatter.id] && scatterTrends[scatter.id].equation}</text>
+                                        <text id="r2" transform="translate(51, 23)">{scatterTrends[scatter.id] && "R^2 = "+scatterTrends[scatter.id].r2}</text>
+                                        <path id="line" className={scatter.id+"-scatterplot"}></path>
+                                    </g>
                                 </svg>
                             </div>
                         </div>

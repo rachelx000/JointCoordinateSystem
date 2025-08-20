@@ -324,7 +324,7 @@ export function computeTrendForMetric( metric_id, aligned_polygons ) {
     if (isNaN(r2) || r2 === -Infinity || r2 === Infinity) {
         r2 = "NA";
     }
-    return { coefficients: poly_reg_result.equation, points: poly_reg_result.points, equation: poly_reg_result.string, r2: r2 };
+    return { points: poly_reg_result.points, equation: poly_reg_result.string, r2: r2 };
 }
 
 export function computeTrendForCorr( metric_id, aligned_polygons ) {
@@ -356,10 +356,10 @@ export function computeTrendForCorr( metric_id, aligned_polygons ) {
     }
     let points = average.map(avg => [avg[0], fittedTrend(avg[0])]);
 
-    return { coefficients: poly_reg_result.equation, points: points, equation: poly_reg_result.string, r2: r2 };
+    return { points: points, equation: poly_reg_result.string, r2: r2 };
 }
 
-export function generatePathFromQuadReg( metric_id, points, x_scale, y_scale ) {
+export function generatePathFromQuadReg( id, points, x_scale, y_scale ) {
     let path_points = [];
     for (let i = 0; i < points.length; i++) {
         let curr_p = points[i];
@@ -368,7 +368,7 @@ export function generatePathFromQuadReg( metric_id, points, x_scale, y_scale ) {
     path_points.sort((a, b) => a[0] - b[0]);
     let line = d3.line().curve(d3.curveBasis);
     let path = line(path_points);
-    d3.select("#"+metric_id+" #scatter-trend-line")
+    d3.select("#"+id+"-trend-info #line")
         .attr("d", path)
         .style("fill", "none")
         .style("stroke", "#000")

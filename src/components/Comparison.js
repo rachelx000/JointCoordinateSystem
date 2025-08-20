@@ -7,6 +7,7 @@ import {isEqual} from "lodash";
 import {project_4D_to_3D} from "./GeometryVis.js";
 import MLR from "ml-regression-multivariate-linear";
 import {formatMLREquation} from "./AnalysisPanel/ShapeAnalysis.js";
+import regression from "regression";
 
 
 const scatter_width = 255, scatter_height = 105;
@@ -525,6 +526,8 @@ export function plotScatterForArea( scatter_id, polygons, sorted_polygon_order, 
     d3.select("#"+scatter_id+" svg").call(scatter_zoom);
 
     return {
+        xScale: x_scale,
+        yScale: y_scale,
         updateInspectedIndex: (new_index) => {
             inspected_index = new_index;
             updateView();
@@ -668,6 +671,8 @@ export function plotScatterForAreaCorr( scatter_id, now_DV, data, polygons, sort
     d3.select("#"+scatter_id+" svg").call(scatter_zoom);
 
     return {
+        xScale: x_scale,
+        yScale: y_scale,
         updateInspectedIndex: (new_index) => {
             inspected_index = new_index;
             updateView();
@@ -683,6 +688,53 @@ export function plotScatterForAreaCorr( scatter_id, now_DV, data, polygons, sort
                 .call(scatter_zoom.transform, d3.zoomIdentity);
         },
     };
+}
+
+export function computeTrendForArea( polygons ) {
+    let scatter_data = [];
+    for (let i = 0; i < polygons.length; i++) {
+        let curr_polygon = polygons[i];
+        scatter_data.push([i, curr_polygon.area]);
+    }
+
+    let poly_reg_result = regression.polynomial(scatter_data, { order: 2 });
+    let r2 = poly_reg_result.r2;
+    if (isNaN(r2) || r2 === -Infinity || r2 === Infinity) {
+        r2 = "NA";
+    }
+    return { points: poly_reg_result.points, equation: poly_reg_result.string, r2: r2 };
+}
+
+export function computeTrendForAreaCorr( polygons ) {
+    let scatter_data = [];
+    for (let i = 0; i < polygons.length; i++) {
+        let curr_polygon = polygons[i];
+        scatter_data.push([curr_polygon.depVal, curr_polygon.area]);
+    }
+
+    // preprocess to collapse duplicates by x
+    let grouped = {};
+    scatter_data.forEach(([x, y]) => {
+        if (!grouped[x]) grouped[x] = [];
+        grouped[x].push(y);
+    });
+    let average = Object.entries(grouped).map(([x, ys]) => {
+        const avg_y = ys.reduce((a, b) => a + b, 0) / ys.length;
+        return [Number(x), avg_y];
+    });
+
+    let poly_reg_result = regression.polynomial(average, { order: 2 });
+    let r2 = poly_reg_result.r2;
+    if (isNaN(r2) || r2 === -Infinity || r2 === Infinity) {
+        r2 = "NA";
+    }
+
+    function fittedTrend(x) {
+        return poly_reg_result.equation[0] * x ** 2 + poly_reg_result.equation[1] * x + poly_reg_result.equation[2];
+    }
+    let points = average.map(avg => [avg[0], fittedTrend(avg[0])]);
+
+    return { points: points, equation: poly_reg_result.string, r2: r2 };
 }
 
 const axis_points = [

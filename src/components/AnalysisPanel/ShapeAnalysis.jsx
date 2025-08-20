@@ -55,10 +55,10 @@ export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scat
                             </g>
                             <g id={shape_metric.id+"-data"} className={shape_metric.id+"-scatterplot"}/>
                             <line id={shape_metric.id+"-origin"} className={shape_metric.id+"-scatterplot"}/>
-                            <g id="scatter-trend-info" style={{opacity: showTrend[shape_metric.id] ? "1.0" : "0"}}>
-                                <text id="scatter-trend-equation" transform="translate(51, 8)">{scatterTrends[shape_metric.id] && scatterTrends[shape_metric.id].equation}</text>
-                                <text id="scatter-trend-r2" transform="translate(51, 23)">{scatterTrends[shape_metric.id] && "R^2 = "+scatterTrends[shape_metric.id].r2}</text>
-                                <path id="scatter-trend-line" className={shape_metric.id+"-scatterplot"}></path>
+                            <g id={shape_metric.id+"-trend-info"} className="scatter-trend-info" style={{opacity: showTrend[shape_metric.id] ? "1.0" : "0"}}>
+                                <text id="equation" transform="translate(51, 8)">{scatterTrends[shape_metric.id] && scatterTrends[shape_metric.id].equation}</text>
+                                <text id="r2" transform="translate(51, 23)">{scatterTrends[shape_metric.id] && "R^2 = "+scatterTrends[shape_metric.id].r2}</text>
+                                <path id="line" className={shape_metric.id+"-scatterplot"}></path>
                             </g>
                         </svg>
                     </div>
