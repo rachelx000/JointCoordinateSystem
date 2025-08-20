@@ -23,6 +23,7 @@
     "plotly.js-dist": "^3.0.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "regression": "^2.0.1",
     "three": "^0.176.0"
   },
   "devDependencies": {

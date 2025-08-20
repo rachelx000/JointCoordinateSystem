@@ -104,7 +104,8 @@ export default function App() {
                 return <AnalysisPanel data={ data } selectedIVs={ selectedIVs } selectedDV={ selectedDV } nowPolygonData={ nowPolygonData }
                                       nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
                                       onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
-                                      inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex } />
+                                      inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }
+                                      sidePanelRenderReady={ sidePanelRenderReady } />
             case 'compare':
                 return <ComparisonPanel data={ data } nowPolygonData={ nowPolygonData } selectedIVs={ selectedIVs } selectedDV= { selectedDV }
                                         colorScheme={ selectedColorScheme } onColorBlockMode = { onColorBlockMode }

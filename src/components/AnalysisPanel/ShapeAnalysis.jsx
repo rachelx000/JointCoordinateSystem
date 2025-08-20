@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 // eslint-disable-next-line react-refresh/only-export-components
 export const shape_metrics = [
     { id: "area", title: "Area" },
@@ -7,7 +9,18 @@ export const shape_metrics = [
 ];
 
 export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scatterMode, setScatterMode, selectedDV,
-                                          scatterplotRefs, fittedEquations }) {
+                                          scatterplotRefs, fittedEquations, scatterTrends }) {
+    const [showTrend, setShowTrend] = useState({
+        "area": false, "compactness": false, "diagonal-ratio": false, "angular-regularity": false
+    });
+
+    function handleClickShowTrend(metric_id) {
+        setShowTrend(prev => ({
+            ...prev,
+            [metric_id]: !showTrend[metric_id]
+        }));
+    }
+
     function handleChangeScatter(e) {
         setScatterMode(e.target.value);
     }
@@ -30,6 +43,8 @@ export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scat
                                 { fittedEquations[shape_metric.id] }
                             </div>
                         </div>
+                        <img className="show-trend-icon" src={`${import.meta.env.BASE_URL}assets/trend.png`}
+                             style={{opacity: showTrend[shape_metric.id] ? "0.8": "0.4"}} onClick={ () => handleClickShowTrend(shape_metric.id) } />
                         <svg>
                             <rect className={"scatterplot-canvas "+shape_metric.id+"-scatterplot"}></rect>
                             <g>
@@ -40,6 +55,11 @@ export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scat
                             </g>
                             <g id={shape_metric.id+"-data"} className={shape_metric.id+"-scatterplot"}/>
                             <line id={shape_metric.id+"-origin"} className={shape_metric.id+"-scatterplot"}/>
+                            <g id="scatter-trend-info" style={{opacity: showTrend[shape_metric.id] ? "1.0" : "0"}}>
+                                <text id="scatter-trend-equation" transform="translate(51, 8)">{scatterTrends[shape_metric.id] && scatterTrends[shape_metric.id].equation}</text>
+                                <text id="scatter-trend-r2" transform="translate(51, 23)">{scatterTrends[shape_metric.id] && "R^2 = "+scatterTrends[shape_metric.id].r2}</text>
+                                <path id="scatter-trend-line" className={shape_metric.id+"-scatterplot"}></path>
+                            </g>
                         </svg>
                     </div>
                 </div>

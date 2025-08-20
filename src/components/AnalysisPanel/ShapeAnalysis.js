@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import MLR from "ml-regression-multivariate-linear";
+import regression from 'regression';
 import { unpack, get_axis_range } from "../JCS.js";
 import { sortPolygonsByDepVarVal } from "../Comparison.js";
 
@@ -67,6 +68,9 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
                 }
             });
 
+        d3.select("#"+metric_id+" #scatter-trend-line")
+            .style('stroke-width', 1.0 / zoom_k );
+
         if (aligned_origin_data) {
             d3.select('#' + metric_id + '-origin')
                 .attr('stroke-width', 2 / zoom_k);
@@ -125,6 +129,8 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
     d3.select("#"+metric_id+" svg").call(scatter_zoom);
 
     return {
+        xScale: x_scale,
+        yScale: y_scale,
         updateInspectedIndex: (new_index) => {
             inspected_index = new_index;
             updateView();
@@ -195,7 +201,6 @@ export function plotCorrelation( metric_id, now_DV, data, aligned_polygons, alig
         .style('fill', function(d){ return aligned_polygons[d].color; });
 
     function updateView() {
-        console.log(inspected_index)
         d3.select('#' + metric_id + '-data')
             .selectAll('circle')
             .attr('r', d => (aligned_polygons[d].id === inspected_index) ? (5 / zoom_k) : (4 / zoom_k))
@@ -211,6 +216,9 @@ export function plotCorrelation( metric_id, now_DV, data, aligned_polygons, alig
                     this.parentNode.appendChild(this);
                 }
             });
+
+        d3.select("#"+metric_id+" #scatter-trend-line")
+            .style('stroke-width', 1.0 / zoom_k );
     }
 
     function setInspect() {
@@ -247,6 +255,8 @@ export function plotCorrelation( metric_id, now_DV, data, aligned_polygons, alig
     d3.select("#"+metric_id+" svg").call(scatter_zoom);
 
     return {
+        xScale: x_scale,
+        yScale: y_scale,
         updateInspectedIndex: (new_index) => {
             inspected_index = new_index;
             updateView();
@@ -300,4 +310,67 @@ export function fitEquationForMetric( metric_id, curr_IVs, data, aligned_polygon
 
     let mlr = new MLR(indep_data, dep_data);
     return formatMLREquation(mlr, curr_IVs, metric_id);
+}
+
+export function computeTrendForMetric( metric_id, aligned_polygons ) {
+    let scatter_data = [];
+    for (let i = 0; i < aligned_polygons.length; i++) {
+        let curr_polygon = aligned_polygons[i];
+        scatter_data.push([i, curr_polygon.metrics[metric_id]]);
+    }
+
+    let poly_reg_result = regression.polynomial(scatter_data, { order: 2 });
+    let r2 = poly_reg_result.r2;
+    if (isNaN(r2) || r2 === -Infinity || r2 === Infinity) {
+        r2 = "NA";
+    }
+    return { coefficients: poly_reg_result.equation, points: poly_reg_result.points, equation: poly_reg_result.string, r2: r2 };
+}
+
+export function computeTrendForCorr( metric_id, aligned_polygons ) {
+    let scatter_data = [];
+    for (let i = 0; i < aligned_polygons.length; i++) {
+        let curr_polygon = aligned_polygons[i];
+        scatter_data.push([curr_polygon.depVal, curr_polygon.metrics[metric_id]]);
+    }
+
+    // preprocess to collapse duplicates by x
+    let grouped = {};
+    scatter_data.forEach(([x, y]) => {
+        if (!grouped[x]) grouped[x] = [];
+        grouped[x].push(y);
+    });
+    let average = Object.entries(grouped).map(([x, ys]) => {
+        const avg_y = ys.reduce((a, b) => a + b, 0) / ys.length;
+        return [Number(x), avg_y];
+    });
+
+    let poly_reg_result = regression.polynomial(average, { order: 2 });
+    let r2 = poly_reg_result.r2;
+    if (isNaN(r2) || r2 === -Infinity || r2 === Infinity) {
+        r2 = "NA";
+    }
+
+    function fittedTrend(x) {
+        return poly_reg_result.equation[0] * x ** 2 + poly_reg_result.equation[1] * x + poly_reg_result.equation[2];
+    }
+    let points = average.map(avg => [avg[0], fittedTrend(avg[0])]);
+
+    return { coefficients: poly_reg_result.equation, points: points, equation: poly_reg_result.string, r2: r2 };
+}
+
+export function generatePathFromQuadReg( metric_id, points, x_scale, y_scale ) {
+    let path_points = [];
+    for (let i = 0; i < points.length; i++) {
+        let curr_p = points[i];
+        path_points.push([x_scale(curr_p[0]), y_scale(curr_p[1])]);
+    }
+    path_points.sort((a, b) => a[0] - b[0]);
+    let line = d3.line().curve(d3.curveBasis);
+    let path = line(path_points);
+    d3.select("#"+metric_id+" #scatter-trend-line")
+        .attr("d", path)
+        .style("fill", "none")
+        .style("stroke", "#000")
+        .style("stroke-width", 1);
 }

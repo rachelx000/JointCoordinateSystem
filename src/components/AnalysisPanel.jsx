@@ -3,18 +3,30 @@ import "../css/AnalysisPanel.css";
 import PolygonAlignment from "./AnalysisPanel/PolygonAlignment.jsx";
 import ShapeAnalysis from "./AnalysisPanel/ShapeAnalysis.jsx";
 import { alignPolygons, plotPolygonAlignment, computeAlignedPolygonOrder } from "./AnalysisPanel/PolygonAlignment.js";
-import { plotShapeMetric, plotCorrelation, fitEquationForMetric } from "./AnalysisPanel/ShapeAnalysis.js";
+import {
+    plotShapeMetric,
+    plotCorrelation,
+    fitEquationForMetric,
+    computeTrendForMetric,
+    computeTrendForCorr,
+    generatePathFromQuadReg
+} from "./AnalysisPanel/ShapeAnalysis.js";
 import { shape_metrics } from "./AnalysisPanel/ShapeAnalysis.jsx";
 import { isEqual } from "lodash";
 
-export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolygonData, nowOrigin, onShowCentroids, onColorBlockMode, onInspectMode, inspectedIndex, setInspectedIndex }) {
+export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolygonData, nowOrigin, onShowCentroids,
+                                           onColorBlockMode, onInspectMode, inspectedIndex, setInspectedIndex,
+                                           sidePanelRenderReady }) {
     const [alignMode, setAlignMode] = useState({mode: 'point', index: 0});
     const [alignedPolygonData, setAlignedPolygonData] = useState(null);
     const [alignedPolygonOrder, setAlignedPolygonOrder] = useState(null);
     const [alignedOriginData, setAlignedOriginData] = useState(null);
     const scatterplotRefs = useRef({});
+    const [scatterComplete, setScatterComplete] = useState(false);
     const alignmentRef = useRef({});
     const [fittedEquations, setFittedEquations] = useState({});
+    const [scatterTrends, setScatterTrends] = useState({});
+    const [fitComplete, setFitComplete] = useState(false);
     const [scatterMode, setScatterMode] = useState("alignment");
 
     function handleAlignModeChange(e) {
@@ -24,6 +36,7 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
     }
 
     useEffect(() => {
+        setScatterComplete(false);
         if (nowPolygonData !== null) {
             let aligned_polygons = alignPolygons( nowPolygonData, alignMode );
             setAlignedPolygonData( aligned_polygons );
@@ -33,7 +46,7 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
     }, [nowPolygonData, alignMode]);
 
     useEffect(() => {
-        if (alignedPolygonData !== null) {
+        if (sidePanelRenderReady && alignedPolygonData !== null) {
             let plot = plotPolygonAlignment( alignedPolygonData, nowOrigin, onShowCentroids, onColorBlockMode,
                 alignMode, onInspectMode, null, setInspectedIndex, alignedOriginData, setAlignedOriginData );
             plot.resetZoomPan();
@@ -42,7 +55,7 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
             if (!isEqual(aligned_polygon_order, alignedPolygonOrder))
                 setAlignedPolygonOrder(aligned_polygon_order);
         }
-    }, [alignedPolygonData]);
+    }, [sidePanelRenderReady, alignedPolygonData]);
 
     useEffect(() => {
         if (alignedPolygonData !== null) {
@@ -88,26 +101,46 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
     }, [nowOrigin, alignedOriginData]);
 
     useEffect(() => {
-        if (alignedPolygonData !== null && alignedPolygonOrder !== null && alignedPolygonOrder.length === alignedPolygonData.length) {
+        setScatterComplete(false);
+    }, [scatterMode])
+    useEffect(() => {
+        if ( sidePanelRenderReady && alignedPolygonData !== null && alignedPolygonOrder !== null && alignedPolygonOrder.length === alignedPolygonData.length
+            && !scatterComplete ) {
             shape_metrics.forEach( (metric) => {
                 let plot = (scatterMode === "alignment") ? plotShapeMetric( metric.id, alignedPolygonData, alignedPolygonOrder, onInspectMode, null, setInspectedIndex, alignedOriginData ) :
                     plotCorrelation( metric.id, selectedDV, data, alignedPolygonData, onInspectMode, onInspectMode, null, setInspectedIndex )
                 plot.resetZoomPan();
                 scatterplotRefs.current[metric.id] = plot;
             });
+            setScatterComplete(true);
+            setFitComplete(false);
         }
-    }, [scatterMode, alignedPolygonData, alignedPolygonOrder]);
+    }, [sidePanelRenderReady, scatterComplete, alignedPolygonData, alignedPolygonOrder]);
 
     useEffect(() => {
-        if ( alignedPolygonData !== null ) {
+        if ( scatterComplete ) {
             shape_metrics.forEach( (metric) => {
                 setFittedEquations(prev => ({
                     ...prev,
                     [metric.id]: fitEquationForMetric( metric.id, selectedIVs, data, alignedPolygonData )
                 }));
+                setScatterTrends( prev => ({
+                    ...prev,
+                    [metric.id]: (scatterMode === "alignment") ? computeTrendForMetric( metric.id, alignedPolygonData )
+                        : computeTrendForCorr( metric.id, alignedPolygonData )
+                }));
+            });
+            setFitComplete(true);
+        }
+    }, [scatterComplete]);
+
+    useEffect(() => {
+        if ( fitComplete ) {
+            shape_metrics.forEach( (metric) => {
+                generatePathFromQuadReg( metric.id, scatterTrends[metric.id].points, scatterplotRefs.current[metric.id].xScale, scatterplotRefs.current[metric.id].yScale )
             });
         }
-    }, [alignedPolygonData]);
+    }, [fitComplete])
 
     useEffect(() => {
         Object.values(scatterplotRefs.current).forEach(plot => {
@@ -124,7 +157,7 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
                                   alignmentRef={ alignmentRef } />
                 <ShapeAnalysis inspectedIndex={ inspectedIndex } alignedPolygonData={ alignedPolygonData }
                                scatterMode={scatterMode} setScatterMode={ setScatterMode } selectedDV={ selectedDV }
-                               scatterplotRefs={ scatterplotRefs } fittedEquations={ fittedEquations }/>
+                               scatterplotRefs={ scatterplotRefs } fittedEquations={ fittedEquations } scatterTrends={ scatterTrends }/>
             </div>
         </>
     );
