@@ -19,11 +19,10 @@ export default function JCS({ size = 400, data, setData, mode, geomMode, setGeom
                                 selectedDV, setSelectedDV, ifRender, setIfRender, selectedColorScheme, setSelectedColorScheme,
                                 nowPolygonData, setPolygonData, onOriginMode, setOriginMode, nowOrigin, setOrigin, onShowCentroids, handleShowCentroids,
                                 onInspectMode, handleChangeInspectMode, onColorBlockMode, handleChangeColorBlockMode,
-                                inspectedIndex, setInspectedIndex, setSidePanelRenderReady }) {
+                                inspectedIndex, setInspectedIndex, setSidePanelRenderReady, disableControl, setDisableControl }) {
     const [exampleDataPath, setExampleDataPath] = useState(`${import.meta.env.BASE_URL}data/basics/ladder_pcp.csv`);
     const [uploadedData, setUploadedData] = useState(null);
     const [onShowPCC, setShowPCC] = useState(false);
-    const [disableControl, setDisableControl] = useState(true);
 
     /* useEffect(() => {
         console.log("Disable Control:", disableControl);

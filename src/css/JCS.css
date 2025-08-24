@@ -59,6 +59,14 @@
     height: 30px;
 }
 
+#save-JCS-button {
+    position: absolute;
+    top: 155px;
+    right: 0px;
+    width: 30px;
+    height: 30px;
+}
+
 #joint-coordinate h3{
     margin-bottom: 0;
     margin-top: 10px;
@@ -71,6 +79,11 @@
 
 .axis-title{
     font-weight: bold;
+}
+
+#joint-coordinate-container {
+    padding: 0;
+    margin: 0;
 }
 
 #joint-coordinate-canvas {

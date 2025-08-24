@@ -1,5 +1,5 @@
 #analysis-panel {
-    padding-top: 20px;
+    padding-top: 30px;
     height: calc(100vh - 30px);
     width: calc(100vw - 740px);
     min-width: 600px;
@@ -54,6 +54,20 @@
     opacity: 80%;
 }
 
+#alignment-save-button {
+    position: absolute;
+    top: 31px;
+    right: -10px;
+    width: 30px;
+    height: 30px;
+    opacity: 80%;
+}
+
+#alignment-canvas-container {
+    margin: 0;
+    padding: 0;
+}
+
 #shape-analysis {
     position: relative;
     background-color: #ffffff;
@@ -89,7 +103,7 @@
 .scatterplot-canvas {
     width: 330px;
     height: 140px;
-    transform: translate(0px, -5px);
+    transform: translate(0px, -7.5px);
     fill: #FFF;
 }
 
@@ -97,6 +111,11 @@
     position: relative;
     width: 330px;
     height: 140px;
+}
+
+.scatter-canvas-container {
+    margin: 0;
+    padding: 0;
 }
 
 .scatter-reset-button {
@@ -124,6 +143,15 @@
     width: 22px;
     height: 22px;
     opacity: 80%;
+}
+
+.save-scatter-button {
+    position: absolute;
+    top: 69px;
+    right: 0;
+    width: 22px;
+    height: 22px;
+    opacity: 80%
 }
 
 .fitted-equations {

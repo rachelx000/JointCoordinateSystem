@@ -9,10 +9,11 @@ import {
 } from "../Comparison.js";
 import { generatePathFromQuadReg } from "../AnalysisPanel/ShapeAnalysis.js";
 import { fitEquationForArea } from "../Comparison.js";
+import {save_as_png} from "../JCS.js";
 
 export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selectedDV, colorScheme,
                                        onColorBlockMode, onOriginMode, nowOrigin, onInspectMode, inspectedIndex, setInspectedIndex,
-                                       sidePanelRenderReady }) {
+                                       sidePanelRenderReady, disableControl }) {
 
     const [jcsOrder, setJCSOrder] = useState(null);
     const [spiderPolygons, setSpiderPolygons] = useState(null);
@@ -190,31 +191,37 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
         <div id="spider">
             <div id="spider-main">
                 <h4>Spider Plot / Radar Chart</h4>
-                <svg id="spider-canvas">
-                    <g id="spider-grid"></g>
-                    <g id="spider-axes">
-                        <g id="left-axis">
-                            <text id="left-axis-title"></text>
+                <img id="save-spider-button" src={`${import.meta.env.BASE_URL}assets/save.png`}
+                     style={{opacity: disableControl ? "0.4": "0.8"}}
+                     onClick={ disableControl ? undefined : () => save_as_png("spider-canvas-container", "spider", 3) }
+                     alt={"Save button"} title={"Save Spider"}/>
+                <div id="spider-canvas-container">
+                    <svg id="spider-canvas">
+                        <g id="spider-grid"></g>
+                        <g id="spider-axes">
+                            <g id="left-axis">
+                                <text id="left-axis-title"></text>
+                            </g>
+                            <g id="right-axis">
+                                <text id="right-axis-title"></text>
+                            </g>
+                            <g id="top-axis">
+                                <text id="top-axis-title"></text>
+                            </g>
+                            <g id="bottom-axis">
+                                <text id="bottom-axis-title"></text>
+                            </g>
                         </g>
-                        <g id="right-axis">
-                            <text id="right-axis-title"></text>
+                        <g id="spider-colorscale">
+                            <g id="spider-colorscale-content"></g>
+                            <g id="spider-colorscale-axis">
+                                <text></text>
+                            </g>
                         </g>
-                        <g id="top-axis">
-                            <text id="top-axis-title"></text>
-                        </g>
-                        <g id="bottom-axis">
-                            <text id="bottom-axis-title"></text>
-                        </g>
-                    </g>
-                    <g id="spider-colorscale">
-                        <g id="spider-colorscale-content"></g>
-                        <g id="spider-colorscale-axis">
-                            <text></text>
-                        </g>
-                    </g>
-                    <g id="spider-polygons"></g>
-                    <polygon id="spider-origin"></polygon>
-                </svg>
+                        <g id="spider-polygons"></g>
+                        <polygon id="spider-origin"></polygon>
+                    </svg>
+                </div>
             </div>
             <div id="area-scatterplots">
                     { scatterPlots.map(scatter => (
@@ -222,27 +229,38 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                             <h4 className="scatter-title">{ scatter.id.includes("corr") ? scatter.title
                                 : ( inspectedIndex === null ? scatter.title : scatter.title+" = "+scatter.polygons[inspectedIndex].area )}</h4>
                             <div id={scatter.id} className="scatter-container">
-                                <img className="scatter-reset-button" src={`${import.meta.env.BASE_URL}assets/reset.png`} onClick={() => { scatterplotRefs.current[scatter.id]?.resetZoomPan(); }} />
-                                <img className="show-equation-icon" src={`${import.meta.env.BASE_URL}assets/equation.png`} />
-                                <div id={scatter.id+"-equation" } className={ "fitted-equations"+ (fittedEquationsForArea[scatter.class] ? "" : " no-hover" )}>
+                                <img className="scatter-reset-button" src={`${import.meta.env.BASE_URL}assets/reset.png`}
+                                     onClick={ disableControl ? undefined : () => { scatterplotRefs.current[scatter.id]?.resetZoomPan(); }}
+                                     style={{opacity: disableControl ? "0.4": "0.8"}} alt={"Reset button"} title={"Reset Canvas"} />
+                                <img className="show-equation-icon" src={`${import.meta.env.BASE_URL}assets/equation.png`}
+                                     style={{opacity: disableControl ? "0.4": "0.8"}} alt={"Fitted equation button"} title={"Show Fitted Equation"} />
+                                <div id={scatter.id+"-equation" } className={ "fitted-equations"+ (fittedEquationsForArea[scatter.class] && !disableControl ? "" : " no-hover" )}>
                                     { fittedEquationsForArea[scatter.class] }
                                 </div>
                                 <img className="show-trend-icon" src={`${import.meta.env.BASE_URL}assets/trend.png`}
-                                     style={{opacity: showTrend[scatter.id] ? "0.8": "0.4"}} onClick={ () => handleClickShowTrend(scatter.id) } />
-                                <svg>
-                                    <rect className={"scatterplot-canvas "+scatter.id+"-scatterplot"}></rect>
-                                    <g>
-                                        <g id={scatter.id+"-x-axis"}/>
-                                        <g id={scatter.id+"-y-axis"}/>
-                                    </g>
-                                    <g id={scatter.id+"-data"} className={scatter.id+"-scatterplot"}/>
-                                    <line id={scatter.id+"-origin"} className={scatter.id+"-scatterplot"}/>
-                                    <g id={scatter.id+"-trend-info"} className="scatter-trend-info" style={{opacity: showTrend[scatter.id] ? "1.0" : "0"}}>
-                                        <text id="equation" transform="translate(51, 8)">{scatterTrends[scatter.id] && scatterTrends[scatter.id].equation}</text>
-                                        <text id="r2" transform="translate(51, 23)">{scatterTrends[scatter.id] && "R^2 = "+scatterTrends[scatter.id].r2}</text>
-                                        <path id="line" className={scatter.id+"-scatterplot"}></path>
-                                    </g>
-                                </svg>
+                                     style={{opacity: showTrend[scatter.id]&&!disableControl ? "0.8": "0.4"}}
+                                     onClick={ disableControl ? undefined : () => handleClickShowTrend(scatter.id) }
+                                     alt={"Line trend button"} title={"Show Fitted Line"} />
+                                <img className="save-scatter-button" src={`${import.meta.env.BASE_URL}assets/save.png`}
+                                     style={{opacity: disableControl ? "0.4": "0.8"}}
+                                     onClick={ disableControl ? undefined : () => save_as_png(scatter.id+"-scatter-canvas-container", scatter.id+"-scatter", 4) }
+                                     alt={"Save scatter button"} title={"Save Scatterplot"}/>
+                                <div id={scatter.id+"-scatter-canvas-container"} className="scatter-canvas-container">
+                                    <svg>
+                                        <rect className={"scatterplot-canvas "+scatter.id+"-scatterplot"}></rect>
+                                        <g>
+                                            <g id={scatter.id+"-x-axis"}/>
+                                            <g id={scatter.id+"-y-axis"}/>
+                                        </g>
+                                        <g id={scatter.id+"-data"} className={scatter.id+"-scatterplot"}/>
+                                        <line id={scatter.id+"-origin"} className={scatter.id+"-scatterplot"}/>
+                                        <g id={scatter.id+"-trend-info"} className="scatter-trend-info" style={{opacity: showTrend[scatter.id] ? "1.0" : "0"}}>
+                                            <text id="equation" transform="translate(51, 8)">{scatterTrends[scatter.id] && scatterTrends[scatter.id].equation}</text>
+                                            <text id="r2" transform="translate(51, 23)">{scatterTrends[scatter.id] && "R^2 = "+scatterTrends[scatter.id].r2}</text>
+                                            <path id="line" className={scatter.id+"-scatterplot"}></path>
+                                        </g>
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     ))}

@@ -35,6 +35,8 @@ export default function App() {
     const [selectedDV, setSelectedDV] = useState(null);
     const [ifRender, setIfRender] = useState(false);
     const [selectedColorScheme, setSelectedColorScheme] = useState(['Blue', 'Red']);
+    const [disableControl, setDisableControl] = useState(true);
+
 
     function handleChangeMode(selectedMode) {
         setMode(selectedMode);
@@ -78,11 +80,11 @@ export default function App() {
         }
     }
 
-    useEffect(() => {
+    /* useEffect(() => {
         console.log("Current geom mode changed to: ", geomMode);
     }, [geomMode]);
 
-    /* useEffect(() => {
+    useEffect(() => {
         console.log("Rendering mode changed to", mode);
     }, [mode]);
 
@@ -105,13 +107,13 @@ export default function App() {
                                       nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
                                       onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
                                       inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }
-                                      sidePanelRenderReady={ sidePanelRenderReady } />
+                                      sidePanelRenderReady={ sidePanelRenderReady } disableControl={ disableControl }/>
             case 'compare':
                 return <ComparisonPanel data={ data } nowPolygonData={ nowPolygonData } selectedIVs={ selectedIVs } selectedDV= { selectedDV }
                                         colorScheme={ selectedColorScheme } onColorBlockMode = { onColorBlockMode }
                                         onInspectMode={ onInspectMode } nowOrigin={ nowOrigin } onOriginMode={ onOriginMode }
                                         inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }
-                                        sidePanelRenderReady={ sidePanelRenderReady }/>
+                                        sidePanelRenderReady={ sidePanelRenderReady } disableControl={ disableControl }/>
             case 'render':
                 return <GeometryVis data={ data } nowPolygonData={ nowPolygonData } geomMode={ geomMode }
                                     meshRenderReady={ sidePanelRenderReady } inspectedIndex={ inspectedIndex } />
@@ -132,16 +134,19 @@ export default function App() {
                      onInspectMode={ onInspectMode } handleChangeInspectMode={ handleChangeInspectMode }
                      onColorBlockMode={ onColorBlockMode } handleChangeColorBlockMode={ handleChangeColorBlockMode }
                      inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }
-                     setSidePanelRenderReady={ setSidePanelRenderReady }/>
-                <div id="side-panel-navbar" className="no-text-select">
-                    <ul>
-                        {sidePanelNavItems[mode].map(item => (
-                            <li key={item.mode} className={ (item.mode === sidePanelMode) ? 'active' : '' }
-                                onClick = {() => setSidePanelMode(item.mode)}>{item.text}</li>
-                        ))}
-                    </ul>
+                     setSidePanelRenderReady={ setSidePanelRenderReady }
+                     disableControl={ disableControl } setDisableControl={ setDisableControl }/>
+                <div id="side-panel">
+                    <div id="side-panel-navbar" className="no-text-select">
+                        <ul>
+                            {sidePanelNavItems[mode].map(item => (
+                                <li key={item.mode} className={ (item.mode === sidePanelMode) ? 'active' : '' }
+                                    onClick = {() => setSidePanelMode(item.mode)}>{item.text}</li>
+                            ))}
+                        </ul>
+                    </div>
+                    { sidePanelSwitchMode(sidePanelMode) }
                 </div>
-                { sidePanelSwitchMode(sidePanelMode) }
             </main>
         </>
     );

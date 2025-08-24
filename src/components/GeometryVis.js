@@ -5,7 +5,6 @@ import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineSegmentsGeometry } from "three/addons";
-import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
 
 // TODO: Make resolution & projection params adjustable by the user
 
@@ -169,7 +168,7 @@ function generate_3D_mesh( paramFunc, data, polygon_data, resolution=10 ){
     wireframe_line_geometry.userData.wireframeEdges = wireframe_edges;
     const wireframe_material = new LineMaterial({
         color: 0xffffff,
-        linewidth: 1.5,
+        linewidth: 2.0,
         transparent: true,
         opacity: 0.6,
         depthTest: false,
@@ -437,7 +436,7 @@ function generate_4D_mesh_two_params( paramFunc, data, polygon_data, resolution=
     wireframe_line_geometry.userData.wireframeEdges = wireframe_edges;
     const wireframe_material = new LineMaterial({
         color: 0xffffff,
-        linewidth: 1.5,
+        linewidth: 2.0,
         transparent: true,
         opacity: 0.6,
         depthTest: false,
@@ -552,7 +551,7 @@ function generate_4D_mesh_three_params( paramFunc, data, polygon_data, resolutio
     wireframe_line_geometry.userData.wireframeEdges = wireframe_edges;
     const wireframe_material = new LineMaterial({
         color: 0xffffff,
-        linewidth: 1.5,
+        linewidth: 2.0,
         transparent: true,
         opacity: 0.6,
         depthTest: false,
@@ -688,7 +687,9 @@ export function initializeRender( container, camera_pos=[3, 4.5, 3], axis_length
     camera.lookAt(0, 0, 0);
 
     let renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(width, height);
+    renderer.setSize(width * 2, height * 2, false);
+    renderer.domElement.style.width  = width + "px";
+    renderer.domElement.style.height = height + "px";
     renderer.setPixelRatio(window.devicePixelRatio);        // Prevent blurring on HiDPI displays
     container.appendChild(renderer.domElement);
 

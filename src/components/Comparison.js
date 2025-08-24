@@ -702,7 +702,7 @@ export function computeTrendForArea( polygons ) {
         let curr_polygon = polygons[i];
         scatter_data.push([i, curr_polygon.area]);
     }
-
+    console.log(scatter_data);
     let poly_reg_result = regression.polynomial(scatter_data, { order: 2 });
     let r2 = poly_reg_result.r2;
     if (isNaN(r2) || r2 === -Infinity || r2 === Infinity) {
@@ -970,7 +970,7 @@ export function update4DRotationHypercube( mesh, indicator, inspected_index, rot
 
 export function generateHypercubeData( data, now_polygon_data, data_group, curr_IVs, curr_DV, scales ) {
     if (data_group.children.length > 0) { clean_group(data_group); }
-    const point_geometry = new THREE.SphereGeometry(0.08, 8, 8);
+    const point_geometry = new THREE.SphereGeometry(0.10, 16, 16);
 
     function get_value_from_scale( input_val, scale ) {
         let [data_range, scale_type] = get_scale_domain_and_type(scale);

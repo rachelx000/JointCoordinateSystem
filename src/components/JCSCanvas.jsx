@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { isEqual } from "lodash";
+import { save_as_png } from "./JCS.js";
 
 // TODO: Add custom color schemes (2, 3, 4, 5)
 // TODO: Add cleaning the canvas
@@ -80,72 +81,76 @@ export default function JCSCanvas({ onShowPCC, setShowPCC, onShowCentroids, onCl
                      style={{opacity: onOriginMode ? "0.8": "0.4"}} alt={"Toggle Origin Button"} title={"Toggle Origin Mode"}/>
                 <img id="color-block-button" src={`${import.meta.env.BASE_URL}assets/color-block.png`} onClick={ disableControl ? undefined : (() => onClickColorBlockMode()) }
                      style={{opacity: onColorBlockMode ? "0.8": "0.4"}} alt={"Toggle Color Block Button"} title={"Toggle Color Block Mode"}/>
-                <h3 className="joint-coordinate">Joint Coordinate System</h3>
-                <svg id="joint-coordinate-canvas" className="joint-coordinate">
-                    {/* Correlation Indicator */}
-                    <defs>
-                        <filter id="vertical-glowing" x="-100%" y="0%" width="300%" height="100%">
-                            <feGaussianBlur stdDeviation={5} result="blur" />
-                            <feComponentTransfer in="blur">
-                                <feFuncR type="linear" slope={1} />
-                                <feFuncG type="linear" slope={1} />
-                                <feFuncB type="linear" slope={1} />
-                            </feComponentTransfer>
-                        </filter>
-                        <filter id="horizontal-glowing" x={0} y="-100%" width="100%" height="300%">
-                            <feGaussianBlur stdDeviation={5} result="blur" />
-                            <feComponentTransfer in="blur">
-                                <feFuncR type="linear" slope={1} />
-                                <feFuncG type="linear" slope={1} />
-                                <feFuncB type="linear" slope={1} />
-                            </feComponentTransfer>
-                        </filter>
-                    </defs>
-                    <rect id="left-indicator" className="correlation-indicator" rx={100} filter="url(#vertical-glowing)">
-                        <title></title></rect>
-                    <rect id="top-indicator" className="correlation-indicator" ry={100} filter="url(#horizontal-glowing)">
-                        <title></title></rect>
-                    <rect id="right-indicator" className="correlation-indicator" rx={100} filter="url(#vertical-glowing)">
-                        <title></title></rect>
-                    <rect id="bottom-indicator" className="correlation-indicator" ry={100} filter="url(#horizontal-glowing)">
-                        <title></title></rect>
-                    {/* Axis Components */}
-                    <g id="joint-coordinate-axes">
-                        <g id="left-axis">
-                            <text id="left-axis-title" className="axis-title" dominantBaseline="middle"/>
+                <img id="save-JCS-button" src={`${import.meta.env.BASE_URL}assets/save.png`} onClick={ disableControl ? undefined : (() => save_as_png("joint-coordinate-container", "jcs", 2.0)) }
+                     style={{opacity: disableControl ? "0.4": "0.8"}} alt={"Save Button"} title={"Save JCS Plot"}/>
+                <h3>Joint Coordinate System</h3>
+                <div id="joint-coordinate-container">
+                    <svg id="joint-coordinate-canvas">
+                        {/* Correlation Indicator */}
+                        <defs>
+                            <filter id="vertical-glowing" x="-100%" y="0%" width="300%" height="100%">
+                                <feGaussianBlur stdDeviation={5} result="blur" />
+                                <feComponentTransfer in="blur">
+                                    <feFuncR type="linear" slope={1} />
+                                    <feFuncG type="linear" slope={1} />
+                                    <feFuncB type="linear" slope={1} />
+                                </feComponentTransfer>
+                            </filter>
+                            <filter id="horizontal-glowing" x={0} y="-100%" width="100%" height="300%">
+                                <feGaussianBlur stdDeviation={5} result="blur" />
+                                <feComponentTransfer in="blur">
+                                    <feFuncR type="linear" slope={1} />
+                                    <feFuncG type="linear" slope={1} />
+                                    <feFuncB type="linear" slope={1} />
+                                </feComponentTransfer>
+                            </filter>
+                        </defs>
+                        <rect id="left-indicator" className="correlation-indicator" rx={100} filter="url(#vertical-glowing)">
+                            <title></title></rect>
+                        <rect id="top-indicator" className="correlation-indicator" ry={100} filter="url(#horizontal-glowing)">
+                            <title></title></rect>
+                        <rect id="right-indicator" className="correlation-indicator" rx={100} filter="url(#vertical-glowing)">
+                            <title></title></rect>
+                        <rect id="bottom-indicator" className="correlation-indicator" ry={100} filter="url(#horizontal-glowing)">
+                            <title></title></rect>
+                        {/* Axis Components */}
+                        <g id="joint-coordinate-axes">
+                            <g id="left-axis">
+                                <text id="left-axis-title" className="axis-title" dominantBaseline="middle"/>
+                            </g>
+                            <g id="top-axis">
+                                <text id="top-axis-title" className="axis-title" textAnchor="middle"/>
+                            </g>
+                            <g id="right-axis">
+                                <text id="right-axis-title" className="axis-title" dominantBaseline="middle"/>
+                            </g>
+                            <g id="bottom-axis">
+                                <text id="bottom-axis-title" className="axis-title" textAnchor="middle"/>
+                            </g>
                         </g>
-                        <g id="top-axis">
-                            <text id="top-axis-title" className="axis-title" textAnchor="middle"/>
+                        {/* Main Canvas */}
+                        <path id="axis-corner" />
+                        <rect id="coord-background" />
+                        <g id="polygon-data" />
+                        <g id="origin-polygon" className="origin" />
+                        <g id="centroids">
+                            <g id="centroid-indicators" />
+                            <g id="origin-centroid" className="origin" />
                         </g>
-                        <g id="right-axis">
-                            <text id="right-axis-title" className="axis-title" dominantBaseline="middle"/>
+                        <g id="data-tooltip">
+                            <rect />
+                            <polygon />
+                            <text id="data-tooltip-text" />
                         </g>
-                        <g id="bottom-axis">
-                            <text id="bottom-axis-title" className="axis-title" textAnchor="middle"/>
+                    </svg>
+                    {/* Colorscale */}
+                    <svg id="colorscale">
+                        <g id="colorscale-content" />
+                        <g id="colorscale-axis">
+                            <text className="axis-title" />
                         </g>
-                    </g>
-                    {/* Main Canvas */}
-                    <path id="axis-corner" />
-                    <rect id="coord-background" />
-                    <g id="polygon-data" />
-                    <g id="origin-polygon" className="origin" />
-                    <g id="centroids">
-                        <g id="centroid-indicators" />
-                        <g id="origin-centroid" className="origin" />
-                    </g>
-                    <g id="data-tooltip">
-                        <rect />
-                        <polygon />
-                        <text id="data-tooltip-text" />
-                    </g>
-                </svg>
-                {/* Colorscale */}
-                <svg id="colorscale" className="joint-coordinate">
-                    <g id="colorscale-content" />
-                    <g id="colorscale-axis">
-                        <text className="axis-title" />
-                    </g>
-                </svg>
+                    </svg>
+                </div>
             </div>
         </>
     );

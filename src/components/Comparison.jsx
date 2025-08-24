@@ -12,7 +12,7 @@ const plots = [
 
 export default function ComparisonPanel({ data, nowPolygonData, selectedIVs, selectedDV, colorScheme,
                                             onColorBlockMode, onInspectMode, onOriginMode, nowOrigin, inspectedIndex, setInspectedIndex,
-                                            sidePanelRenderReady }) {
+                                            sidePanelRenderReady, disableControl }) {
     const [selectedPlot, setSelectedPlot] = useState("pcp");
 
     function handleChangePlot(e) {
@@ -27,13 +27,15 @@ export default function ComparisonPanel({ data, nowPolygonData, selectedIVs, sel
         switch ( nowPlot ) {
             case 'pcp':
                 return <PCP data={ data } selectedIVs={ selectedIVs } selectedDV={ selectedDV }
-                            colorScheme={ colorScheme } sidePanelRenderReady={ sidePanelRenderReady } onOriginMode={ onOriginMode } />
+                            colorScheme={ colorScheme } sidePanelRenderReady={ sidePanelRenderReady }
+                            onOriginMode={ onOriginMode } disableControl={ disableControl }/>
             case 'spider':
                 return <SpiderPlot data={ data } nowJCSPolygonData={ nowPolygonData }
                                    selectedIVs={ selectedIVs } selectedDV={ selectedDV } colorScheme={ colorScheme }
                                    onColorBlockMode={ onColorBlockMode } onOriginMode={ onOriginMode } nowOrigin={ nowOrigin }
                                    onInspectMode={ onInspectMode }  inspectedIndex={ inspectedIndex }
-                                   setInspectedIndex={ setInspectedIndex } sidePanelRenderReady={ sidePanelRenderReady } />
+                                   setInspectedIndex={ setInspectedIndex } sidePanelRenderReady={ sidePanelRenderReady }
+                                   disableControl={ disableControl } />
             case 'hypercube':
                 return <Hypercube data={ data } nowPolygonData={ nowPolygonData } selectedIVs={ selectedIVs } selectedDV={ selectedDV }
                                   colorScheme={ colorScheme }  onOriginMode={ onOriginMode }

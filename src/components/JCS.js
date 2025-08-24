@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import * as domToImage from "dom-to-image";
 import { isEqual } from "lodash";
 import { compute_area } from "./AnalysisPanel/PolygonAlignment.js"
 
@@ -11,6 +12,33 @@ let polygons;
 let centroid_quadtree;
 let line_generator = d3.line().defined(function(d) {return d !== null; });
 
+export function download( dataURL, filename ) {
+    let link = document.createElement("a");
+    link.download = filename+".png";
+    link.href = dataURL;
+    link.click();
+}
+
+export function save_as_png( id, filename, scale ) {
+    let curr_node = document.getElementById(id);
+    domToImage
+        .toPng(curr_node, {
+            width: curr_node.scrollWidth * (scale - 0.001),
+            height: curr_node.scrollHeight * scale,
+            style: {
+                transform: `scale(${scale})`,
+                transformOrigin: 'top left',
+                overflow: 'visible'
+            },
+            bgcolor: "#fff"
+        })
+        .then((dataURL) => {
+            download(dataURL, filename);
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+}
 
 export function get_varnames( data ) {
     return Object.keys(data[0]);

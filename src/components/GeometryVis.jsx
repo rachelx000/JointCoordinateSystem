@@ -8,6 +8,7 @@ import {
     make4DRotationMatrix,
     update4DRotation,
 } from "./GeometryVis.js";
+import { download } from "./JCS.js";
 import * as THREE from 'three';
 
 export default function GeometryVis({ data, nowPolygonData, geomMode, meshRenderReady, inspectedIndex }) {
@@ -25,6 +26,7 @@ export default function GeometryVis({ data, nowPolygonData, geomMode, meshRender
     const geomModeRef = useRef({id: null, mode: null});
     const renderRef = useRef(null);
     const sceneRef = useRef(null);
+    const cameraRef = useRef(null);
     const meshRef = useRef(null);
     const guiRef = useRef(null);
     const guiControlsRef = useRef({});
@@ -103,6 +105,8 @@ export default function GeometryVis({ data, nowPolygonData, geomMode, meshRender
             labels.children.forEach(label_mesh => label_mesh.lookAt(camera.position));
         }
 
+        renderRef.current = renderer;
+        cameraRef.current = camera;
         sceneRef.current = scene;
         axesRef.current = axes;
         axesLabelRef.current = labels;
@@ -110,6 +114,7 @@ export default function GeometryVis({ data, nowPolygonData, geomMode, meshRender
 
         return () => {
             renderer.dispose();
+            renderRef.current = null;
             if (guiRef.current) {
                 guiRef.current.destroy();
                 guiRef.current = null;
@@ -120,6 +125,18 @@ export default function GeometryVis({ data, nowPolygonData, geomMode, meshRender
     useEffect(() => {
         if (!sceneRef.current)
             return;
+
+        function saveCurrScene() {
+            let renderer = renderRef.current;
+            let scene = sceneRef.current;
+            let camera = cameraRef.current;
+
+            if ( renderer && camera && scene ) {
+                renderer.render(scene, camera);
+                let dataURL = renderer.domElement.toDataURL("image/png");
+                download(dataURL, "geom-vis");
+            }
+        }
 
         // Remove old mesh from the scene
         if (meshRef.current) {
@@ -163,6 +180,7 @@ export default function GeometryVis({ data, nowPolygonData, geomMode, meshRender
                         axesLabelRef.current.visible = value;
                     }
                 });
+            gui.add({ save: saveCurrScene }, "save").name("Save PNG");
         }
         if (geomModeRef.current.mode === "4D") {
             Object.keys(params4D.current.animate).forEach(key => {
@@ -193,6 +211,7 @@ export default function GeometryVis({ data, nowPolygonData, geomMode, meshRender
                         axesLabelRef.current.visible = value;
                     }
                 });
+            gui.add({ save: saveCurrScene }, "save").name("Save PNG");
         }
 
         guiRef.current = gui;
@@ -263,9 +282,11 @@ export default function GeometryVis({ data, nowPolygonData, geomMode, meshRender
 
     return (
         <div id="geometry-vis">
-            <h3>Parametric Surface Rendering</h3>
-            <div id="geometry-vis-container" ref={renderRef}></div>
-            <div id="geometry-vis-gui-container" ref={guiContainerRef}></div>
+            <div id="geometry-vis-container">
+                <h3>Parametric Surface Rendering</h3>
+                <div id="geometry-vis-render-container" ref={renderRef}></div>
+                <div id="geometry-vis-gui-container" ref={guiContainerRef}></div>
+            </div>
         </div>
     );
 }

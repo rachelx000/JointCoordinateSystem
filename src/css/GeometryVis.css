@@ -13,27 +13,37 @@
 
 /* Geometry Visualization */
 #geometry-vis {
-    position: relative;
-    height: calc(100vh - 42px);
+    padding-top: 16.5px;
+    height: calc(100vh - 26px);
     width: calc(100vw - 740px);
     min-width: 600px;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    background: #fff;
     box-sizing: border-box;
     transform: translateY(13.5px);
 }
 
-#geometry-vis h3 {
-    text-align: center;
+#geometry-vis-container {
+    position: relative;
+    height: 100%;
     width: 100%;
-    margin-bottom: 0;
-    margin-top: 5px;
+    background: #fff;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    margin: 0;
 }
 
-#geometry-vis-container {
+#geometry-vis-container h3 {
+    text-align: center;
+    width: 100%;
+}
+
+#geometry-vis-render-container {
     height: 90%;
     width: 98%;
     box-sizing: border-box;
@@ -41,7 +51,7 @@
 
 #geometry-vis-gui-container {
     position: absolute;
-    top: 55px;
+    top: 62px;
     right: 3px;
 }
 

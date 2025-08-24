@@ -16,7 +16,7 @@ import { isEqual } from "lodash";
 
 export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolygonData, nowOrigin, onShowCentroids,
                                            onColorBlockMode, onInspectMode, inspectedIndex, setInspectedIndex,
-                                           sidePanelRenderReady }) {
+                                           sidePanelRenderReady, disableControl }) {
     const [alignMode, setAlignMode] = useState({mode: 'point', index: 0});
     const [alignedPolygonData, setAlignedPolygonData] = useState(null);
     const [alignedPolygonOrder, setAlignedPolygonOrder] = useState(null);
@@ -154,10 +154,11 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
         <>
             <div id="analysis-panel">
                 <PolygonAlignment alignMode={ alignMode } handleAlignModeChange={ handleAlignModeChange }
-                                  alignmentRef={ alignmentRef } />
+                                  alignmentRef={ alignmentRef } disableControl={ disableControl } />
                 <ShapeAnalysis inspectedIndex={ inspectedIndex } alignedPolygonData={ alignedPolygonData }
                                scatterMode={scatterMode} setScatterMode={ setScatterMode } selectedDV={ selectedDV }
-                               scatterplotRefs={ scatterplotRefs } fittedEquations={ fittedEquations } scatterTrends={ scatterTrends }/>
+                               scatterplotRefs={ scatterplotRefs } fittedEquations={ fittedEquations }
+                               scatterTrends={ scatterTrends } disableControl={ disableControl }/>
             </div>
         </>
     );

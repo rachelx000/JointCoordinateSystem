@@ -10,13 +10,14 @@ import {
 } from "../Comparison.js";
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 import * as THREE from 'three';
+import {download} from "../JCS.js";
 
 export default function Hypercube({ data, nowPolygonData, selectedIVs, selectedDV, colorScheme, onOriginMode, sidePanelRenderReady, inspectedIndex}) {
     let params = useRef({
         animate: { rotateXY: false, rotateXZ: false, rotateYZ: false, rotateXW: false, rotateYW: false, rotateZW: false },
         rotation: { angleXY: 0, angleXZ: 0, angleYZ: 0, angleXW: 0, angleYW: 0, angleZW: 0 },
         showAxisTicks: false,
-        show3DAxis: true
+        show3DAxis: false
     });
 
     const renderRef = useRef(null);
@@ -35,6 +36,12 @@ export default function Hypercube({ data, nowPolygonData, selectedIVs, selectedD
     useEffect(() => {
         const [ scene, camera, renderer, controls, labels, axes ] = initializeRender(renderRef.current, [7, 5, 7], 6);
 
+        function saveCurrScene() {
+            renderer.render(scene, camera);
+            let dataURL = renderer.domElement.toDataURL("image/png");
+            download(dataURL, "hypercube");
+        }
+
         sceneRef.current = scene;
         meshRef.current = {
             axisGroup: new THREE.Group(),
@@ -46,6 +53,9 @@ export default function Hypercube({ data, nowPolygonData, selectedIVs, selectedD
         scene.add(meshRef.current.axisGroup);
         axesRef.current = axes;
         axesLabelRef.current = labels;
+        axesRef.current.visible = params.current["show3DAxis"];
+        axesLabelRef.current.visible = params.current["show3DAxis"]
+        meshRef.current.axisTicksGroup.visible = params.current["showAxisTicks"];
 
         let gui = new GUI({ autoPlace: false });
         let angleXYControl = gui.add( params.current.rotation, 'angleXY', 0, 2*Math.PI).name("RotateXY (Rotate Z)");
@@ -75,7 +85,7 @@ export default function Hypercube({ data, nowPolygonData, selectedIVs, selectedD
                     axesLabelRef.current.visible = value;
                 }
             });
-
+        gui.add({ save: saveCurrScene }, "save").name("Save PNG");
 
         function animate() {
             requestAnimationFrame(animate);
