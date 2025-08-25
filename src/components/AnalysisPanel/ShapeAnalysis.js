@@ -1,10 +1,14 @@
 import * as d3 from "d3";
 import MLR from "ml-regression-multivariate-linear";
-import regression from 'regression';
+import { regressionLoess } from 'd3-regression';
 import { unpack, get_axis_range } from "../JCS.js";
 import { sortPolygonsByDepVarVal } from "../Comparison.js";
 
 const scatter_width = 255, scatter_height = 105;
+const loess = regressionLoess()
+    .x(d => d.x)
+    .y(d => d.y)
+    .bandwidth(0.3);
 
 export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_order, if_inspect_mode, inspected_index, set_inspected_index, aligned_origin_data ) {
     let zoom_k = 1;
@@ -68,8 +72,11 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
                 }
             });
 
+        d3.select("#"+metric_id+"-trend-info #line-highlight")
+            .style('stroke-width', 4.0 / zoom_k );
+
         d3.select("#"+metric_id+"-trend-info #line")
-            .style('stroke-width', 1.0 / zoom_k );
+            .style('stroke-width', 2.0 / zoom_k );
 
         if (aligned_origin_data) {
             d3.select('#' + metric_id + '-origin')
@@ -217,8 +224,11 @@ export function plotCorrelation( metric_id, now_DV, data, aligned_polygons, alig
                 }
             });
 
+        d3.select("#"+metric_id+"-trend-info #line-highlight")
+            .style('stroke-width', 4.0 / zoom_k );
+
         d3.select("#"+metric_id+"-trend-info #line")
-            .style('stroke-width', 1.0 / zoom_k );
+            .style('stroke-width', 2.0 / zoom_k );
     }
 
     function setInspect() {
@@ -312,65 +322,57 @@ export function fitEquationForMetric( metric_id, curr_IVs, data, aligned_polygon
     return formatMLREquation(mlr, curr_IVs, metric_id);
 }
 
-export function computeTrendForMetric( metric_id, aligned_polygons ) {
-    let scatter_data = [];
+export function computeTrendForMetric( metric_id, aligned_polygons, aligned_polygon_order ) {
+    let data = [];
     for (let i = 0; i < aligned_polygons.length; i++) {
-        let curr_polygon = aligned_polygons[i];
-        scatter_data.push([i, curr_polygon.metrics[metric_id]]);
+        let curr_index = aligned_polygon_order[i];
+        let curr_polygon = aligned_polygons[curr_index];
+        data.push({x: i, y: curr_polygon.metrics[metric_id]});
     }
 
-    let poly_reg_result = regression.polynomial(scatter_data, { order: 2 });
-    let r2 = poly_reg_result.r2;
-    if (isNaN(r2) || r2 === -Infinity || r2 === Infinity) {
-        r2 = "NA";
-    }
-    return { points: poly_reg_result.points, equation: poly_reg_result.string, r2: r2 };
+    return loess(data);
 }
 
-export function computeTrendForCorr( metric_id, aligned_polygons ) {
-    let scatter_data = [];
+export function computeTrendForCorr( metric_id, aligned_polygons, aligned_polygon_order ) {
+    let data = [];
     for (let i = 0; i < aligned_polygons.length; i++) {
-        let curr_polygon = aligned_polygons[i];
-        scatter_data.push([curr_polygon.depVal, curr_polygon.metrics[metric_id]]);
+        let curr_index = aligned_polygon_order[i];
+        let curr_polygon = aligned_polygons[curr_index];
+        data.push({x: curr_polygon.depVal, y: curr_polygon.metrics[metric_id]})
     }
 
     // preprocess to collapse duplicates by x
-    let grouped = {};
-    scatter_data.forEach(([x, y]) => {
-        if (!grouped[x]) grouped[x] = [];
-        grouped[x].push(y);
-    });
-    let average = Object.entries(grouped).map(([x, ys]) => {
-        const avg_y = ys.reduce((a, b) => a + b, 0) / ys.length;
-        return [Number(x), avg_y];
+    let groups = {};
+    data.forEach((d) => {
+        if (!groups[d.x]) { groups[d.x] = []; }
+        groups[d.x].push(d.y);
     });
 
-    let poly_reg_result = regression.polynomial(average, { order: 2 });
-    let r2 = poly_reg_result.r2;
-    if (isNaN(r2) || r2 === -Infinity || r2 === Infinity) {
-        r2 = "NA";
-    }
+    let collapsed_data = Object.keys(groups).map(k => ({
+        x: Number(k),
+        y: groups[k].reduce((a, b) => a + b, 0) / groups[k].length
+    }));
+    collapsed_data.sort((a, b) => a.x - b.x);
 
-    function fittedTrend(x) {
-        return poly_reg_result.equation[0] * x ** 2 + poly_reg_result.equation[1] * x + poly_reg_result.equation[2];
-    }
-    let points = average.map(avg => [avg[0], fittedTrend(avg[0])]);
-
-    return { points: points, equation: poly_reg_result.string, r2: r2 };
+    return loess(collapsed_data);
 }
 
 export function generatePathFromQuadReg( id, points, x_scale, y_scale ) {
     let path_points = [];
     for (let i = 0; i < points.length; i++) {
-        let curr_p = points[i];
-        path_points.push([x_scale(curr_p[0]), y_scale(curr_p[1])]);
+        path_points.push([x_scale(points[i][0]), y_scale(points[i][1])]);
     }
-    path_points.sort((a, b) => a[0] - b[0]);
     let line = d3.line().curve(d3.curveBasis);
     let path = line(path_points);
+
+    d3.select("#"+id+"-trend-info #line-highlight")
+        .attr("d", path)
+        .style("fill", "none")
+        .style("opacity", 0.7)
+        .style("stroke", "#fff");
+
     d3.select("#"+id+"-trend-info #line")
         .attr("d", path)
         .style("fill", "none")
-        .style("stroke", "#000")
-        .style("stroke-width", 1);
+        .style("stroke", "#000");
 }

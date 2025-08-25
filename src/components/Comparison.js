@@ -7,7 +7,7 @@ import {isEqual} from "lodash";
 import {project_4D_to_3D} from "./GeometryVis.js";
 import MLR from "ml-regression-multivariate-linear";
 import {formatMLREquation} from "./AnalysisPanel/ShapeAnalysis.js";
-import regression from "regression";
+import {regressionLoess} from "d3-regression";
 
 
 const scatter_width = 255, scatter_height = 105;
@@ -413,6 +413,11 @@ export function drawSpider( data, curr_IVs, curr_DV, color_scheme, now_spider_po
     };
 }
 
+const loess = regressionLoess()
+    .x(d => d.x)
+    .y(d => d.y)
+    .bandwidth(0.3);
+
 export function sortPolygonsByDepVarVal( polygon_data ) {
     let depVal_list = polygon_data.map((polygon) => [ polygon.depVal, polygon.id ]);
     depVal_list.sort((a, b) => a[0] - b[0]);
@@ -473,8 +478,11 @@ export function plotScatterForArea( scatter_id, polygons, sorted_polygon_order, 
                 }
             });
 
+        d3.select("#"+scatter_id+"-trend-info #line-highlight")
+            .style('stroke-width', 4.0 / zoom_k );
+
         d3.select("#"+scatter_id+"-trend-info #line")
-            .style('stroke-width', 1.0 / zoom_k );
+            .style('stroke-width', 2.0 / zoom_k );
     }
 
     function setInspect() {
@@ -639,8 +647,11 @@ export function plotScatterForAreaCorr( scatter_id, now_DV, data, polygons, sort
                 }
             });
 
+        d3.select("#"+scatter_id+"-trend-info #line-highlight")
+            .style('stroke-width', 4.0 / zoom_k );
+
         d3.select("#"+scatter_id+"-trend-info #line")
-            .style('stroke-width', 1.0 / zoom_k );
+            .style('stroke-width', 2.0 / zoom_k );
     }
 
     function setInspect() {
@@ -696,51 +707,39 @@ export function plotScatterForAreaCorr( scatter_id, now_DV, data, polygons, sort
     };
 }
 
-export function computeTrendForArea( polygons ) {
-    let scatter_data = [];
+export function computeTrendForArea( polygons, polygon_order ) {
+    let data = [];
     for (let i = 0; i < polygons.length; i++) {
-        let curr_polygon = polygons[i];
-        scatter_data.push([i, curr_polygon.area]);
+        let curr_index = polygon_order[i];
+        let curr_polygon = polygons[curr_index];
+        data.push({x: i, y: curr_polygon.area});
     }
-    console.log(scatter_data);
-    let poly_reg_result = regression.polynomial(scatter_data, { order: 2 });
-    let r2 = poly_reg_result.r2;
-    if (isNaN(r2) || r2 === -Infinity || r2 === Infinity) {
-        r2 = "NA";
-    }
-    return { points: poly_reg_result.points, equation: poly_reg_result.string, r2: r2 };
+
+    return loess(data);
 }
 
-export function computeTrendForAreaCorr( polygons ) {
-    let scatter_data = [];
+export function computeTrendForAreaCorr( polygons, polygon_order ) {
+    let data = [];
     for (let i = 0; i < polygons.length; i++) {
-        let curr_polygon = polygons[i];
-        scatter_data.push([curr_polygon.depVal, curr_polygon.area]);
+        let curr_index = polygon_order[i];
+        let curr_polygon = polygons[curr_index];
+        data.push({x: curr_polygon.depVal, y: curr_polygon.area});
     }
 
     // preprocess to collapse duplicates by x
-    let grouped = {};
-    scatter_data.forEach(([x, y]) => {
-        if (!grouped[x]) grouped[x] = [];
-        grouped[x].push(y);
-    });
-    let average = Object.entries(grouped).map(([x, ys]) => {
-        const avg_y = ys.reduce((a, b) => a + b, 0) / ys.length;
-        return [Number(x), avg_y];
+    let groups = {};
+    data.forEach((d) => {
+        if (!groups[d.x]) { groups[d.x] = []; }
+        groups[d.x].push(d.y);
     });
 
-    let poly_reg_result = regression.polynomial(average, { order: 2 });
-    let r2 = poly_reg_result.r2;
-    if (isNaN(r2) || r2 === -Infinity || r2 === Infinity) {
-        r2 = "NA";
-    }
+    let collapsed_data = Object.keys(groups).map(k => ({
+        x: Number(k),
+        y: groups[k].reduce((a, b) => a + b, 0) / groups[k].length
+    }));
+    collapsed_data.sort((a, b) => a.x - b.x);
 
-    function fittedTrend(x) {
-        return poly_reg_result.equation[0] * x ** 2 + poly_reg_result.equation[1] * x + poly_reg_result.equation[2];
-    }
-    let points = average.map(avg => [avg[0], fittedTrend(avg[0])]);
-
-    return { points: points, equation: poly_reg_result.string, r2: r2 };
+    return loess(collapsed_data);
 }
 
 const axis_points = [

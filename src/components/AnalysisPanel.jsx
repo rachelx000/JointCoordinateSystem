@@ -102,7 +102,8 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
 
     useEffect(() => {
         setScatterComplete(false);
-    }, [scatterMode])
+    }, [scatterMode, alignedPolygonOrder])
+
     useEffect(() => {
         if ( sidePanelRenderReady && alignedPolygonData !== null && alignedPolygonOrder !== null && alignedPolygonOrder.length === alignedPolygonData.length
             && !scatterComplete ) {
@@ -126,8 +127,8 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
                 }));
                 setScatterTrends( prev => ({
                     ...prev,
-                    [metric.id]: (scatterMode === "alignment") ? computeTrendForMetric( metric.id, alignedPolygonData )
-                        : computeTrendForCorr( metric.id, alignedPolygonData )
+                    [metric.id]: (scatterMode === "alignment") ? computeTrendForMetric( metric.id, alignedPolygonData, alignedPolygonOrder )
+                        : computeTrendForCorr( metric.id, alignedPolygonData, alignedPolygonOrder )
                 }));
             });
             setFitComplete(true);
@@ -137,7 +138,7 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
     useEffect(() => {
         if ( fitComplete ) {
             shape_metrics.forEach( (metric) => {
-                generatePathFromQuadReg( metric.id, scatterTrends[metric.id].points, scatterplotRefs.current[metric.id].xScale, scatterplotRefs.current[metric.id].yScale )
+                generatePathFromQuadReg( metric.id, scatterTrends[metric.id], scatterplotRefs.current[metric.id].xScale, scatterplotRefs.current[metric.id].yScale )
             });
         }
     }, [fitComplete])
@@ -158,7 +159,7 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
                 <ShapeAnalysis inspectedIndex={ inspectedIndex } alignedPolygonData={ alignedPolygonData }
                                scatterMode={scatterMode} setScatterMode={ setScatterMode } selectedDV={ selectedDV }
                                scatterplotRefs={ scatterplotRefs } fittedEquations={ fittedEquations }
-                               scatterTrends={ scatterTrends } disableControl={ disableControl }/>
+                               disableControl={ disableControl }/>
             </div>
         </>
     );

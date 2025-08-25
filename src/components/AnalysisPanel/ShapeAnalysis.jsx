@@ -10,7 +10,7 @@ export const shape_metrics = [
 ];
 
 export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scatterMode, setScatterMode, selectedDV,
-                                          scatterplotRefs, fittedEquations, scatterTrends, disableControl }) {
+                                          scatterplotRefs, fittedEquations, disableControl }) {
     const [showTrend, setShowTrend] = useState({
         "area": false, "compactness": false, "diagonal-ratio": false, "angular-regularity": false
     });
@@ -67,8 +67,7 @@ export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scat
                                 <g id={shape_metric.id+"-data"} className={shape_metric.id+"-scatterplot"}/>
                                 <line id={shape_metric.id+"-origin"} className={shape_metric.id+"-scatterplot"}/>
                                 <g id={shape_metric.id+"-trend-info"} className="scatter-trend-info" style={{opacity: showTrend[shape_metric.id] ? "1.0" : "0"}}>
-                                    <text id="equation" transform="translate(51, 8)">{scatterTrends[shape_metric.id] && scatterTrends[shape_metric.id].equation}</text>
-                                    <text id="r2" transform="translate(51, 23)">{scatterTrends[shape_metric.id] && "R^2 = "+scatterTrends[shape_metric.id].r2}</text>
+                                    <path id="line-highlight" className={shape_metric.id+"-scatterplot"}></path>
                                     <path id="line" className={shape_metric.id+"-scatterplot"}></path>
                                 </g>
                             </svg>

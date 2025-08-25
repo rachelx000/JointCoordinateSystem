@@ -59,8 +59,8 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
             }));
             setScatterTrends(prev => ({
                 ...prev,
-                ["jcs-area"]: computeTrendForArea( nowJCSPolygonData ),
-                ["jcs-area-corr"]: computeTrendForAreaCorr( nowJCSPolygonData )
+                ["jcs-area"]: computeTrendForArea( nowJCSPolygonData, currJCSOrder ),
+                ["jcs-area-corr"]: computeTrendForAreaCorr( nowJCSPolygonData, currJCSOrder )
             }));
             setJCSOrder(currJCSOrder);
             setFitComplete(prev => ({
@@ -80,8 +80,8 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
             }));
             setScatterTrends(prev => ({
                 ...prev,
-                ["spider-area"]: computeTrendForArea( spiderPolygons ),
-                ["spider-area-corr"]: computeTrendForAreaCorr( spiderPolygons )
+                ["spider-area"]: computeTrendForArea( spiderPolygons, currSpiderOrder ),
+                ["spider-area-corr"]: computeTrendForAreaCorr( spiderPolygons, currSpiderOrder )
             }));
             setFitComplete(prev => ({
                 ...prev,
@@ -113,8 +113,7 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
         if ( fitComplete.spider && fitComplete.jcs ) {
             scatterPlots.forEach(scatter => {
                 let curr_scatter = scatterplotRefs.current[scatter.id];
-                let curr_trend = scatterTrends[scatter.id];
-                generatePathFromQuadReg(scatter.id, curr_trend.points, curr_scatter.xScale, curr_scatter.yScale);
+                generatePathFromQuadReg(scatter.id, scatterTrends[scatter.id], curr_scatter.xScale, curr_scatter.yScale);
             })
         }
 
@@ -255,8 +254,7 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                                         <g id={scatter.id+"-data"} className={scatter.id+"-scatterplot"}/>
                                         <line id={scatter.id+"-origin"} className={scatter.id+"-scatterplot"}/>
                                         <g id={scatter.id+"-trend-info"} className="scatter-trend-info" style={{opacity: showTrend[scatter.id] ? "1.0" : "0"}}>
-                                            <text id="equation" transform="translate(51, 8)">{scatterTrends[scatter.id] && scatterTrends[scatter.id].equation}</text>
-                                            <text id="r2" transform="translate(51, 23)">{scatterTrends[scatter.id] && "R^2 = "+scatterTrends[scatter.id].r2}</text>
+                                            <path id="line-highlight" className={scatter.id+"-scatterplot"}></path>
                                             <path id="line" className={scatter.id+"-scatterplot"}></path>
                                         </g>
                                     </svg>
