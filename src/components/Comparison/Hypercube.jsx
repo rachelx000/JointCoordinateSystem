@@ -170,7 +170,7 @@ export default function Hypercube({ data, nowPolygonData, selectedIVs, selectedD
                 inspected_data.position.y,
                 inspected_data.position.z
             );
-            let indicator_geometry = new THREE.SphereGeometry(0.1, 8, 8);
+            let indicator_geometry = new THREE.SphereGeometry(0.2, 8, 8);
             let indicator_material = new THREE.MeshStandardMaterial({
                 color: nowPolygonData[inspectedIndex].color,
                 opacity: 1.0,
