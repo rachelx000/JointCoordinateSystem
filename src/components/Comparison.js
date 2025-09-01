@@ -6,7 +6,7 @@ import {compute_area} from "./AnalysisPanel/PolygonAlignment.js";
 import {isEqual} from "lodash";
 import {project_4D_to_3D} from "./GeometryVis.js";
 import MLR from "ml-regression-multivariate-linear";
-import {formatMLREquation} from "./AnalysisPanel/ShapeAnalysis.js";
+import {formatMLREquation, efron_r2} from "./AnalysisPanel/ShapeAnalysis.js";
 import {regressionLoess} from "d3-regression";
 
 
@@ -715,7 +715,11 @@ export function computeTrendForArea( polygons, polygon_order ) {
         data.push({x: i, y: curr_polygon.area});
     }
 
-    return loess(data);
+    let loess_result = loess(data);
+    let y = data.map(p => p.y);
+    let y_pred = loess_result.map(p => p[1]);
+
+    return {points: loess_result, r2: efron_r2(y, y_pred)};
 }
 
 export function computeTrendForAreaCorr( polygons, polygon_order ) {
@@ -739,7 +743,11 @@ export function computeTrendForAreaCorr( polygons, polygon_order ) {
     }));
     collapsed_data.sort((a, b) => a.x - b.x);
 
-    return loess(collapsed_data);
+    let loess_result = loess(collapsed_data);
+    let y = collapsed_data.map(p => p.y);
+    let y_pred = loess_result.map(p => p[1]);
+
+    return {points: loess_result, r2: efron_r2(y, y_pred)};
 }
 
 const axis_points = [

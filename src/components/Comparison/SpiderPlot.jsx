@@ -113,7 +113,7 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
         if ( fitComplete.spider && fitComplete.jcs ) {
             scatterPlots.forEach(scatter => {
                 let curr_scatter = scatterplotRefs.current[scatter.id];
-                generatePathFromQuadReg(scatter.id, scatterTrends[scatter.id], curr_scatter.xScale, curr_scatter.yScale);
+                generatePathFromQuadReg(scatter.id, scatterTrends[scatter.id].points, curr_scatter.xScale, curr_scatter.yScale);
             })
         }
 
@@ -232,14 +232,14 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                                      onClick={ disableControl ? undefined : () => { scatterplotRefs.current[scatter.id]?.resetZoomPan(); }}
                                      style={{opacity: disableControl ? "0.4": "0.8"}} alt={"Reset button"} title={"Reset Canvas"} />
                                 <img className="show-equation-icon" src={`${import.meta.env.BASE_URL}assets/equation.png`}
-                                     style={{opacity: disableControl ? "0.4": "0.8"}} alt={"Fitted equation button"} title={"Show Fitted Equation"} />
+                                     style={{opacity: disableControl ? "0.4": "0.8"}} alt={"Fitted equation button"} title={"Show Equation"} />
                                 <div id={scatter.id+"-equation" } className={ "fitted-equations"+ (fittedEquationsForArea[scatter.class] && !disableControl ? "" : " no-hover" )}>
                                     { fittedEquationsForArea[scatter.class] }
                                 </div>
                                 <img className="show-trend-icon" src={`${import.meta.env.BASE_URL}assets/trend.png`}
                                      style={{opacity: showTrend[scatter.id]&&!disableControl ? "0.8": "0.4"}}
                                      onClick={ disableControl ? undefined : () => handleClickShowTrend(scatter.id) }
-                                     alt={"Line trend button"} title={"Show Fitted Line"} />
+                                     alt={"Line trend button"} title={"Show Line Trend"} />
                                 <img className="save-scatter-button" src={`${import.meta.env.BASE_URL}assets/save.png`}
                                      style={{opacity: disableControl ? "0.4": "0.8"}}
                                      onClick={ disableControl ? undefined : () => save_as_png(scatter.id+"-scatter-canvas-container", scatter.id+"-scatter", 4) }
@@ -254,6 +254,7 @@ export default function SpiderPlot({ data, nowJCSPolygonData, selectedIVs, selec
                                         <g id={scatter.id+"-data"} className={scatter.id+"-scatterplot"}/>
                                         <line id={scatter.id+"-origin"} className={scatter.id+"-scatterplot"}/>
                                         <g id={scatter.id+"-trend-info"} className="scatter-trend-info" style={{opacity: showTrend[scatter.id] ? "1.0" : "0"}}>
+                                            <text id="r2" transform="translate(51, 8)">{scatterTrends[scatter.id] && "R^2 = "+scatterTrends[scatter.id].r2}</text>
                                             <path id="line-highlight" className={scatter.id+"-scatterplot"}></path>
                                             <path id="line" className={scatter.id+"-scatterplot"}></path>
                                         </g>

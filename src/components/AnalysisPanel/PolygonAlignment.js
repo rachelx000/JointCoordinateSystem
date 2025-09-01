@@ -96,7 +96,7 @@ function align_a_polygon_at_a_side( polygon_obj, side_id, origin ) {
     let aligned_centroid_at_origin = aligned_polygon_at_origin.centroid;
 
     // Rotate to align the side with y axis
-    let endpoint = aligned_point_list_at_origin[(side_id+3) % 4];
+    let endpoint = aligned_point_list_at_origin[(side_id+1) % 4];
     let theta = -Math.atan2(endpoint[1]-origin[1], endpoint[0]-origin[0]);
     let rot_matrix = [
         [Math.cos(theta), -Math.sin(theta)],
@@ -239,7 +239,7 @@ function compute_interior_angle(p1, c, p2) {
     }
     cos_theta = Math.max(Math.min(cos_theta, 1), -1);
 
-    return Math.acos(cos_theta) * (180 / Math.PI);
+    return round(Math.acos(cos_theta) * (180 / Math.PI), 5);
 }
 
 function compute_angular_regularity( point_list ) {
@@ -293,18 +293,11 @@ export function computeAlignedPolygonOrder( aligned_polygons, align_mode ) {
 
         aligned_polygons.forEach((polygon) => {
             let centroid_angle;
-            switch (align_mode.mode) {
-                case "point":
-                    centroid_angle = Math.atan((origin[1] - polygon.centroid[1])/(polygon.centroid[0] - origin[0]));
-                    break;
-                case "side":
-                    centroid_angle = Math.atan((polygon.centroid[0] - origin[0])/(origin[1] - polygon.centroid[1]));
-                    break;
-            }
+            centroid_angle = Math.atan((origin[1] - polygon.centroid[1])/(polygon.centroid[0] - origin[0]));
             angle_list.push({
                 id: polygon.id,
-                angle: centroid_angle,
-                length: Math.hypot(polygon.centroid[0] - origin[0], polygon.centroid[1] - origin[1]),
+                angle: round(centroid_angle, 5),
+                length: round(Math.hypot(polygon.centroid[0] - origin[0], polygon.centroid[1] - origin[1]), 5),
                 depVal: polygon.depVal,
             });
         });
@@ -340,7 +333,7 @@ export function computeAlignedPolygonOrder( aligned_polygons, align_mode ) {
             })
             return {
                 id: polygon.id,
-                distance: Math.sqrt(sum_square),
+                distance: round(Math.sqrt(sum_square), 5),
                 depVal: polygon.depVal,
             }
         });

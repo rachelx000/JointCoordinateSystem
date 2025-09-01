@@ -13,6 +13,8 @@ import {
 } from "./AnalysisPanel/ShapeAnalysis.js";
 import { shape_metrics } from "./AnalysisPanel/ShapeAnalysis.jsx";
 import { isEqual } from "lodash";
+import  { sortPolygonsByDepVarVal } from "./Comparison.js";
+import * as d3 from 'd3';
 
 export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolygonData, nowOrigin, onShowCentroids,
                                            onColorBlockMode, onInspectMode, inspectedIndex, setInspectedIndex,
@@ -46,16 +48,18 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
     }, [nowPolygonData, alignMode]);
 
     useEffect(() => {
+        setScatterComplete(false);
         if (sidePanelRenderReady && alignedPolygonData !== null) {
             let plot = plotPolygonAlignment( alignedPolygonData, nowOrigin, onShowCentroids, onColorBlockMode,
                 alignMode, onInspectMode, null, setInspectedIndex, alignedOriginData, setAlignedOriginData );
             plot.resetZoomPan();
             alignmentRef.current = plot;
-            let aligned_polygon_order = computeAlignedPolygonOrder( alignedPolygonData, alignMode );
+            let aligned_polygon_order = scatterMode === "alignment" ? computeAlignedPolygonOrder( alignedPolygonData, alignMode ) :
+                sortPolygonsByDepVarVal(nowPolygonData);
             if (!isEqual(aligned_polygon_order, alignedPolygonOrder))
                 setAlignedPolygonOrder(aligned_polygon_order);
         }
-    }, [sidePanelRenderReady, alignedPolygonData]);
+    }, [sidePanelRenderReady, alignedPolygonData, scatterMode]);
 
     useEffect(() => {
         if (alignedPolygonData !== null) {
@@ -108,7 +112,7 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
         if ( sidePanelRenderReady && alignedPolygonData !== null && alignedPolygonOrder !== null && alignedPolygonOrder.length === alignedPolygonData.length
             && !scatterComplete ) {
             shape_metrics.forEach( (metric) => {
-                let plot = (scatterMode === "alignment") ? plotShapeMetric( metric.id, alignedPolygonData, alignedPolygonOrder, onInspectMode, null, setInspectedIndex, alignedOriginData ) :
+                let plot = (scatterMode !== "correlation") ? plotShapeMetric( metric.id, alignedPolygonData, alignedPolygonOrder, onInspectMode, null, setInspectedIndex, alignedOriginData ) :
                     plotCorrelation( metric.id, selectedDV, data, alignedPolygonData, onInspectMode, onInspectMode, null, setInspectedIndex )
                 plot.resetZoomPan();
                 scatterplotRefs.current[metric.id] = plot;
@@ -127,7 +131,7 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
                 }));
                 setScatterTrends( prev => ({
                     ...prev,
-                    [metric.id]: (scatterMode === "alignment") ? computeTrendForMetric( metric.id, alignedPolygonData, alignedPolygonOrder )
+                    [metric.id]: (scatterMode !== "correlation") ? computeTrendForMetric( metric.id, alignedPolygonData, alignedPolygonOrder )
                         : computeTrendForCorr( metric.id, alignedPolygonData, alignedPolygonOrder )
                 }));
             });
@@ -138,14 +142,16 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
     useEffect(() => {
         if ( fitComplete ) {
             shape_metrics.forEach( (metric) => {
-                generatePathFromQuadReg( metric.id, scatterTrends[metric.id], scatterplotRefs.current[metric.id].xScale, scatterplotRefs.current[metric.id].yScale )
+                generatePathFromQuadReg( metric.id, scatterTrends[metric.id].points, scatterplotRefs.current[metric.id].xScale, scatterplotRefs.current[metric.id].yScale )
             });
         }
     }, [fitComplete])
 
     useEffect(() => {
         Object.values(scatterplotRefs.current).forEach(plot => {
-            if (plot?.updateOrigin && scatterMode === "alignment") {
+            if (plot?.updateOrigin && scatterMode !== "correlation") {
+                d3.selectAll("line.scatter-origins")
+                    .attr("opacity", 1);
                 plot.updateOrigin(alignedOriginData);
             }
         });
@@ -159,7 +165,7 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
                 <ShapeAnalysis inspectedIndex={ inspectedIndex } alignedPolygonData={ alignedPolygonData }
                                scatterMode={scatterMode} setScatterMode={ setScatterMode } selectedDV={ selectedDV }
                                scatterplotRefs={ scatterplotRefs } fittedEquations={ fittedEquations }
-                               disableControl={ disableControl }/>
+                               scatterTrends={ scatterTrends } disableControl={ disableControl }/>
             </div>
         </>
     );

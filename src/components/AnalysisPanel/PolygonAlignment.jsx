@@ -16,10 +16,10 @@ const alignment_modes = [
         name: 'side',
         type: 'rect',
         refs: [
-            { id: 'left-side', text: 'left side (var1-var4)', x: 45, y: 105, width: 10, height: size-30 },
-            { id: 'bottom-side', text: 'bottom side (var1-var2)', x: 65, y: 85+size, width: size-30, height: 10 },
-            { id: 'right-side', text: 'right side (var2-var3)', x: 45+size, y: 105, width: 10, height: size-30 },
-            { id: 'top-side', text: 'top side (var3-var4)', x: 65, y: 85,  width: size-30, height: 10 }
+            { id: 'left-side', text: 'left side (var1-var2)', x: 45, y: 105, width: 10, height: size-30 },
+            { id: 'bottom-side', text: 'bottom side (var2-var3)', x: 65, y: 85+size, width: size-30, height: 10 },
+            { id: 'right-side', text: 'right side (var3-var4)', x: 45+size, y: 105, width: 10, height: size-30 },
+            { id: 'top-side', text: 'top side (var4-var1)', x: 65, y: 85,  width: size-30, height: 10 }
         ]
     },
     {
@@ -34,7 +34,7 @@ const alignment_modes = [
 export default function PolygonAlignment({ alignMode, handleAlignModeChange, alignmentRef, disableControl }) {
     return(
         <div id="polygon-alignment">
-            <h3>Polygon Alignment</h3>
+            <h3>Shape Alignment</h3>
             <div id="alignment-container">
                 <img id="alignment-reset-button" src={`${import.meta.env.BASE_URL}assets/reset.png`}
                      onClick={ disableControl ? undefined : (() => alignmentRef.current?.resetZoomPan()) }

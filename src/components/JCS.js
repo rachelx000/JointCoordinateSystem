@@ -314,7 +314,7 @@ export function plot_polygons( canvas_id, polygon_data, inspected_index, if_colo
         .attr('stroke', function(d) { return if_color_block_mode ? '#FFF' : d.color })
         .attr('stroke-width', if_color_block_mode ? 0.0 : 1.5)
         .attr('stroke-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.3 ) : 1.0 ; })
-        .attr('fill-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.3 ) : 0.3 ; })
+        .attr('fill-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.2 ) : 0.2 ; })
         .classed('highlight-stroke', false);
 
     d3.select(canvas_id)

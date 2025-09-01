@@ -84,7 +84,7 @@
 #scatter-mode-selector {
     position: absolute;
     top: 0;
-    right: 1px;
+    left: 275px;
 }
 
 #shape-analysis>div {

@@ -10,7 +10,7 @@ export const shape_metrics = [
 ];
 
 export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scatterMode, setScatterMode, selectedDV,
-                                          scatterplotRefs, fittedEquations, disableControl }) {
+                                          scatterplotRefs, fittedEquations, scatterTrends, disableControl }) {
     const [showTrend, setShowTrend] = useState({
         "area": false, "compactness": false, "diagonal-ratio": false, "angular-regularity": false
     });
@@ -29,12 +29,13 @@ export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scat
     return (
         <div id="shape-analysis">
             <select id="scatter-mode-selector" onChange={handleChangeScatter}>
-                <option key="alignment" value="alignment">Alignment Trend</option>
-                <option key="correlation" value="correlation">Metric & DV</option>
+                <option key="alignment" value="alignment">Metric vs. Alignment Order</option>
+                <option key="dv" value="dv">Metric vs. DV order</option>
+                <option key="correlation" value="correlation">Metric vs. DV</option>
             </select>
             { shape_metrics.map(shape_metric => (
                 <div key={shape_metric.id}>
-                    <h4 className="scatter-title">{ scatterMode === "alignment" ? ( inspectedIndex === null ? shape_metric.title : shape_metric.title+" = "+alignedPolygonData[inspectedIndex].metrics[shape_metric.id] ) :
+                    <h4 className="scatter-title">{ scatterMode !== "correlation" ? ( inspectedIndex === null ? shape_metric.title : shape_metric.title+" = "+alignedPolygonData[inspectedIndex].metrics[shape_metric.id] ) :
                         shape_metric.title+" vs. "+ selectedDV }</h4>
                     <div id={shape_metric.id} className="scatter-container">
                         <img className="scatter-reset-button" src={`${import.meta.env.BASE_URL}assets/reset.png`}
@@ -42,7 +43,7 @@ export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scat
                              style={{opacity: disableControl ? "0.4": "0.8"}} alt={"Reset button"} title={"Reset Canvas"}/>
                         <div className="equation-container">
                             <img className="show-equation-icon" src={`${import.meta.env.BASE_URL}assets/equation.png`}
-                                 style={{opacity: disableControl ? "0.4": "0.8"}} alt={"Fitted equation button"} title={"Show Fitted Equation"}/>
+                                 style={{opacity: disableControl ? "0.4": "0.8"}} alt={"Fitted equation button"} title={"Show Equation"}/>
                             <div id={shape_metric.id+"-equation" } className={ "fitted-equations"+ (fittedEquations[shape_metric.id] && !disableControl ? "" : " no-hover" )}>
                                 { fittedEquations[shape_metric.id] }
                             </div>
@@ -50,7 +51,7 @@ export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scat
                         <img className="show-trend-icon" src={`${import.meta.env.BASE_URL}assets/trend.png`}
                              style={{opacity: showTrend[shape_metric.id]&&!disableControl ? "0.8": "0.4"}}
                              onClick={ disableControl ? undefined : () => handleClickShowTrend(shape_metric.id) }
-                             alt={"Line trend button"} title={"Show Fitted Line"}/>
+                             alt={"Line trend button"} title={"Show Line Trend"}/>
                         <img className="save-scatter-button" src={`${import.meta.env.BASE_URL}assets/save.png`}
                              style={{opacity: disableControl ? "0.4": "0.8"}}
                              onClick={ disableControl ? undefined : () => save_as_png(shape_metric.id+"-scatter-canvas-container", shape_metric.id+"-scatter", 4) }
@@ -65,8 +66,9 @@ export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scat
                                     <text id={shape_metric.id+"-y-title"}></text>
                                 </g>
                                 <g id={shape_metric.id+"-data"} className={shape_metric.id+"-scatterplot"}/>
-                                <line id={shape_metric.id+"-origin"} className={shape_metric.id+"-scatterplot"}/>
+                                { scatterMode !== "correlation" && ( <line id={shape_metric.id+"-origin"} className={shape_metric.id+"-scatterplot"+" scatter-origins"}/> ) }
                                 <g id={shape_metric.id+"-trend-info"} className="scatter-trend-info" style={{opacity: showTrend[shape_metric.id] ? "1.0" : "0"}}>
+                                    <text id="r2" transform="translate(51, 8)">{scatterTrends[shape_metric.id] && "R^2 = "+scatterTrends[shape_metric.id].r2}</text>
                                     <path id="line-highlight" className={shape_metric.id+"-scatterplot"}></path>
                                     <path id="line" className={shape_metric.id+"-scatterplot"}></path>
                                 </g>

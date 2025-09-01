@@ -3,7 +3,6 @@ import { isEqual } from "lodash";
 import { save_as_png } from "./JCS.js";
 
 // TODO: Add custom color schemes (2, 3, 4, 5)
-// TODO: Add cleaning the canvas
 
 const defaultColorSchemes = [
     {
@@ -72,18 +71,18 @@ export default function JCSCanvas({ onShowPCC, setShowPCC, onShowCentroids, onCl
                 </div>
                 {/* Controlling Buttons */}
                 <img id="show-correlation-button" src={`${import.meta.env.BASE_URL}assets/correlation.png`} onClick={ disableControl ? undefined : (() => setShowPCC(!onShowPCC)) }
-                     style={{opacity: onShowPCC ? "0.8": "0.4"}} alt={"Show correlation button"} title={"Show Correlation"} />
+                     style={{opacity: onShowPCC ? "0.8": "0.4"}} alt={"Show correlation button"} title={"Show Correlations"} />
                 <img id="show-centroid-button" src={`${import.meta.env.BASE_URL}assets/centroid.png`} onClick={ disableControl ? undefined : (() => onClickShowCentroids()) }
                      style={{opacity: onShowCentroids ? "0.8": "0.4"}}  alt={"Show centroid button"} title={"Show Centroids"}/>
                 <img id="inspect-button" src={`${import.meta.env.BASE_URL}assets/inspect.png`} onClick={ onShowCentroids ? (() => onClickInspectMode()) : undefined }
-                     style={{opacity: onShowCentroids ? (onInspectMode ? "0.8": "0.4") : "0.2"}} alt={"Toggle Inspection Button"} title={"Toggle Inspection Mode"}/>
+                     style={{opacity: onShowCentroids ? (onInspectMode ? "0.8": "0.4") : "0.2"}} alt={"Toggle Inspection Button"} title={"Inspection Mode"}/>
                 <img id="display-origin-button" src={`${import.meta.env.BASE_URL}assets/origin.png`} onClick={ disableControl ? undefined : onClickOriginMode }
-                     style={{opacity: onOriginMode ? "0.8": "0.4"}} alt={"Toggle Origin Button"} title={"Toggle Origin Mode"}/>
+                     style={{opacity: onOriginMode ? "0.8": "0.4"}} alt={"Toggle Origin Button"} title={"Origin Mode"}/>
                 <img id="color-block-button" src={`${import.meta.env.BASE_URL}assets/color-block.png`} onClick={ disableControl ? undefined : (() => onClickColorBlockMode()) }
-                     style={{opacity: onColorBlockMode ? "0.8": "0.4"}} alt={"Toggle Color Block Button"} title={"Toggle Color Block Mode"}/>
+                     style={{opacity: onColorBlockMode ? "0.8": "0.4"}} alt={"Toggle Color Block Button"} title={"Color Block Mode"}/>
                 <img id="save-JCS-button" src={`${import.meta.env.BASE_URL}assets/save.png`} onClick={ disableControl ? undefined : (() => save_as_png("joint-coordinate-container", "jcs", 2.0)) }
                      style={{opacity: disableControl ? "0.4": "0.8"}} alt={"Save Button"} title={"Save JCS Plot"}/>
-                <h3>Joint Coordinate System</h3>
+                <h3>Joint Coordinate</h3>
                 <div id="joint-coordinate-container">
                     <svg id="joint-coordinate-canvas">
                         {/* Correlation Indicator */}

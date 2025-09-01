@@ -322,6 +322,20 @@ export function fitEquationForMetric( metric_id, curr_IVs, data, aligned_polygon
     return formatMLREquation(mlr, curr_IVs, metric_id);
 }
 
+export function efron_r2(y, pred_y){
+    let n = y.length;
+    let average_y = y.reduce((sum, val) => { return sum + val }, 0) / n;
+    let SSR = y.reduce((sum, val, i) => {
+        let diff = val - pred_y[i];
+        return sum + diff * diff;
+    }, 0);
+    let SST = y.reduce((sum, val) => {
+        let diff = val - average_y;
+        return sum + diff * diff;
+    }, 0);
+    return 1.0 - (SSR / SST);
+}
+
 export function computeTrendForMetric( metric_id, aligned_polygons, aligned_polygon_order ) {
     let data = [];
     for (let i = 0; i < aligned_polygons.length; i++) {
@@ -329,8 +343,11 @@ export function computeTrendForMetric( metric_id, aligned_polygons, aligned_poly
         let curr_polygon = aligned_polygons[curr_index];
         data.push({x: i, y: curr_polygon.metrics[metric_id]});
     }
+    let loess_result = loess(data);
+    let y = data.map(p => p.y);
+    let y_pred = loess_result.map(p => p[1]);
 
-    return loess(data);
+    return {points: loess_result, r2: efron_r2(y, y_pred)};
 }
 
 export function computeTrendForCorr( metric_id, aligned_polygons, aligned_polygon_order ) {
@@ -354,7 +371,11 @@ export function computeTrendForCorr( metric_id, aligned_polygons, aligned_polygo
     }));
     collapsed_data.sort((a, b) => a.x - b.x);
 
-    return loess(collapsed_data);
+    let loess_result = loess(collapsed_data);
+    let y = collapsed_data.map(p => p.y);
+    let y_pred = loess_result.map(p => p[1]);
+
+    return {points: loess_result, r2: efron_r2(y, y_pred)};
 }
 
 export function generatePathFromQuadReg( id, points, x_scale, y_scale ) {
