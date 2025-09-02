@@ -150,8 +150,6 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
     useEffect(() => {
         Object.values(scatterplotRefs.current).forEach(plot => {
             if (plot?.updateOrigin && scatterMode !== "correlation") {
-                d3.selectAll("line.scatter-origins")
-                    .attr("opacity", 1);
                 plot.updateOrigin(alignedOriginData);
             }
         });

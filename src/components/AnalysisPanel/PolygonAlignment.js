@@ -19,7 +19,7 @@ const alignment_axes = {
     },
     "side": {
         x: { p1: [15, 30+size*0.8], p2: [ 15+size, 30+size*0.8 ], arrow: [[15+size, 30+size*0.8-5], [15+size, 30+size*0.8+5], [25+size, 30+size*0.8]], title: "x", titlePos: [20+size, 45+size*0.8] },
-        y: { p1: [15+size*0.3, 30], p2: [15+size*0.3, 30+size*0.8], arrow: [[10+size*0.3, 45], [20+size*0.3, 45], [15+size*0.3, 35]], title: "y", titlePos: [size*0.3, 45] },
+        y: { p1: [15+size*0.3, 30], p2: [15+size*0.3, 30+size*0.8], arrow: [[10+size*0.3, 40], [20+size*0.3, 40], [15+size*0.3, 30]], title: "y", titlePos: [size*0.3, 50] },
         origin: [15+size*0.3, 30+size*0.8]
     },
     "centroid": {

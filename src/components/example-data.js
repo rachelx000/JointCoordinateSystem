@@ -15,6 +15,10 @@ export const visualization_data = [
         path: "ladder_pcp_pos_corr"
       },
       {
+        title: "Overlapping PCP & Spider (Positive Correlation)",
+        path:"overlapping_pcp_spider_pos_corr"
+      },
+      {
         title: "No Spider Area",
         path: "no_spider_area"
       }

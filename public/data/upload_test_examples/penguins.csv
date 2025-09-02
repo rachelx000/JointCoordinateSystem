@@ -1,4 +1,4 @@
-species (Adelie-1 Gentoo-2 Chinstrap-3),island (Torgersen-1 Biscoe-2 Dream-3),bill_length_mm,bill_depth_mm,flipper_length_mm,body_mass_g,sex (F0M1)
+species (Adelie-1 Gentoo-2 Chinstrap-3),island (Torgersen-1 Biscoe-2 Dream-3),bill length (mm),bill depth (mm),flipper length (mm),body mass (g),sex (F0M1)
 1,1,39.1,18.7,181.0,3750.0,1.0
 1,1,39.5,17.4,186.0,3800.0,0.0
 1,1,40.3,18.0,195.0,3250.0,0.0
