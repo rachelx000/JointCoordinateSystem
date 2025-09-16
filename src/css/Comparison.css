@@ -3,7 +3,7 @@
     padding-top: 16.5px;
     height: calc(100vh - 26px);
     width: calc(100vw - 740px);
-    min-width: 600px;
+    min-width: 705px;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;

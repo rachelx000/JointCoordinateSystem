@@ -38,7 +38,7 @@ main div {
 
 #side-panel-navbar {
   width: calc(100vw - 740px);
-  min-width: 600px;
+  min-width: 705px;
   font-size: 13px;
   position: absolute;
   top: 2px;

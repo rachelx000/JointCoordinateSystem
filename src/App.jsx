@@ -5,16 +5,19 @@ import JCS from "./components/JCS.jsx";
 import AnalysisPanel from "./components/AnalysisPanel.jsx";
 import GeometryVis from "./components/GeometryVis.jsx";
 import ComparisonPanel from "./components/Comparison.jsx"
+import DynamicJCS from "./components/DynamicJCS.jsx"
 
 const sidePanelNavItems = {
     "data" : [
         {   text: 'Shape Analysis', mode: 'shape'   },
-        {   text: 'Comparison', mode: 'compare'   }
+        {   text: 'Comparison', mode: 'compare'   },
+        {   text: 'Dynamic JCS', mode: 'dynamic'   }
     ],
     "geom" : [
         {   text: 'Rendering', mode: 'render'   },
         {   text: 'Shape Analysis', mode: 'shape'   },
-        {   text: 'Comparison', mode: 'compare'   }
+        {   text: 'Comparison', mode: 'compare'   },
+        {   text: 'Dynamic JCS', mode: 'dynamic'   }
     ]
 };
 
@@ -88,9 +91,7 @@ export default function App() {
         console.log("Rendering mode changed to", mode);
     }, [mode]);
 
-    useEffect(() => {
-        console.log("Current Polygon Data: ", nowPolygonData);
-    }, [nowPolygonData]);
+
 
     useEffect(() => {
         console.log("Current index: ", inspectedIndex);
@@ -99,6 +100,10 @@ export default function App() {
     useEffect(() => {
         console.log("Current Origin: ", nowOrigin);
     }, [nowOrigin]); */
+
+    useEffect(() => {
+        console.log("Current Polygon Data: ", nowPolygonData);
+    }, [nowPolygonData]);
 
     function sidePanelSwitchMode( sidePanelMode ) {
         switch (sidePanelMode) {
@@ -117,6 +122,9 @@ export default function App() {
             case 'render':
                 return <GeometryVis data={ data } nowPolygonData={ nowPolygonData } geomMode={ geomMode }
                                     meshRenderReady={ sidePanelRenderReady } inspectedIndex={ inspectedIndex } />
+            case 'dynamic':
+                return <DynamicJCS nowPolygonData={ nowPolygonData } onColorBlockMode={ onColorBlockMode }
+                                   sidePanelRenderReady={ sidePanelRenderReady } disableControl={ disableControl } />
         }
     }
 
