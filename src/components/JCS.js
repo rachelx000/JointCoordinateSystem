@@ -502,7 +502,7 @@ function get_datapoint_info( data, index, now_IVs, now_DV ) {
     return info;
 }
 
-function set_area_brush( polygons, if_centroids, set_color_scale_selection, color_scale_brush_ref, set_area_selection, area_brush_ref ) {
+function set_area_brush( polygons, if_centroids, if_color_block_mode, set_color_scale_selection, color_scale_brush_ref, set_area_selection, area_brush_ref ) {
     if ( if_centroids ) {
         let area_brush = d3.brush()
             .extent([[100, 50], [100+coord_len, 50+coord_len]])
@@ -524,7 +524,6 @@ function set_area_brush( polygons, if_centroids, set_color_scale_selection, colo
                         curr_selection.add(d.id);
                     }
                 });
-                console.log("curr selection: ", curr_selection);
                 set_area_selection(curr_selection);
             })
             .on('end', (e) => {
@@ -538,17 +537,10 @@ function set_area_brush( polygons, if_centroids, set_color_scale_selection, colo
 
         d3.select('#area-brush')
             .selectAll('.selection')
-            .style('fill', 'rgba(0, 123, 255, 0.2)')
-            .style('stroke', '#007bff')
+            .style('fill', if_color_block_mode ? '#fff' : 'rgba(0, 123, 255, 0.2)')
+            .style('stroke', if_color_block_mode ? '#fff' : '#007bff')
             .style('stroke-width', 2)
             .style('stroke-dasharray', '5,5');
-
-        d3.select('#area-brush')
-            .selectAll('.selection')
-            .selectAll('.handle')
-            .style('fill', '#007bff')
-            .style('stroke', '#0056b3')
-            .style('stroke-width', 1);
     } else {
         if ( area_brush_ref.current ) {
             d3.select("#area-brush")
@@ -697,7 +689,7 @@ export default function drawJCS( data, now_IVs, now_DV, now_polygon_data, set_po
         color_scale_selection, area_selection);
 
     // Set area brushing
-    set_area_brush( polygons, if_centroids, set_color_scale_selection, color_scale_brush_ref, set_area_selection, area_brush_ref);
+    set_area_brush( polygons, if_centroids, if_color_block_mode, set_color_scale_selection, color_scale_brush_ref, set_area_selection, area_brush_ref);
 
     // Plot the origin if origin mode is on:
     if ( if_origin_mode ) {
