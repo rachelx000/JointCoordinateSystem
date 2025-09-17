@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import JCSMenu from "./JCSMenu.jsx";
 import JCSCanvas from "./JCSCanvas.jsx";
 import '../css/JCS.css';
@@ -23,7 +23,10 @@ export default function JCS({ size = 400, data, setData, mode, geomMode, setGeom
     const [exampleDataPath, setExampleDataPath] = useState(`${import.meta.env.BASE_URL}data/basics/ladder_pcp.csv`);
     const [uploadedData, setUploadedData] = useState(null);
     const [onShowPCC, setShowPCC] = useState(false);
-
+    const [colorScaleSelection, setColorScaleSelection] = useState(null);
+    const [areaSelection, setAreaSelection] = useState(new Set());
+    const colorScaleBrushRef = useRef();
+    const areaBrushRef = useRef();
     /* useEffect(() => {
         console.log("Disable Control:", disableControl);
     }, [disableControl]); */
@@ -41,6 +44,19 @@ export default function JCS({ size = 400, data, setData, mode, geomMode, setGeom
         setDisableControl(true);
         setSidePanelRenderReady(false);
         d3.select('#joint-coordinate-canvas').on('mousemove', null);
+        if (colorScaleBrushRef.current) {
+            d3.select("#colorscale-brush")
+                .call(colorScaleBrushRef.current.move, null)
+            d3.select("#colorscale-brush").on(".brush", null);
+            colorScaleBrushRef.current = null;
+        }
+        if (areaBrushRef.current) {
+            d3.select("#area-brush")
+                .call(areaBrushRef.current.move, null)
+            d3.select("#area-brush").on(".brush", null);
+            areaBrushRef.current = null;
+            setAreaSelection(null);
+        }
     }
 
     function handleSelectColorScheme(scheme_color_list) {
@@ -104,11 +120,13 @@ export default function JCS({ size = 400, data, setData, mode, geomMode, setGeom
         }
         if (currData !== null) {
             drawJCS( currData, currSelectedIVs, currSelectedDV, nowPolygonData, setPolygonData, size, selectedColorScheme,
-                    onShowPCC, onShowCentroids, onOriginMode, nowOrigin, setOrigin, onColorBlockMode, onInspectMode,
-                    setInspectedIndex, inspectedIndex );
+                     onShowPCC, onShowCentroids, onOriginMode, nowOrigin, setOrigin, onColorBlockMode, onInspectMode,
+                     setInspectedIndex, inspectedIndex, colorScaleBrushRef, colorScaleSelection, setColorScaleSelection,
+                    areaSelection, setAreaSelection, areaBrushRef);
             setSidePanelRenderReady(true);
         }
-    }, [ifRender, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode, inspectedIndex]);
+    }, [ifRender, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode,
+        inspectedIndex, colorScaleSelection, areaSelection]);
 
     return (
         <>

@@ -2,6 +2,7 @@ import * as d3 from 'd3';
 import * as domToImage from "dom-to-image";
 import { isEqual } from "lodash";
 import { compute_area } from "./AnalysisPanel/PolygonAlignment.js"
+import {color} from "three/tsl";
 
 // Global data and generators:
 export const jcs_origin = [100, 70];
@@ -266,7 +267,8 @@ function build_color_scale( data, now_DV, color_scheme ) {
     return [if_log, data_range, unique_data];
 }
 
-function plot_colorscale( now_DV, data_range, if_log, colorscale_ticks ) {
+function plot_colorscale( now_DV, data_range, if_log, colorscale_ticks, if_centroids,
+                          color_scale_brush_ref, set_color_scale_selection, set_area_selection, area_brush_ref ) {
     let depend_var_scale, colorscale_data, colorscale_axis;
     if ( if_log === "log10" ) {
         depend_var_scale = d3.scaleLog()
@@ -301,6 +303,50 @@ function plot_colorscale( now_DV, data_range, if_log, colorscale_ticks ) {
     // Plot the colorscale axis
     d3.select("#colorscale-axis").call(colorscale_axis);
     d3.select('#colorscale-axis>text').text(now_DV);
+
+    // initialize brushing on color scale
+    if (if_centroids) {
+        let color_brush = d3.brushX()
+            .extent([[100.5, 15], [100.5+coord_len, 40]])
+            .on('brush end', (e) => {
+                if (!e.selection) {
+                    set_color_scale_selection(null);
+                    return;
+                }
+
+                if (area_brush_ref.current) {
+                    d3.select("#area-brush")
+                        .call(area_brush_ref.current.move, null)
+                    set_area_selection(null);
+                }
+
+                let [x1, x2] = e.selection;
+                let curr_selection = {
+                    min: depend_var_scale.invert(x1-100.5),
+                    max: depend_var_scale.invert(x2-100.5)
+                };
+                set_color_scale_selection(curr_selection);
+            });
+
+        color_scale_brush_ref.current = color_brush;
+
+        d3.select("#colorscale-brush").call(color_brush);
+
+        d3.selectAll('#colorscale-brush')
+            .select('.selection')
+            .style('fill-opacity', 0.2)
+            .style('stroke', '#000')
+            .style('stroke-width', 2)
+            .style('shape-rendering', 'crispEdges');
+    } else {
+        if (color_scale_brush_ref.current) {
+            d3.select("#colorscale-brush")
+                .call(color_scale_brush_ref.current.move, null)
+            d3.select("#colorscale-brush").on(".brush", null);
+            color_scale_brush_ref.current = null;
+            set_color_scale_selection(null);
+        }
+    }
 }
 
 export function plot_polygons( canvas_id, polygon_data, inspected_index, if_color_block_mode ) {
@@ -359,7 +405,17 @@ function plot_axis_indicator( pcc_data, if_PCC ) {
     }
 }
 
-export function plot_centroids( id, polygon_data, if_centroids, inspected_index, if_color_block_mode ){
+function if_polygon_selected( poly, color_scale_selection, area_selection ) {
+    if ( color_scale_selection ) {
+        return poly.depVal >= color_scale_selection.min && poly.depVal <= color_scale_selection.max;
+    }
+    if ( area_selection ) {
+        return area_selection.has(poly.id);
+    }
+    return false;
+}
+
+export function plot_centroids( id, polygon_data, if_centroids, inspected_index, if_color_block_mode, color_scale_selection, area_selection ){
     if ( if_centroids ) {
         d3.select(id)
             .selectAll('circle')
@@ -372,11 +428,11 @@ export function plot_centroids( id, polygon_data, if_centroids, inspected_index,
             .join('circle')
             .attr('cx', function(d){ return d.centroid[0]; })
             .attr('cy', function(d){ return d.centroid[1] })
-            .attr('r', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 4.5 : 3.5 ) : 3.5 ; })
-            .attr('stroke', '#FFF')
-            .attr('stroke-width', function(d, i) { return (if_color_block_mode) ? 1.0 : ( inspected_index !== null ? (i === inspected_index ? 1.0 : 0.0 ) : 0.0) ; })
+            .attr('r', function(d, i) { return i === inspected_index ? 4.5 : 3.5; })
+            .attr('stroke-width', function(d, i) { return (if_color_block_mode || i === inspected_index) ? 1.0 : if_polygon_selected(d, color_scale_selection, area_selection) ? 2.0 : 0.0; })
             .attr('opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.4 ) : 1.0 ; })
-            .attr('fill', function(d){ return d.color; });
+            .attr('fill', function(d){ return if_polygon_selected(d, color_scale_selection, area_selection) ? '#007bff' : d.color; })
+            .attr('stroke', function(d){ return if_polygon_selected(d, color_scale_selection, area_selection) && !if_color_block_mode ? '#0056b3' : '#fff' });
 
         d3.select(id)
             .selectAll('circle')
@@ -446,6 +502,65 @@ function get_datapoint_info( data, index, now_IVs, now_DV ) {
     return info;
 }
 
+function set_area_brush( polygons, if_centroids, set_color_scale_selection, color_scale_brush_ref, set_area_selection, area_brush_ref ) {
+    if ( if_centroids ) {
+        let area_brush = d3.brush()
+            .extent([[100, 50], [100+coord_len, 50+coord_len]])
+            .on('brush', (e) => {
+                if (!e.selection) return;
+
+                if (color_scale_brush_ref.current) {
+                    d3.select("#colorscale-brush")
+                        .call(color_scale_brush_ref.current.move, null)
+                    set_color_scale_selection(null);
+                }
+
+                const [[x1, y1], [x2, y2]] = e.selection;
+
+                // Find centroids within selection area
+                const curr_selection = new Set();
+                polygons.forEach(d => {
+                    if (d.centroid[0] >= x1 && d.centroid[0] <= x2 && d.centroid[1] >= y1 && d.centroid[1] <= y2) {
+                        curr_selection.add(d.id);
+                    }
+                });
+                console.log("curr selection: ", curr_selection);
+                set_area_selection(curr_selection);
+            })
+            .on('end', (e) => {
+                if (!e.selection) {
+                    set_area_selection(new Set());
+                }
+            });
+
+        d3.select('#area-brush').call(area_brush);
+        area_brush_ref.current = area_brush;
+
+        d3.select('#area-brush')
+            .selectAll('.selection')
+            .style('fill', 'rgba(0, 123, 255, 0.2)')
+            .style('stroke', '#007bff')
+            .style('stroke-width', 2)
+            .style('stroke-dasharray', '5,5');
+
+        d3.select('#area-brush')
+            .selectAll('.selection')
+            .selectAll('.handle')
+            .style('fill', '#007bff')
+            .style('stroke', '#0056b3')
+            .style('stroke-width', 1);
+    } else {
+        if ( area_brush_ref.current ) {
+            d3.select("#area-brush")
+                .call(area_brush_ref.current.move, null)
+            d3.select("#area-brush").on(".brush", null);
+            d3.select("#area-brush").call(area_brush_ref.current.clear);
+            area_brush_ref.current = null;
+            set_area_selection(null);
+        }
+    }
+}
+
 function update_tooltip( data, inspected_index, now_IVs, now_DV, if_color_block_mode ) {
     d3.select('#data-tooltip-text').selectAll('tspan').remove();
     if (inspected_index !== null) {
@@ -512,9 +627,12 @@ export function resetJCS() {
     d3.select("#centroid-indicators").selectAll('circle').attr('opacity', 0);
 }
 
+// Area Selection
+
 export default function drawJCS( data, now_IVs, now_DV, now_polygon_data, set_polygon_data, size, color_scheme,
                                  if_PCC, if_centroids, if_origin_mode, now_origin, set_origin, if_color_block_mode,
-                                 if_inspect_mode, set_inspected_index, inspected_index ) {
+                                 if_inspect_mode, set_inspected_index, inspected_index, color_scale_brush_ref,
+                                 color_scale_selection, set_color_scale_selection, area_selection, set_area_selection, area_brush_ref ) {
     // Reset global variables and event listeners:
     polygons = [];
     centroid_quadtree = d3.quadtree();
@@ -557,7 +675,8 @@ export default function drawJCS( data, now_IVs, now_DV, now_polygon_data, set_po
 
     // Plot the colorscale:
     let [colorscale_if_log, colorscale_range, colorscale_ticks] = build_color_scale( data, now_DV, color_scheme );
-    plot_colorscale( now_DV, colorscale_range, colorscale_if_log, colorscale_ticks );
+    plot_colorscale( now_DV, colorscale_range, colorscale_if_log, colorscale_ticks, if_centroids,
+        color_scale_brush_ref, set_color_scale_selection, set_area_selection, area_brush_ref);
 
     // Plot the data as polygons:
     generate_polygons( data, now_IVs, now_DV );
@@ -574,7 +693,11 @@ export default function drawJCS( data, now_IVs, now_DV, now_polygon_data, set_po
     plot_axis_indicator( pcc_data, if_PCC );
 
     // Plot the centroids of polygons if needed:
-    plot_centroids( "#centroid-indicators", polygons, if_centroids, inspected_index, if_color_block_mode );
+    plot_centroids( "#centroid-indicators", polygons, if_centroids, inspected_index, if_color_block_mode,
+        color_scale_selection, area_selection);
+
+    // Set area brushing
+    set_area_brush( polygons, if_centroids, set_color_scale_selection, color_scale_brush_ref, set_area_selection, area_brush_ref);
 
     // Plot the origin if origin mode is on:
     if ( if_origin_mode ) {

@@ -135,6 +135,8 @@ export default function JCSCanvas({ onShowPCC, setShowPCC, onShowCentroids, onCl
                         <g id="centroids">
                             <g id="centroid-indicators" />
                             <g id="origin-centroid" className="origin" />
+                            <rect id="selection-box" />
+                            <g id="area-brush" />
                         </g>
                         <g id="data-tooltip">
                             <rect />
@@ -148,6 +150,7 @@ export default function JCSCanvas({ onShowPCC, setShowPCC, onShowCentroids, onCl
                         <g id="colorscale-axis">
                             <text className="axis-title" />
                         </g>
+                        <g id="colorscale-brush"></g>
                     </svg>
                 </div>
             </div>
