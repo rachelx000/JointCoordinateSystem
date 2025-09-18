@@ -321,10 +321,26 @@ function plot_colorscale( now_DV, data_range, if_log, colorscale_ticks, if_centr
                 }
 
                 let [x1, x2] = e.selection;
-                let curr_selection = {
-                    min: depend_var_scale.invert(x1-100.5),
-                    max: depend_var_scale.invert(x2-100.5)
-                };
+                let curr_selection;
+                if (if_log === "log10") {
+                    let min_val = depend_var_scale.invert(x1-100.5);
+                    let max_val = depend_var_scale.invert(x2-100.5);
+                    let nearest_min = colorscale_ticks.reduce((a, b) =>
+                        Math.abs(b - min_val) < Math.abs(a - min_val) ? b : a
+                    );
+                    let nearest_max = colorscale_ticks.reduce((a, b) =>
+                        Math.abs(b - max_val) < Math.abs(a - max_val) ? b : a
+                    );
+                    curr_selection = {
+                        min: parseFloat(nearest_min),
+                        max: parseFloat(nearest_max)
+                    };
+                } else {
+                    curr_selection = {
+                        min: depend_var_scale.invert(x1-100.5),
+                        max: depend_var_scale.invert(x2-100.5)
+                    };
+                }
                 set_color_scale_selection(curr_selection);
             });
 
@@ -528,7 +544,7 @@ function set_area_brush( polygons, if_centroids, if_color_block_mode, set_color_
             })
             .on('end', (e) => {
                 if (!e.selection) {
-                    set_area_selection(new Set());
+                    set_area_selection(null);
                 }
             });
 

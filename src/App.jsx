@@ -26,6 +26,7 @@ export default function App() {
     const [mode, setMode] = useState('data');
     const [geomMode, setGeomMode] = useState({id: "hyperSphere", mode: "4D"});
     const [nowPolygonData, setPolygonData] = useState(null);
+    const [selectedPolygons, setSelectedPolygons] = useState(null);
     const [onOriginMode, setOriginMode] = useState(false);
     const [nowOrigin, setOrigin] = useState(null);
     const [onShowCentroids, setShowCentroids] = useState(false);
@@ -105,10 +106,14 @@ export default function App() {
         console.log("Current Polygon Data: ", nowPolygonData);
     }, [nowPolygonData]);
 
+    useEffect(() => {
+        console.log("Selected Polygons: ", selectedPolygons);
+    }, [selectedPolygons])
+
     function sidePanelSwitchMode( sidePanelMode ) {
         switch (sidePanelMode) {
             case 'shape':
-                return <AnalysisPanel data={ data } selectedIVs={ selectedIVs } selectedDV={ selectedDV } nowPolygonData={ nowPolygonData }
+                return <AnalysisPanel data={ data } selectedIVs={ selectedIVs } selectedDV={ selectedDV } nowPolygonData={ selectedPolygons }
                                       nowOrigin={ nowOrigin } onShowCentroids={ onShowCentroids }
                                       onColorBlockMode={ onColorBlockMode } onInspectMode={ onInspectMode }
                                       inspectedIndex={ inspectedIndex } setInspectedIndex={ setInspectedIndex }
@@ -123,7 +128,7 @@ export default function App() {
                 return <GeometryVis data={ data } nowPolygonData={ nowPolygonData } geomMode={ geomMode }
                                     meshRenderReady={ sidePanelRenderReady } inspectedIndex={ inspectedIndex } />
             case 'dynamic':
-                return <DynamicJCS nowPolygonData={ nowPolygonData } onColorBlockMode={ onColorBlockMode }
+                return <DynamicJCS nowPolygonData={ selectedPolygons } onColorBlockMode={ onColorBlockMode }
                                    sidePanelRenderReady={ sidePanelRenderReady } disableControl={ disableControl } />
         }
     }
@@ -136,7 +141,7 @@ export default function App() {
                      selectedIVs={ selectedIVs } setSelectedIVs={ setSelectedIVs } selectedDV={ selectedDV }
                      setSelectedDV={ setSelectedDV } ifRender={ ifRender } setIfRender={ setIfRender }
                      selectedColorScheme={ selectedColorScheme } setSelectedColorScheme={ setSelectedColorScheme }
-                     nowPolygonData={ nowPolygonData } setPolygonData={ setPolygonData }
+                     nowPolygonData={ nowPolygonData } setPolygonData={ setPolygonData } setSelectedPolygons={ setSelectedPolygons }
                      onOriginMode={ onOriginMode } setOriginMode={ setOriginMode } nowOrigin={ nowOrigin } setOrigin={ setOrigin }
                      onShowCentroids={ onShowCentroids } handleShowCentroids={ handleShowCentroids }
                      onInspectMode={ onInspectMode } handleChangeInspectMode={ handleChangeInspectMode }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import "../css/AnalysisPanel.css";
 import PolygonAlignment from "./AnalysisPanel/PolygonAlignment.jsx";
 import ShapeAnalysis from "./AnalysisPanel/ShapeAnalysis.jsx";
@@ -111,6 +111,9 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
     useEffect(() => {
         if ( sidePanelRenderReady && alignedPolygonData !== null && alignedPolygonOrder !== null && alignedPolygonOrder.length === alignedPolygonData.length
             && !scatterComplete ) {
+            shape_metrics.forEach((metric) => {
+                d3.select('#' + metric.id + '-data').selectAll('*').remove();
+            });
             shape_metrics.forEach( (metric) => {
                 let plot = (scatterMode !== "correlation") ? plotShapeMetric( metric.id, alignedPolygonData, alignedPolygonOrder, onInspectMode, null, setInspectedIndex, alignedOriginData ) :
                     plotCorrelation( metric.id, selectedDV, data, alignedPolygonData, onInspectMode, onInspectMode, null, setInspectedIndex )
@@ -123,7 +126,7 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
     }, [sidePanelRenderReady, scatterComplete, alignedPolygonData, alignedPolygonOrder]);
 
     useEffect(() => {
-        if ( scatterComplete ) {
+        if ( scatterComplete && alignedPolygonData.length === alignedPolygonOrder.length ) {
             shape_metrics.forEach( (metric) => {
                 setFittedEquations(prev => ({
                     ...prev,

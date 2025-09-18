@@ -36,6 +36,10 @@ export default function DynamicJCS({ nowPolygonData, onColorBlockMode, sidePanel
     }
 
     useEffect(() => {
+        console.log("dynmiacJCS polygons: ", nowPolygonData);
+    }, [nowPolygonData]);
+
+    useEffect(() => {
         if ( sidePanelRenderReady && nowPolygonData !== null ) {
             let [nested_polygons, curr_stats] = nestingPolygons( nowPolygonData, params );
             setNestedPolygons(nested_polygons);

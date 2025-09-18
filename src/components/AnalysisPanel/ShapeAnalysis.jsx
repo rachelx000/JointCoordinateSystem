@@ -35,7 +35,7 @@ export default function ShapeAnalysis({ inspectedIndex, alignedPolygonData, scat
             </select>
             { shape_metrics.map(shape_metric => (
                 <div key={shape_metric.id}>
-                    <h4 className="scatter-title">{ scatterMode !== "correlation" ? ( inspectedIndex === null ? shape_metric.title : shape_metric.title+" = "+alignedPolygonData[inspectedIndex].metrics[shape_metric.id] ) :
+                    <h4 className="scatter-title">{ scatterMode !== "correlation" ? ( inspectedIndex === null ? shape_metric.title : shape_metric.title+" = "+alignedPolygonData.find(poly => poly.id === inspectedIndex)?.metrics[shape_metric.id] ) :
                         shape_metric.title+" vs. "+ selectedDV }</h4>
                     <div id={shape_metric.id} className="scatter-container">
                         <img className="scatter-reset-button" src={`${import.meta.env.BASE_URL}assets/reset.png`}

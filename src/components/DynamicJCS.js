@@ -32,7 +32,6 @@ function get_decimal_places( num ) {
     }
 
     let num_str = num.toString();
-    console.log(num, num_str);
     if (num_str.includes('e') || num_str.includes('E')) {
         return (+(num_str)).toString().split('.')[1]?.length || 0;
     } else {
@@ -207,14 +206,14 @@ export function nestingPolygons( polygons, params ) {
     let start_time = performance.now();
 
     // Step 1: Make first polygon maximize its area within the canvas
-    let first_polygon = polygons[sorted_indices[0]];
+    let first_polygon = polygons.find(poly => poly.id === sorted_indices[0]);
     let [scaled_first_polygon, first_scale] = fit_first_polygon(first_polygon);
     nested_polygons.push(scaled_first_polygon);
     stats.scaleFactors.push(first_scale);
 
     // Step 2: Process every subsequent polygon
     for (let i = 1; i < sorted_indices.length; i++) {
-        let curr_poly = polygons[sorted_indices[i]];
+        let curr_poly = polygons.find(poly => poly.id === sorted_indices[i]);
         let outer_poly = nested_polygons[i - 1];
         let max_scale = stats.scaleFactors[i - 1];
 
@@ -269,7 +268,6 @@ export function plotNestedPolygons( nested_polygons, if_color_block_mode ) {
     return {
         updateColorBlockMode: (now_if_color_block) => {
             if_color_block_mode = now_if_color_block;
-            console.log(if_color_block_mode)
             updateView();
         }
     };

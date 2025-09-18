@@ -49,25 +49,44 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
         .data(aligned_polygon_order)
         .join('circle')
         .attr('cx', function(d, i){ return x_scale(i); })
-        .attr('cy', function(d){ return y_scale(aligned_polygons[d].metrics[metric_id]); })
+        .attr('cy', function(d){ return y_scale(aligned_polygons.find(poly => poly.id === d).metrics[metric_id]); })
         .attr('r', 4 )
-        .attr('stroke', function(d) { return aligned_polygons[d].id === inspected_index ? '#FFF' : 'none'; })
+        .attr('stroke', function(d) { return aligned_polygons.find(poly => poly.id === d).id === inspected_index ? '#FFF' : 'none'; })
         .attr('stroke-width', 1.0 )
-        .style('fill', function(d){ return aligned_polygons[d].color; });
+        .style('fill', function(d){ return aligned_polygons.find(poly => poly.id === d).color; });
 
     function updateView() {
         d3.select('#' + metric_id + '-data')
             .selectAll('circle')
-            .attr('r', d => (aligned_polygons[d].id === inspected_index) ? (5 / zoom_k) : (4 / zoom_k))
-            .attr('stroke', d => (aligned_polygons[d].id === inspected_index) ? '#FFF' : 'none')
+            .attr('r', function(d) {
+                let poly = aligned_polygons.find(poly => poly.id === d);
+                if (!poly) return 4 / zoom_k;
+                return (poly.id === inspected_index) ? (5 / zoom_k) : (4 / zoom_k);
+            })
+            .attr('stroke', function (d) {
+                let poly = aligned_polygons.find(poly => poly.id === d);
+                if (!poly) return 'none';
+                return (poly.id === inspected_index) ? '#FFF' : 'none'; })
             .attr('stroke-width', 1.0 / zoom_k )
-            .attr('opacity', d => (inspected_index !== null) ? (aligned_polygons[d].id === inspected_index ? 1.0 : 0.4) : 1.0);
+            .attr('opacity', function (d) {
+                if (inspected_index !== null) {
+                    let poly = aligned_polygons.find(poly => poly.id === d);
+                    if (!poly) return 1.0;
+                    if (poly.id === d) { return 1.0 }
+                    else { return 0.4 };
+                }
+                else {
+                    return 1.0;
+                }
+            });
 
         // Move inspected point to front
         d3.select('#' + metric_id + '-data')
             .selectAll('circle')
             .each(function (d) {
-                if (aligned_polygons[d].id === inspected_index) {
+                let inspected_poly = aligned_polygons.find(poly => poly.id === d);
+                if (!inspected_poly) return;
+                if (inspected_poly.id === inspected_index) {
                     this.parentNode.appendChild(this);
                 }
             });
@@ -83,14 +102,17 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
                 .attr('stroke-width', 2 / zoom_k);
         }
     }
+    updateView();
 
     function setInspect() {
         if (if_inspect_mode) {
             d3.select('#'+metric_id+'-data')
                 .selectAll('circle')
                 .on('mouseover', (e, d) => {
-                    inspected_index = aligned_polygons[d].id;
-                    set_inspected_index(aligned_polygons[d].id);
+                    let inspected_poly = aligned_polygons.find(poly => poly.id === d);
+                    if (!inspected_poly) return;
+                    let inspected_index = inspected_poly.id;
+                    set_inspected_index(inspected_index);
                 })
                 .on('mouseout', () => {
                     set_inspected_index(null);
@@ -201,25 +223,43 @@ export function plotCorrelation( metric_id, now_DV, data, aligned_polygons, alig
         .data(sorted_data_by_DV)
         .join('circle')
         .attr('cx', function(d){ return x_scale(dv_data[d]); })
-        .attr('cy', function(d){ return y_scale(aligned_polygons[d].metrics[metric_id]); })
+        .attr('cy', function(d){ return y_scale(aligned_polygons.find(poly => poly.id === d).metrics[metric_id]); })
         .attr('r', 4 )
-        .attr('stroke', function(d) { return aligned_polygons[d].id === inspected_index ? '#FFF' : 'none'; })
+        .attr('stroke', function(d) { return aligned_polygons.find(poly => poly.id === d).id === inspected_index ? '#FFF' : 'none'; })
         .attr('stroke-width', 1.0 )
-        .style('fill', function(d){ return aligned_polygons[d].color; });
+        .style('fill', function(d){ return aligned_polygons.find(poly => poly.id === d).color; });
 
     function updateView() {
         d3.select('#' + metric_id + '-data')
             .selectAll('circle')
-            .attr('r', d => (aligned_polygons[d].id === inspected_index) ? (5 / zoom_k) : (4 / zoom_k))
-            .attr('stroke', d => (aligned_polygons[d].id === inspected_index) ? '#FFF' : 'none')
+            .attr('r', function(d) {
+                let poly = aligned_polygons.find(poly => poly.id === d);
+                if (!poly) return;
+                return (poly.id === inspected_index) ? (5 / zoom_k) : (4 / zoom_k); })
+            .attr('stroke', function (d) {
+                let poly = aligned_polygons.find(poly => poly.id === d);
+                if (!poly) return 'none'; // Safety fallback
+                return (poly.id === inspected_index) ? '#FFF' : 'none'; })
             .attr('stroke-width', 1.0 / zoom_k )
-            .attr('opacity', d => (inspected_index !== null) ? (aligned_polygons[d].id === inspected_index ? 1.0 : 0.4) : 1.0);
+            .attr('opacity', function (d) {
+                if (inspected_index !== null) {
+                    let poly = aligned_polygons.find(poly => poly.id === d);
+                    if (!poly) return 1.0;
+                    if (poly.id === d) { return 1.0 }
+                    else { return 0.4 };
+                }
+                else {
+                    return 1.0;
+                }
+            });
 
         // Move inspected point to front
         d3.select('#' + metric_id + '-data')
             .selectAll('circle')
             .each(function (d) {
-                if (aligned_polygons[d].id === inspected_index) {
+                let inspected_poly = aligned_polygons.find(poly => poly.id === d);
+                if (!inspected_poly) return;
+                if (inspected_poly.id === inspected_index) {
                     this.parentNode.appendChild(this);
                 }
             });
@@ -236,8 +276,10 @@ export function plotCorrelation( metric_id, now_DV, data, aligned_polygons, alig
             d3.select('#'+metric_id+'-data')
                 .selectAll('circle')
                 .on('mouseover', (e, d) => {
-                    inspected_index = aligned_polygons[d].id;
-                    set_inspected_index(aligned_polygons[d].id);
+                    let inspected_poly = aligned_polygons.find(poly => poly.id === d);
+                    if (!inspected_poly) return;
+                    let inspected_index = inspected_poly.id;
+                    set_inspected_index(inspected_index);
                 })
                 .on('mouseout', () => {
                     set_inspected_index(null);
@@ -340,7 +382,8 @@ export function computeTrendForMetric( metric_id, aligned_polygons, aligned_poly
     let data = [];
     for (let i = 0; i < aligned_polygons.length; i++) {
         let curr_index = aligned_polygon_order[i];
-        let curr_polygon = aligned_polygons[curr_index];
+        let curr_polygon = aligned_polygons.find(poly => poly.id === curr_index);
+        // console.log(aligned_polygons, aligned_polygon_order, curr_index, curr_polygon);
         data.push({x: i, y: curr_polygon.metrics[metric_id]});
     }
     let loess_result = loess(data);
@@ -354,7 +397,7 @@ export function computeTrendForCorr( metric_id, aligned_polygons, aligned_polygo
     let data = [];
     for (let i = 0; i < aligned_polygons.length; i++) {
         let curr_index = aligned_polygon_order[i];
-        let curr_polygon = aligned_polygons[curr_index];
+        let curr_polygon = aligned_polygons.find(poly => poly.id === curr_index);
         data.push({x: curr_polygon.depVal, y: curr_polygon.metrics[metric_id]})
     }
 
@@ -379,6 +422,13 @@ export function computeTrendForCorr( metric_id, aligned_polygons, aligned_polygo
 }
 
 export function generatePathFromQuadReg( id, points, x_scale, y_scale ) {
+    if (points.length < 2) {
+        d3.select("#"+id+"-trend-info #line-highlight")
+            .attr("d", null);
+
+        d3.select("#"+id+"-trend-info #line")
+            .attr("d", null);
+    }
     let path_points = [];
     for (let i = 0; i < points.length; i++) {
         path_points.push([x_scale(points[i][0]), y_scale(points[i][1])]);

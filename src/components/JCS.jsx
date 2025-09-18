@@ -6,6 +6,7 @@ import { csv } from "d3";
 import drawJCS, { resetJCS } from "./JCS.js";
 import { generateGeomData } from "./GeometryVis.js";
 import * as d3 from "d3";
+import {select} from "three/tsl";
 
 // TODO: Add the effect of sliding block for the variable selector
 // TODO: ALlow the user to download the JCS visualization result
@@ -17,14 +18,15 @@ let currData = null;
 
 export default function JCS({ size = 400, data, setData, mode, geomMode, setGeomMode, selectedIVs, setSelectedIVs,
                                 selectedDV, setSelectedDV, ifRender, setIfRender, selectedColorScheme, setSelectedColorScheme,
-                                nowPolygonData, setPolygonData, onOriginMode, setOriginMode, nowOrigin, setOrigin, onShowCentroids, handleShowCentroids,
-                                onInspectMode, handleChangeInspectMode, onColorBlockMode, handleChangeColorBlockMode,
-                                inspectedIndex, setInspectedIndex, setSidePanelRenderReady, disableControl, setDisableControl }) {
+                                nowPolygonData, setPolygonData, setSelectedPolygons, onOriginMode, setOriginMode,
+                                nowOrigin, setOrigin, onShowCentroids, handleShowCentroids, onInspectMode, handleChangeInspectMode,
+                                onColorBlockMode, handleChangeColorBlockMode, inspectedIndex, setInspectedIndex, setSidePanelRenderReady,
+                                disableControl, setDisableControl }) {
     const [exampleDataPath, setExampleDataPath] = useState(`${import.meta.env.BASE_URL}data/basics/ladder_pcp.csv`);
     const [uploadedData, setUploadedData] = useState(null);
     const [onShowPCC, setShowPCC] = useState(false);
     const [colorScaleSelection, setColorScaleSelection] = useState(null);
-    const [areaSelection, setAreaSelection] = useState(new Set());
+    const [areaSelection, setAreaSelection] = useState(null);
     const colorScaleBrushRef = useRef();
     const areaBrushRef = useRef();
     /* useEffect(() => {
@@ -127,6 +129,23 @@ export default function JCS({ size = 400, data, setData, mode, geomMode, setGeom
         }
     }, [ifRender, selectedColorScheme, onShowPCC, onShowCentroids, onOriginMode, onColorBlockMode, onInspectMode,
         inspectedIndex, colorScaleSelection, areaSelection]);
+
+    useEffect(() => {
+        if ( nowPolygonData ) {
+            let selected_polygons = null;
+            if (colorScaleSelection) {
+                selected_polygons = nowPolygonData.filter(poly => poly.depVal >= colorScaleSelection.min && poly.depVal <= colorScaleSelection.max);
+            }
+            if (areaSelection) {
+                selected_polygons = Array.from(areaSelection).map(poly_id => nowPolygonData[poly_id]);
+            }
+            if (selected_polygons && selected_polygons.length > 0) {
+                setSelectedPolygons(selected_polygons);
+            } else {
+                setSelectedPolygons(nowPolygonData);
+            }
+        }
+    }, [nowPolygonData, colorScaleSelection, areaSelection]);
 
     return (
         <>
