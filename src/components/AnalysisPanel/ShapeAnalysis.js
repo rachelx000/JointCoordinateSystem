@@ -49,11 +49,23 @@ export function plotShapeMetric( metric_id, aligned_polygons, aligned_polygon_or
         .data(aligned_polygon_order)
         .join('circle')
         .attr('cx', function(d, i){ return x_scale(i); })
-        .attr('cy', function(d){ return y_scale(aligned_polygons.find(poly => poly.id === d).metrics[metric_id]); })
+        .attr('cy', function(d){
+            let poly = aligned_polygons.find(poly => poly.id === d);
+            if (!poly) return "none";
+            return y_scale(poly.metrics[metric_id]); })
         .attr('r', 4 )
-        .attr('stroke', function(d) { return aligned_polygons.find(poly => poly.id === d).id === inspected_index ? '#FFF' : 'none'; })
+        .attr('stroke', function(d) {
+            let poly = aligned_polygons.find(poly => poly.id === d);
+            if (!poly) return "none";
+            if (poly.id === inspected_index) {
+                return '#FFF';
+            } else { return "none"; }
+        })
         .attr('stroke-width', 1.0 )
-        .style('fill', function(d){ return aligned_polygons.find(poly => poly.id === d).color; });
+        .style('fill', function(d){
+            let poly = aligned_polygons.find(poly => poly.id === d);
+            if (!poly) return "none";
+            return poly.color });
 
     function updateView() {
         d3.select('#' + metric_id + '-data')
@@ -223,11 +235,23 @@ export function plotCorrelation( metric_id, now_DV, data, aligned_polygons, alig
         .data(sorted_data_by_DV)
         .join('circle')
         .attr('cx', function(d){ return x_scale(dv_data[d]); })
-        .attr('cy', function(d){ return y_scale(aligned_polygons.find(poly => poly.id === d).metrics[metric_id]); })
+        .attr('cy', function(d){
+            let poly = aligned_polygons.find(poly => poly.id === d);
+            if (!poly) return "none";
+            return y_scale(poly.metrics[metric_id]); })
         .attr('r', 4 )
-        .attr('stroke', function(d) { return aligned_polygons.find(poly => poly.id === d).id === inspected_index ? '#FFF' : 'none'; })
+        .attr('stroke', function(d) {
+            let poly = aligned_polygons.find(poly => poly.id === d);
+            if (!poly) return "none";
+            if (poly.id === inspected_index) {
+                return '#FFF';
+            } else { return "none"; }
+        })
         .attr('stroke-width', 1.0 )
-        .style('fill', function(d){ return aligned_polygons.find(poly => poly.id === d).color; });
+        .style('fill', function(d){
+            let poly = aligned_polygons.find(poly => poly.id === d);
+            if (!poly) return "none";
+            return poly.color });
 
     function updateView() {
         d3.select('#' + metric_id + '-data')
@@ -383,6 +407,7 @@ export function computeTrendForMetric( metric_id, aligned_polygons, aligned_poly
     for (let i = 0; i < aligned_polygons.length; i++) {
         let curr_index = aligned_polygon_order[i];
         let curr_polygon = aligned_polygons.find(poly => poly.id === curr_index);
+        if (!curr_polygon) continue;
         // console.log(aligned_polygons, aligned_polygon_order, curr_index, curr_polygon);
         data.push({x: i, y: curr_polygon.metrics[metric_id]});
     }
@@ -398,6 +423,7 @@ export function computeTrendForCorr( metric_id, aligned_polygons, aligned_polygo
     for (let i = 0; i < aligned_polygons.length; i++) {
         let curr_index = aligned_polygon_order[i];
         let curr_polygon = aligned_polygons.find(poly => poly.id === curr_index);
+        if (!curr_polygon) continue;
         data.push({x: curr_polygon.depVal, y: curr_polygon.metrics[metric_id]})
     }
 
