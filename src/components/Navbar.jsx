@@ -14,7 +14,7 @@ export default function NavBar({ nowMode, onChangeMode }) {
         <>
             <nav className="no-text-select">
                 <img src={`${import.meta.env.BASE_URL}favicons/favicon_white.png`} width="100px" height="100px" alt="JCS icon"/>
-                <h1>Joint Coordinate System</h1>
+                <h1>Joint Coordinate System Dashboard</h1>
                 <ul>
                     {navItems.map(item => (
                         <li key={item.mode} className={ (item.mode === nowMode) ? 'active' : '' }

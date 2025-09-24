@@ -82,7 +82,7 @@ export default function JCSCanvas({ onShowPCC, setShowPCC, onShowCentroids, onCl
                      style={{opacity: onColorBlockMode ? "0.8": "0.4"}} alt={"Toggle Color Block Button"} title={"Color Block Mode"}/>
                 <img id="save-JCS-button" src={`${import.meta.env.BASE_URL}assets/save.png`} onClick={ disableControl ? undefined : (() => save_as_png("joint-coordinate-container", "jcs", 2.0)) }
                      style={{opacity: disableControl ? "0.4": "0.8"}} alt={"Save Button"} title={"Save JCS Plot"}/>
-                <h3>Joint Coordinate</h3>
+                <h3>Joint Coordinate System</h3>
                 <div id="joint-coordinate-container">
                     <svg id="joint-coordinate-canvas">
                         {/* Correlation Indicator */}
