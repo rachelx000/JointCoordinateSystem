@@ -126,7 +126,7 @@ export default function AnalysisPanel( { data, selectedIVs, selectedDV, nowPolyg
     }, [sidePanelRenderReady, scatterComplete, alignedPolygonData, alignedPolygonOrder]);
 
     useEffect(() => {
-        if ( scatterComplete && alignedPolygonData.length === alignedPolygonOrder.length ) {
+        if ( scatterComplete && data.length === alignedPolygonData.length && alignedPolygonData.length === alignedPolygonOrder.length ) {
             shape_metrics.forEach( (metric) => {
                 setFittedEquations(prev => ({
                     ...prev,

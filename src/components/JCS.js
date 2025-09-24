@@ -372,17 +372,17 @@ export function plot_polygons( canvas_id, polygon_data, inspected_index, if_colo
         .data(polygon_data)
         .join('polygon')
         .attr('points', function(d) { return d.points } )
-        .attr('fill', function(d, i) { return if_color_block_mode ? d.color : (i === inspected_index ? '#FFF' : 'none') })
+        .attr('fill', function(d) { return if_color_block_mode ? d.color : (d.id === inspected_index ? '#FFF' : 'none') })
         .attr('stroke', function(d) { return if_color_block_mode ? '#FFF' : d.color })
         .attr('stroke-width', if_color_block_mode ? 0.0 : 1.5)
-        .attr('stroke-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.3 ) : 1.0 ; })
-        .attr('fill-opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.2 ) : 0.2 ; })
+        .attr('stroke-opacity', function(d) { return (inspected_index !== null) ? (d.id === inspected_index ? 1.0 : 0.3 ) : 1.0 ; })
+        .attr('fill-opacity', function(d) { return (inspected_index !== null) ? (d.id === inspected_index ? 1.0 : 0.2 ) : 0.2 ; })
         .classed('highlight-stroke', false);
 
     d3.select(canvas_id)
         .selectAll('polygon')
-        .each(function(d, i) {
-            if (i === inspected_index) {
+        .each(function(d) {
+            if (d.id === inspected_index) {
                 // Move the inspected polygon to front
                 this.parentNode.appendChild(this);
 
@@ -435,8 +435,8 @@ export function plot_centroids( id, polygon_data, if_centroids, inspected_index,
     if ( if_centroids ) {
         d3.select(id)
             .selectAll('circle')
-            .each(function(d, i) {
-                if (i === inspected_index) {
+            .each(function(d) {
+                if (d.id === inspected_index) {
                     // Move the inspected centroid to front
                     this.parentNode.appendChild(this);
                 }})
@@ -444,16 +444,16 @@ export function plot_centroids( id, polygon_data, if_centroids, inspected_index,
             .join('circle')
             .attr('cx', function(d){ return d.centroid[0]; })
             .attr('cy', function(d){ return d.centroid[1] })
-            .attr('r', function(d, i) { return i === inspected_index ? 4.5 : 3.5; })
-            .attr('stroke-width', function(d, i) { return (if_color_block_mode || i === inspected_index) ? 1.0 : if_polygon_selected(d, color_scale_selection, area_selection) ? 2.0 : 0.0; })
-            .attr('opacity', function(d, i) { return (inspected_index !== null) ? (i === inspected_index ? 1.0 : 0.4 ) : 1.0 ; })
+            .attr('r', function(d) { return d.id === inspected_index ? 4.5 : 3.5; })
+            .attr('stroke-width', function(d) { return (if_color_block_mode || d.id === inspected_index) ? 1.0 : if_polygon_selected(d, color_scale_selection, area_selection) ? 2.0 : 0.0; })
+            .attr('opacity', function(d) { return (inspected_index !== null) ? (d.id === inspected_index ? 1.0 : 0.4 ) : 1.0 ; })
             .attr('fill', function(d){ return if_polygon_selected(d, color_scale_selection, area_selection) ? '#007bff' : d.color; })
             .attr('stroke', function(d){ return if_polygon_selected(d, color_scale_selection, area_selection) && !if_color_block_mode ? '#0056b3' : '#fff' });
 
         d3.select(id)
             .selectAll('circle')
-            .each(function(d, i) {
-                if (i === inspected_index) {
+            .each(function(d) {
+                if (d.id === inspected_index) {
                     // Move the inspected centroid to front
                     this.parentNode.appendChild(this);
                 }});
